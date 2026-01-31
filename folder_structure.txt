@@ -1,0 +1,21 @@
+
+fitness-tech/
+├── prisma/                  # Configurações do Banco de Dados
+│   └── schema.prisma        # Definição das entidades e relações
+├── src/                     # Código fonte (Backend - Node/TS)
+│   ├── controllers/         # Lógica de entrada/saída das rotas
+│   ├── services/            # Lógica de negócio e integração com Prisma
+│   ├── middlewares/         # Autenticação (JWT) e validação de Roles
+│   ├── routes/              # Definição dos endpoints Express
+│   ├── utils/               # Helpers e funções auxiliares
+│   └── server.ts            # Entry point do servidor
+├── client/                  # Frontend (React + Tailwind)
+│   ├── src/
+│   │   ├── components/      # UI Atoms, Molecules, Organisms
+│   │   ├── hooks/           # Custom hooks para consumo de API
+│   │   ├── pages/           # Views (Dashboard, Treinos, etc)
+│   │   ├── services/        # Configuração do Axios/API
+│   │   ├── store/           # Gerenciamento de estado (Zustand/Redux)
+│   │   └── App.tsx          # Router e Provider de Auth
+│   └── tailwind.config.js   # Configuração de cores (Zinc & Lime)
+└── package.json
