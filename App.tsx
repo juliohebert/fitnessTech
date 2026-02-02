@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Dumbbell, LayoutDashboard, Apple, TrendingUp, Trophy,
@@ -11,7 +12,7 @@ import {
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
-  XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar
+  XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar, Legend
 } from 'recharts';
 
 type Role = 'ALUNO' | 'PROFESSOR' | 'NUTRI' | 'ADMIN';
@@ -49,7 +50,7 @@ const WEIGHT_HISTORY = [
 
 const MACRO_DISTRIBUTION = [
   { name: 'Proteínas', value: 30, fill: '#D9FF00' },
-  { name: 'Carboidratos', value: 50, fill: '#3b82f6' },
+  { name: 'Carbos', value: 50, fill: '#3b82f6' },
   { name: 'Gorduras', value: 20, fill: '#f97316' },
 ];
 
@@ -169,9 +170,9 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
 
   const skipRest = () => { setRestSeconds(0); setRestingExerciseId(null); };
 
-  // Fix: Explicitly type reduce calls to avoid 'unknown' errors
   const totalPossibleSets: number = (workout?.exercises || []).reduce((acc: number, ex: any): number => acc + (Number(ex.s) || 0), 0);
-  const totalCompletedSets: number = Object.values(exerciseProgress).reduce((acc: number, val: number): number => acc + val, 0);
+  // Fix: Explicitly cast the values from exerciseProgress to number[] to avoid 'unknown' type issues during reduction
+  const totalCompletedSets: number = (Object.values(exerciseProgress) as number[]).reduce((acc: number, val: number): number => acc + val, 0);
   const workoutPercentage = totalPossibleSets > 0 ? (totalCompletedSets / totalPossibleSets) * 100 : 0;
 
   return (
@@ -429,7 +430,35 @@ const NutritionView = ({ diet, dayIdx }: { diet: any, dayIdx: number }) => {
              );
            })}
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-xl h-fit"><h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-8">Macros</h4><div className="h-64"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={MACRO_DISTRIBUTION} innerRadius={60} outerRadius={90} paddingAngle={10} dataKey="value">{MACRO_DISTRIBUTION.map((e, i) => <Cell key={i} fill={e.fill}/>)}</Pie></PieChart></ResponsiveContainer></div></div>
+        <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-xl h-fit">
+          <h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-8">Distribuição de Macros</h4>
+          <div className="flex flex-col items-center">
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Pie data={MACRO_DISTRIBUTION} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">
+                    {MACRO_DISTRIBUTION.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="w-full mt-6 space-y-4">
+               {MACRO_DISTRIBUTION.map((macro, idx) => (
+                 <div key={idx} className="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
+                    <div className="flex items-center gap-3">
+                       <div className="size-3 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: macro.fill, color: macro.fill }} />
+                       <span className="text-xs font-black uppercase text-zinc-300 tracking-tighter">{macro.name}</span>
+                    </div>
+                    <span className="text-xs font-black italic text-white">{macro.value}%</span>
+                 </div>
+               ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
