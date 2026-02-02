@@ -8,11 +8,12 @@ import {
   Smartphone, QrCode, CreditCard, Wallet, Trash2, Coffee, Sun, Moon, Repeat, Plus,
   ChevronRight, CheckCircle, Video, Wrench, BookOpen, ExternalLink, PlayCircle,
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
-  Package, Tag, Filter, ShoppingBag, Percent
+  Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
+  MessageCircle, UserPlus, Pencil, Trash
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
-  XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar, Legend
+  XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar, Legend, LineChart, Line
 } from 'recharts';
 
 type Role = 'ALUNO' | 'PROFESSOR' | 'NUTRI' | 'ADMIN';
@@ -31,7 +32,50 @@ interface CartItem extends Product {
   quantity: number;
 }
 
-// --- MOCK DATA ---
+interface Biometrics {
+  height: string;
+  weight: string;
+  age: string;
+  goal: string;
+}
+
+interface Student {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  plan: string;
+  lastVisit: string;
+  progress: number;
+  avatar: string;
+}
+
+interface ServicePlan {
+  id: number;
+  title: string;
+  price: number;
+  duration: string;
+  activeStudents: number;
+  description: string;
+}
+
+// --- INITIAL DATA ---
+
+const INITIAL_STUDENTS: Student[] = [
+  { id: 1, name: 'Alex Rivers', email: 'alex@rivers.com', phone: '5511999999999', plan: 'VIP Performance', lastVisit: 'Hoje, 09:00', progress: 75, avatar: 'https://picsum.photos/seed/alex/100' },
+  { id: 2, name: 'Bia Silva', email: 'bia@fitness.com', phone: '5511988888888', plan: 'Básico Semanal', lastVisit: 'Ontem', progress: 40, avatar: 'https://picsum.photos/seed/bia/100' },
+  { id: 3, name: 'Caio Castro', email: 'caio@body.com', phone: '5511977777777', plan: 'Consultoria Elite', lastVisit: 'há 2 dias', progress: 90, avatar: 'https://picsum.photos/seed/caio/100' },
+];
+
+const PROF_PLANS: ServicePlan[] = [
+  { id: 1, title: 'Consultoria Online Mensal', price: 199.90, duration: '30 dias', activeStudents: 12, description: 'Treino personalizado com acompanhamento via chat.' },
+  { id: 2, title: 'Plano Semestral Bodybuilder', price: 899.00, duration: '180 dias', activeStudents: 5, description: 'Foco total em competição e hipertrofia extrema.' },
+];
+
+const NUTRI_PLANS: ServicePlan[] = [
+  { id: 3, title: 'Acompanhamento Nutricional 60d', price: 250.00, duration: '60 dias', activeStudents: 8, description: 'Ajustes quinzenais de macros e suplementação.' },
+  { id: 4, title: 'Dieta Flexível Master', price: 150.00, duration: '30 dias', activeStudents: 15, description: 'Aprenda a comer o que gosta batendo as metas.' },
+];
 
 const INITIAL_PRODUCTS: Product[] = [
   { id: 1, name: 'Whey Isolate 900g', price: 249.90, brand: 'Max Titanium', img: 'https://images.unsplash.com/photo-1593095191850-2a733009e073?q=80&w=400', category: 'Suplementos', stock: 15 },
@@ -40,17 +84,40 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: 4, name: 'Camiseta Oversized Zinc', price: 119.00, brand: 'Vou de Gym', img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400', category: 'Vestuário', stock: 25 },
 ];
 
+const WEIGHT_HISTORY = [
+  { date: 'Set 10', weight: 88.5, fat: 18.5 },
+  { date: 'Set 17', weight: 87.2, fat: 18.2 },
+  { date: 'Set 24', weight: 86.8, fat: 18.0 },
+  { date: 'Out 01', weight: 85.5, fat: 17.5 },
+  { date: 'Out 08', weight: 84.9, fat: 17.2 },
+  { date: 'Out 15', weight: 84.2, fat: 16.8 },
+];
+
+const LIFT_PROGRESS = [
+  { week: 'Semana 1', load: 80 },
+  { week: 'Semana 2', load: 85 },
+  { week: 'Semana 3', load: 85 },
+  { week: 'Semana 4', load: 92 },
+  { week: 'Semana 5', load: 95 },
+  { week: 'Semana 6', load: 102 },
+];
+
+const PERSONAL_RECORDS = [
+  { exercise: 'Supino Reto', weight: '105kg', date: '12 Out', icon: <Flame size={14}/>, color: 'text-orange-500' },
+  { exercise: 'Agachamento', weight: '140kg', date: '08 Out', icon: <Zap size={14}/>, color: 'text-lime-400' },
+  { exercise: 'Lev. Terra', weight: '180kg', date: '25 Set', icon: <Trophy size={14}/>, color: 'text-blue-500' },
+];
+
 const MACRO_DISTRIBUTION = [
   { name: 'Proteínas', value: 30, fill: '#D9FF00' },
   { name: 'Carbos', value: 50, fill: '#3b82f6' },
   { name: 'Gorduras', value: 20, fill: '#f97316' },
 ];
 
-const WEEKLY_WORKOUTS: Record<number, any> = {
+const INITIAL_WORKOUTS: Record<number, any> = {
   1: { title: 'Push Day: Hipertrofia Sistêmica', category: 'A', exercises: [
     { id: 'ex1', n: 'Supino Reto c/ Barra', s: 4, r: '8-10', w: '80kg', rest: 90, group: 'Peito', desc: 'Foco na cadência 2020. Barra toca o peito levemente.', equipment: ['Barra Olímpica', 'Banco Reto'], video: 'https://www.w3schools.com/html/mov_bbb.mp4' },
     { id: 'ex2', n: 'Supino Inclinado c/ Halteres', s: 3, r: '10-12', w: '32kg', rest: 60, group: 'Peito', desc: 'Foco na porção superior do peito. 45 graus.', equipment: ['Halteres', 'Banco Inclinado'], video: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-    { id: 'ex3', n: 'Crucifixo Máquina', s: 3, r: '15', w: '55kg', rest: 45, group: 'Peito', desc: 'Pico de contração de 2 segundos no centro.', equipment: ['Pec Deck / Máquina de Crucifixo'], video: 'https://www.w3schools.com/html/mov_bbb.mp4' },
   ], duration: '65m' },
   2: { title: 'Pull Day: Dorsal & Estética', category: 'B', exercises: [
     { id: 'ex8', n: 'Barra Fixa (Pull Ups)', s: 4, r: 'Falha', w: 'BW', rest: 90, group: 'Costas', desc: 'Amplitude total, peito no topo.', equipment: ['Barra Fixa'], video: 'https://www.w3schools.com/html/mov_bbb.mp4' },
@@ -130,6 +197,644 @@ const CalendarBase = ({ title, sub, selectedDay, setSelectedDay, days, children 
     </div>
   </div>
 );
+
+// --- PROFESSIONAL SHARED COMPONENTS ---
+
+const StudentConsole = ({ student, type, onClose, initialView = 'profile' }: any) => {
+  const [view, setView] = useState(initialView);
+  const [selectedDay, setSelectedDay] = useState(1);
+  const [workouts, setWorkouts] = useState(INITIAL_WORKOUTS);
+  const [isAddingExercise, setIsAddingExercise] = useState(false);
+  const [newExercise, setNewExercise] = useState({ n: '', s: '', r: '', w: '', rest: '60', group: '', desc: '' });
+
+  const handleAddExercise = (e: React.FormEvent) => {
+    e.preventDefault();
+    const dayWorkout = workouts[selectedDay] || { title: `Treino de ${['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'][selectedDay]}`, category: 'A', exercises: [] };
+    const updatedWorkout = {
+      ...dayWorkout,
+      exercises: [...dayWorkout.exercises, { ...newExercise, id: Date.now().toString() }]
+    };
+    setWorkouts({ ...workouts, [selectedDay]: updatedWorkout });
+    setIsAddingExercise(false);
+    setNewExercise({ n: '', s: '', r: '', w: '', rest: '60', group: '', desc: '' });
+  };
+
+  const removeExercise = (day: number, exId: string) => {
+    const dayWorkout = workouts[day];
+    const updatedExercises = dayWorkout.exercises.filter((ex: any) => ex.id !== exId);
+    setWorkouts({ ...workouts, [day]: { ...dayWorkout, exercises: updatedExercises } });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[150] bg-black flex animate-in fade-in duration-500 overflow-y-auto">
+       <aside className="w-80 border-r border-zinc-900 bg-zinc-950 p-8 flex flex-col gap-10">
+          <button onClick={onClose} className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest mb-4">
+             <ChevronLeft size={16}/> Voltar para lista
+          </button>
+          <div className="text-center">
+             <img src={student.avatar} className="size-32 rounded-[3rem] border-4 border-zinc-900 mx-auto mb-6 shadow-2xl" alt="Avatar"/>
+             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">{student.name}</h3>
+             <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mt-2">{student.plan}</p>
+          </div>
+          <nav className="space-y-2 mt-4">
+             <button onClick={() => setView('profile')} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === 'profile' ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-900'}`}>
+                <User size={18}/> Perfil do Aluno
+             </button>
+             <button onClick={() => setView('workouts')} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === 'workouts' ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-900'}`}>
+                <Dumbbell size={18}/> Gestão de Treino
+             </button>
+             <button onClick={() => setView('diet')} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === 'diet' ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-900'}`}>
+                <Salad size={18}/> Gestão de Dieta
+             </button>
+          </nav>
+       </aside>
+
+       <main className="flex-1 p-12 lg:p-20 bg-zinc-950">
+          {view === 'profile' && (
+            <div className="animate-in slide-in-from-right-10 duration-500 space-y-12">
+               <header>
+                 <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Visão Geral</h2>
+                 <p className="text-zinc-500 font-medium">Dados biométricos e histórico de performance.</p>
+               </header>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <StatCard label="Peso Atual" value="84.2kg" trend="-0.4" color="text-lime-400" icon={Scale} />
+                  <StatCard label="Altura" value="1.82m" color="text-blue-400" icon={Target} />
+                  <StatCard label="Idade" value="26" color="text-orange-500" icon={History} />
+                  <StatCard label="Meta" value="Hipertrofia" color="text-pink-500" icon={Award} />
+               </div>
+               <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
+                  <h4 className="text-xl font-black italic uppercase mb-10 flex items-center gap-3"><Activity size={20} className="text-blue-400"/> Curva de Evolução</h4>
+                  <div className="h-80 w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={WEIGHT_HISTORY}><defs><linearGradient id="colorW" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><YAxis hide /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '1rem' }} /><Area type="monotone" dataKey="weight" stroke="#3b82f6" strokeWidth={4} fill="url(#colorW)" /></AreaChart></ResponsiveContainer></div>
+               </div>
+            </div>
+          )}
+
+          {view === 'workouts' && (
+            <div className="animate-in slide-in-from-right-10 duration-500 space-y-12">
+               <header className="flex justify-between items-end">
+                 <div><h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Prescrever Treino</h2><p className="text-zinc-500 font-medium">Monte a estratégia de treinamento semanal.</p></div>
+                 <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl gap-1 overflow-x-auto no-scrollbar max-w-sm">
+                    {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day, idx) => (
+                      <button key={idx} onClick={() => setSelectedDay(idx)} className={`w-12 h-12 flex items-center justify-center rounded-xl text-[10px] font-black uppercase transition-all ${selectedDay === idx ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-800'}`}>{day}</button>
+                    ))}
+                 </div>
+               </header>
+
+               <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
+                  <div className="flex justify-between items-center mb-10">
+                    <h3 className="text-2xl font-black italic uppercase text-white">{workouts[selectedDay]?.title || 'Descanso ou Novo Treino'}</h3>
+                    <button onClick={() => setIsAddingExercise(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"><Plus size={16}/> Adicionar Exercício</button>
+                  </div>
+
+                  <div className="space-y-4">
+                     {!workouts[selectedDay]?.exercises || workouts[selectedDay].exercises.length === 0 ? (
+                       <div className="py-20 text-center italic text-zinc-700 font-bold uppercase tracking-widest">Nenhum exercício prescrito para este dia.</div>
+                     ) : (
+                       workouts[selectedDay].exercises.map((ex: any, idx: number) => (
+                         <div key={ex.id} className="bg-zinc-950 border border-zinc-800 p-6 rounded-3xl flex items-center justify-between group">
+                            <div className="flex items-center gap-6">
+                               <div className="size-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-lime-400 font-black italic">{idx + 1}</div>
+                               <div><p className="text-sm font-black text-white uppercase italic tracking-tight">{ex.n}</p><div className="flex items-center gap-3 text-[10px] font-black text-zinc-500 uppercase mt-1"><span>{ex.group}</span><span>•</span><span>{ex.s} séries</span><span>•</span><span>{ex.r} reps</span><span>•</span><span className="text-lime-400">{ex.w}</span></div></div>
+                            </div>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <button className="size-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-white transition-all"><Pencil size={14}/></button>
+                               <button onClick={() => removeExercise(selectedDay, ex.id)} className="size-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all"><Trash size={14}/></button>
+                            </div>
+                         </div>
+                       ))
+                     )}
+                  </div>
+               </div>
+
+               {isAddingExercise && (
+                 <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
+                    <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-[3rem] p-10 animate-in zoom-in duration-300">
+                       <div className="flex justify-between items-center mb-10"><h3 className="text-3xl font-black italic uppercase">Adicionar ao Treino</h3><button onClick={() => setIsAddingExercise(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500"><X size={20}/></button></div>
+                       <form onSubmit={handleAddExercise} className="space-y-6">
+                          <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Nome do Exercício</label><input required value={newExercise.n} onChange={e => setNewExercise({...newExercise, n: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none" placeholder="Ex: Supino Reto"/></div>
+                          <div className="grid grid-cols-3 gap-4">
+                             <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Séries</label><input required value={newExercise.s} onChange={e => setNewExercise({...newExercise, s: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none" placeholder="4"/></div>
+                             <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Repetições</label><input required value={newExercise.r} onChange={e => setNewExercise({...newExercise, r: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none" placeholder="10-12"/></div>
+                             <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Carga</label><input required value={newExercise.w} onChange={e => setNewExercise({...newExercise, w: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none" placeholder="80kg"/></div>
+                          </div>
+                          <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Grupo Muscular</label><input required value={newExercise.group} onChange={e => setNewExercise({...newExercise, group: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none" placeholder="Peito, Quadríceps..."/></div>
+                          <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-lime-400/20 active:scale-95 transition-all">Prescrever Exercício</button>
+                       </form>
+                    </div>
+                 </div>
+               )}
+            </div>
+          )}
+       </main>
+    </div>
+  );
+};
+
+const StudentManagementView = ({ title, type, students, onAddStudent }: { title: string, type: 'PROFESSOR' | 'NUTRI', students: Student[], onAddStudent: (s: Partial<Student>) => void }) => {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [newStudent, setNewStudent] = useState({ name: '', email: '', phone: '', plan: '' });
+  const [consoleState, setConsoleState] = useState<{ student: Student | null, view: string }>({ student: null, view: 'profile' });
+
+  const sendWhatsAppAccess = (student: Student) => {
+    const message = encodeURIComponent(`Olá ${student.name}! Aqui está o seu acesso ao Fitness Tech:\n\n📧 Login: ${student.email}\n📱 Baixe o app e comece agora o seu plano de ${student.plan}!\n\nBora pra cima! 🔥`);
+    const whatsappUrl = `https://wa.me/${student.phone}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onAddStudent(newStudent);
+    setNewStudent({ name: '', email: '', phone: '', plan: '' });
+    setShowAddModal(false);
+  };
+
+  const filteredStudents = students.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const currentPlans = type === 'PROFESSOR' ? PROF_PLANS : NUTRI_PLANS;
+
+  if (consoleState.student) {
+    return <StudentConsole student={consoleState.student} type={type} initialView={consoleState.view} onClose={() => setConsoleState({ student: null, view: 'profile' })} />;
+  }
+
+  return (
+    <div className="animate-in fade-in duration-700 space-y-10">
+      <header className="flex flex-col lg:flex-row justify-between lg:items-end gap-6">
+        <div>
+          <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2">{title}</h2>
+          <p className="text-zinc-500 font-medium">Gestão ativa de clientes e progresso.</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4">
+           <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+              <input 
+                placeholder="Buscar por nome..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-zinc-900 border border-zinc-800 rounded-2xl pl-12 pr-6 py-4 text-xs font-bold w-full sm:w-64 focus:border-lime-400 outline-none" 
+              />
+           </div>
+           <button 
+            onClick={() => setShowAddModal(true)}
+            className="bg-lime-400 text-black px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-lime-400/20 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all"
+           >
+             <UserPlus size={18} /> Novo Aluno
+           </button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 gap-4">
+        {filteredStudents.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-20 text-center italic text-zinc-600">
+             <Users size={64} className="mx-auto mb-6 opacity-20" />
+             <p className="font-bold uppercase tracking-widest text-xs">Nenhum aluno encontrado</p>
+          </div>
+        ) : (
+          filteredStudents.map(student => (
+            <div key={student.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-[2.5rem] flex flex-col lg:flex-row items-center gap-8 hover:border-zinc-700 transition-all group">
+              <div className="size-16 rounded-[1.5rem] overflow-hidden border-2 border-zinc-800 shrink-0">
+                 <img src={student.avatar} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0 text-center lg:text-left">
+                 <h4 className="text-lg font-black italic uppercase tracking-tight text-white leading-none mb-2 truncate">{student.name}</h4>
+                 <div className="flex flex-wrap justify-center lg:justify-start items-center gap-4 text-zinc-500">
+                    <span className="text-[10px] font-black uppercase bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800">{student.plan}</span>
+                    <div className="size-1 bg-zinc-800 rounded-full hidden sm:block" />
+                    <span className="text-[10px] font-bold uppercase flex items-center gap-1 shrink-0"><Clock size={12}/> {student.lastVisit}</span>
+                 </div>
+              </div>
+              <div className="hidden lg:block w-48 px-6">
+                 <div className="flex justify-between items-end mb-2">
+                    <span className="text-[9px] font-black uppercase text-zinc-600">Adesão ao {type === 'PROFESSOR' ? 'Treino' : 'Plano'}</span>
+                    <span className="text-[10px] font-black text-lime-400 italic">{student.progress}%</span>
+                 </div>
+                 <div className="h-1.5 w-full bg-zinc-950 rounded-full overflow-hidden p-0.5"><div className="h-full bg-lime-400 rounded-full transition-all duration-1000" style={{ width: `${student.progress}%` }} /></div>
+              </div>
+              <div className="flex flex-wrap justify-center lg:flex-nowrap gap-2">
+                 <button 
+                  onClick={() => sendWhatsAppAccess(student)}
+                  className="size-12 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center justify-center text-green-500 hover:bg-green-500 hover:text-white transition-all shadow-lg shadow-green-500/5 group"
+                  title="Enviar acesso via WhatsApp"
+                 >
+                    <MessageCircle size={18} className="group-hover:scale-110 transition-transform"/>
+                 </button>
+                 <button className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 hover:text-white transition-all"><Mail size={18}/></button>
+                 <button 
+                  onClick={() => setConsoleState({ student, view: 'workouts' })}
+                  className="bg-zinc-950 border border-zinc-800 px-6 py-3 rounded-2xl text-[10px] font-black uppercase text-zinc-500 hover:text-lime-400 hover:border-lime-400/30 transition-all flex items-center gap-2"
+                 >
+                    {type === 'PROFESSOR' ? <Dumbbell size={14}/> : <Salad size={14}/>}
+                    {type === 'PROFESSOR' ? 'Treino' : 'Dieta'}
+                 </button>
+                 <button 
+                  onClick={() => setConsoleState({ student, view: 'profile' })}
+                  className="bg-white text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-lime-400 transition-all"
+                 >
+                   Ver Perfil
+                 </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* MODAL NOVO ALUNO */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAddModal(false)}>
+           <div 
+            className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-[3rem] p-10 animate-in zoom-in duration-300 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+           >
+              <div className="flex justify-between items-center mb-10">
+                 <h3 className="text-3xl font-black italic uppercase tracking-tighter">Novo {type === 'PROFESSOR' ? 'Aluno' : 'Paciente'}</h3>
+                 <button onClick={() => setShowAddModal(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 hover:text-white transition-all"><X size={20}/></button>
+              </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-600 ml-4 tracking-widest">Nome Completo</label>
+                    <input 
+                      required 
+                      value={newStudent.name}
+                      onChange={e => setNewStudent({...newStudent, name: e.target.value})}
+                      placeholder="Ex: João Silva"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none transition-all placeholder:text-zinc-800" 
+                    />
+                 </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-600 ml-4 tracking-widest">E-mail</label>
+                       <input 
+                        required 
+                        type="email"
+                        value={newStudent.email}
+                        onChange={e => setNewStudent({...newStudent, email: e.target.value})}
+                        placeholder="aluno@email.com"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none transition-all placeholder:text-zinc-800" 
+                       />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase text-zinc-600 ml-4 tracking-widest">WhatsApp (com DDI)</label>
+                       <input 
+                        required 
+                        value={newStudent.phone}
+                        onChange={e => setNewStudent({...newStudent, phone: e.target.value})}
+                        placeholder="5511999999999"
+                        className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none transition-all placeholder:text-zinc-800" 
+                       />
+                    </div>
+                 </div>
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-zinc-600 ml-4 tracking-widest">Plano de Adesão</label>
+                    <select 
+                      required
+                      value={newStudent.plan}
+                      onChange={e => setNewStudent({...newStudent, plan: e.target.value})}
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm focus:border-lime-400 outline-none transition-all appearance-none text-zinc-400"
+                    >
+                      <option value="">Selecione um plano...</option>
+                      {currentPlans.map(p => <option key={p.id} value={p.title}>{p.title}</option>)}
+                    </select>
+                 </div>
+                 <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-lime-400/20 active:scale-95 transition-all mt-6">
+                    Cadastrar e Liberar Acesso
+                 </button>
+              </form>
+           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PlanManagementView = ({ plans }: { plans: ServicePlan[] }) => {
+  return (
+    <div className="animate-in fade-in duration-700 space-y-10">
+      <header className="flex justify-between items-end">
+        <div>
+          <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Meus Planos</h2>
+          <p className="text-zinc-500 font-medium">Configure seus pacotes de consultoria e preços.</p>
+        </div>
+        <button className="bg-lime-400 text-black px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl shadow-lime-400/20"><Plus size={16}/> Criar Novo Plano</button>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {plans.map(plan => (
+          <div key={plan.id} className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 relative overflow-hidden group hover:border-lime-400/40 transition-all shadow-2xl">
+             <div className="absolute top-6 right-8 text-zinc-700"><MoreVertical size={24}/></div>
+             <div className="mb-10">
+                <span className="text-[10px] font-black uppercase text-lime-400 bg-lime-400/10 px-4 py-1.5 rounded-full mb-4 inline-block">{plan.duration}</span>
+                <h3 className="text-3xl font-black italic uppercase tracking-tighter text-white leading-tight">{plan.title}</h3>
+             </div>
+             <p className="text-xs text-zinc-500 font-medium mb-10 leading-relaxed italic">"{plan.description}"</p>
+             <div className="flex items-center justify-between pt-10 border-t border-zinc-800/50">
+                <div>
+                   <p className="text-3xl font-black text-white italic">R$ {plan.price.toFixed(2)}</p>
+                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mt-1">Valor do Pacote</p>
+                </div>
+                <div className="text-right">
+                   <p className="text-lg font-black text-lime-400 italic">{plan.activeStudents}</p>
+                   <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest mt-1">Alunos Ativos</p>
+                </div>
+             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ProfessionalDashboard = ({ type }: { type: 'PROFESSOR' | 'NUTRI' }) => {
+  return (
+    <div className="animate-in fade-in duration-700 space-y-12">
+       <header className="flex justify-between items-center">
+          <div className="flex items-center gap-8">
+            <div className="size-20 rounded-[2.5rem] bg-zinc-900 border-4 border-zinc-800 flex items-center justify-center text-lime-400 shadow-2xl">
+               {type === 'PROFESSOR' ? <Dumbbell size={32}/> : <Salad size={32}/>}
+            </div>
+            <div>
+               <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, Dr. Silva</h1>
+               <p className="text-zinc-500 font-medium uppercase text-[10px] tracking-widest flex items-center gap-2">
+                 <ShieldCheck size={14} className="text-blue-400"/> {type === 'PROFESSOR' ? 'Coach Certificado' : 'Nutricionista Clínico'}
+               </p>
+            </div>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 px-6 py-4 rounded-3xl text-right">
+             <p className="text-[9px] font-black uppercase text-zinc-600 mb-1">Faturamento Mensal</p>
+             <p className="text-2xl font-black italic text-lime-400">R$ 12.450,00</p>
+          </div>
+       </header>
+
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+         <StatCard label="Alunos Ativos" value="34" trend="+2" color="text-lime-400" icon={Users} />
+         <StatCard label="Consultas Hoje" value="6" trend="🔥" color="text-orange-400" icon={Calendar} />
+         <StatCard label="Feedbacks Pendentes" value="12" trend="!" color="text-red-400" icon={Bell} />
+         <StatCard label="Rating Médio" value="4.9" trend="⭐" color="text-blue-400" icon={Award} />
+       </div>
+
+       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-8 bg-zinc-900 border border-zinc-800 rounded-[3.5rem] p-10 shadow-2xl">
+             <div className="flex justify-between items-center mb-10">
+                <h4 className="text-xl font-black italic uppercase flex items-center gap-3"><Activity size={20} className="text-lime-400"/> Desempenho dos Alunos</h4>
+                <div className="flex gap-2">
+                   <button className="bg-zinc-950 border border-zinc-800 px-4 py-2 rounded-xl text-[10px] font-black text-zinc-500">Semana</button>
+                   <button className="bg-zinc-800 border border-zinc-700 px-4 py-2 rounded-xl text-[10px] font-black text-white">Mês</button>
+                </div>
+             </div>
+             <div className="h-80 w-full">
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={[
+                   { name: 'Seg', valor: 85 }, { name: 'Ter', valor: 92 }, { name: 'Qua', valor: 88 },
+                   { name: 'Qui', valor: 95 }, { name: 'Sex', valor: 98 }, { name: 'Sáb', valor: 90 }, { name: 'Dom', valor: 82 }
+                 ]}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                    <XAxis dataKey="name" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#18181b', border: 'none', borderRadius: '1rem' }} />
+                    <Bar dataKey="valor" fill="#D9FF00" radius={[8, 8, 0, 0]} />
+                 </BarChart>
+               </ResponsiveContainer>
+             </div>
+          </div>
+          <div className="lg:col-span-4 space-y-6">
+             <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 shadow-2xl">
+                <h5 className="text-[10px] font-black uppercase text-zinc-500 mb-6">Próximos Agendamentos</h5>
+                <div className="space-y-4">
+                   {[1, 2, 3].map(i => (
+                     <div key={i} className="flex items-center gap-4 p-4 bg-zinc-950 border border-zinc-800/50 rounded-2xl">
+                        <div className="size-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xs font-black text-lime-400 italic">14h</div>
+                        <div><p className="text-xs font-bold text-white uppercase italic">Marcos S.</p><p className="text-[8px] font-black text-zinc-600 uppercase">Check-in Mensal</p></div>
+                        <ArrowUpRight size={16} className="ml-auto text-zinc-800" />
+                     </div>
+                   ))}
+                </div>
+                <button className="w-full mt-8 bg-zinc-950 border border-zinc-800 py-3 rounded-2xl text-[9px] font-black uppercase text-zinc-500 hover:text-white transition-all">Ver Agenda Completa</button>
+             </div>
+          </div>
+       </div>
+    </div>
+  );
+};
+
+// --- PROFILE VIEW ---
+
+const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChange }: { profileImage: string, onImageChange: (url: string) => void, biometrics: Biometrics, onBiometricsChange: (b: Biometrics) => void }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tempBiometrics, setTempBiometrics] = useState({...biometrics});
+  const [notif, setNotif] = useState(true);
+
+  // Sync temp state if biometrics prop changes while not editing
+  useEffect(() => {
+    if (!isEditing) {
+      setTempBiometrics({...biometrics});
+    }
+  }, [biometrics, isEditing]);
+
+  const handleSave = () => {
+    onBiometricsChange({...tempBiometrics});
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setTempBiometrics({...biometrics});
+    setIsEditing(false);
+  };
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onImageChange(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const goals = ['Hipertrofia', 'Cutting', 'Bulking', 'Manutenção', 'Resistência'];
+
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12 max-w-4xl mx-auto">
+      <header className="flex flex-col md:flex-row items-center gap-10">
+        <div className="relative group">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            accept="image/*" 
+            onChange={handleFileChange}
+          />
+          <div 
+            onClick={handlePhotoClick}
+            className="size-40 rounded-[4rem] border-[10px] border-zinc-900 shadow-2xl overflow-hidden relative cursor-pointer"
+          >
+            <img src={profileImage} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" alt="Avatar"/>
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
+              <Camera size={32} className="text-lime-400 mb-1" />
+              <span className="text-[9px] font-black uppercase text-lime-400 tracking-widest">Trocar Foto</span>
+            </div>
+          </div>
+          <div className="absolute -bottom-2 -right-2 size-14 bg-lime-400 text-black rounded-3xl flex items-center justify-center shadow-2xl border-[6px] border-zinc-950">
+            <Trophy size={28} strokeWidth={3} />
+          </div>
+        </div>
+        <div className="text-center md:text-left">
+          <h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none mb-4">Alex Rivers</h1>
+          <div className="flex flex-wrap justify-center md:justify-start gap-3">
+             <span className="bg-zinc-900 border border-zinc-800 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-zinc-400 tracking-widest">Aluno VIP</span>
+             <span className="bg-lime-400/10 border border-lime-400/30 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-lime-400 tracking-widest">Nível 28</span>
+             <span className="bg-blue-400/10 border border-blue-400/30 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-blue-400 tracking-widest">Desde Ago 2023</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl space-y-10">
+           <div className="flex items-center justify-between">
+              <h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><User size={20} className="text-lime-400"/> Dados Biométricos</h4>
+              {!isEditing ? (
+                <button onClick={() => setIsEditing(true)} className="text-[10px] font-black uppercase text-lime-400 hover:underline">Editar</button>
+              ) : (
+                <div className="flex gap-4">
+                  <button onClick={handleCancel} className="text-[10px] font-black uppercase text-zinc-500 hover:text-white">Cancelar</button>
+                  <button onClick={handleSave} className="text-[10px] font-black uppercase text-lime-400 flex items-center gap-1"><Save size={12}/> Salvar</button>
+                </div>
+              )}
+           </div>
+           <div className="grid grid-cols-2 gap-6">
+              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50 transition-all">
+                <p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Altura</p>
+                {isEditing ? (
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value={tempBiometrics.height}
+                      onChange={(e) => setTempBiometrics({...tempBiometrics, height: e.target.value})}
+                      className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none focus:border-lime-400"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-700">M</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-black italic text-white">{biometrics.height}m</p>
+                )}
+              </div>
+              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50 transition-all">
+                <p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Peso</p>
+                {isEditing ? (
+                  <div className="relative">
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      value={tempBiometrics.weight}
+                      onChange={(e) => setTempBiometrics({...tempBiometrics, weight: e.target.value})}
+                      className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none focus:border-lime-400"
+                    />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-700">KG</span>
+                  </div>
+                ) : (
+                  <p className="text-2xl font-black italic text-white">{biometrics.weight}kg</p>
+                )}
+              </div>
+              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50 transition-all">
+                <p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Idade</p>
+                {isEditing ? (
+                  <input 
+                    type="number" 
+                    value={tempBiometrics.age}
+                    onChange={(e) => setTempBiometrics({...tempBiometrics, age: e.target.value})}
+                    className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none focus:border-lime-400"
+                  />
+                ) : (
+                  <p className="text-2xl font-black italic text-white">{biometrics.age} anos</p>
+                )}
+              </div>
+              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50 transition-all">
+                <p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Objetivo</p>
+                {isEditing ? (
+                  <select 
+                    value={tempBiometrics.goal}
+                    onChange={(e) => setTempBiometrics({...tempBiometrics, goal: e.target.value})}
+                    className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none focus:border-lime-400 appearance-none"
+                  >
+                    {goals.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                ) : (
+                  <p className="text-2xl font-black italic text-lime-400 uppercase tracking-tighter">{biometrics.goal}</p>
+                )}
+              </div>
+           </div>
+        </section>
+
+        <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl space-y-8">
+           <h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura Ativa</h4>
+           <div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Trophy size={140} className="text-lime-400" /></div>
+              <div className="relative z-10">
+                <p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p>
+                <h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5>
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-zinc-300">Método de Pagamento</p>
+                    <p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p>
+                  </div>
+                </div>
+                <div className="pt-6 border-t border-zinc-900 flex justify-between items-end">
+                   <div>
+                     <p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p>
+                     <p className="text-sm font-black italic text-white">15 de Novembro, 2024</p>
+                   </div>
+                   <button className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 hover:border-red-400/30 transition-all">Cancelar</button>
+                </div>
+              </div>
+           </div>
+        </section>
+      </div>
+
+      <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
+         <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Settings size={20} className="text-orange-400"/> Preferências e Conta</h4>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+            <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
+               <div className="flex items-center gap-4">
+                  <div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><Bell size={20}/></div>
+                  <div><p className="text-sm font-black uppercase italic text-zinc-200">Notificações</p><p className="text-[10px] font-bold text-zinc-600">Lembretes de treino e dieta</p></div>
+               </div>
+               <button onClick={() => setNotif(!notif)} className={`w-14 h-8 rounded-full transition-all relative p-1 ${notif ? 'bg-lime-400 shadow-lg shadow-lime-400/20' : 'bg-zinc-950 border border-zinc-800'}`}>
+                  <div className={`size-6 rounded-full transition-all ${notif ? 'bg-black translate-x-6' : 'bg-zinc-700 translate-x-0'}`} />
+               </button>
+            </div>
+            <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
+               <div className="flex items-center gap-4">
+                  <div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><Smartphone size={20}/></div>
+                  <div><p className="text-sm font-black uppercase italic text-zinc-200">Dispositivos</p><p className="text-[10px] font-bold text-zinc-600">Sincronizar com Apple Health</p></div>
+               </div>
+               <ChevronRight size={20} className="text-zinc-700" />
+            </div>
+            <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
+               <div className="flex items-center gap-4">
+                  <div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><ShieldCheck size={20}/></div>
+                  <div><p className="text-sm font-black uppercase italic text-zinc-200">Segurança</p><p className="text-[10px] font-bold text-zinc-600">Alterar senha e biometria</p></div>
+               </div>
+               <ChevronRight size={20} className="text-zinc-700" />
+            </div>
+            <button className="flex items-center gap-4 py-6 border-b border-zinc-800/50 group w-full text-left">
+               <div className="size-12 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all"><LogOut size={20}/></div>
+               <div><p className="text-sm font-black uppercase italic text-red-500">Sair da Conta</p><p className="text-[10px] font-bold text-zinc-600">Desconectar deste dispositivo</p></div>
+            </button>
+         </div>
+      </section>
+
+      <footer className="text-center pb-12">
+         <p className="text-[9px] font-black uppercase text-zinc-700 tracking-[0.4em]">Fitness Tech v2.8.4 • Política de Privacidade</p>
+      </footer>
+    </div>
+  );
+};
+
+const ArrowUpRight = ({ size, className }: any) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>;
 
 // --- WORKOUT INTERACTIVE COMPONENTS ---
 
@@ -478,9 +1183,104 @@ const NutritionView = ({ diet, dayIdx }: { diet: any, dayIdx: number }) => {
   );
 };
 
-// --- STUDENT MODULE ---
+// --- EVOLUTION VIEW ---
 
-const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen }: any) => {
+const EvolutionView = () => {
+  return (
+    <div className="animate-in fade-in duration-700 space-y-12">
+      <header>
+        <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">Evolução</h2>
+        <p className="text-zinc-500 font-medium">Acompanhe sua jornada de transformação.</p>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Weight Chart */}
+        <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
+          <div className="flex justify-between items-start mb-10">
+            <div>
+              <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Peso Corporal (kg)</p>
+              <h4 className="text-3xl font-black italic text-white">-4.3kg este mês</h4>
+            </div>
+            <div className="size-12 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center">
+              <Scale size={24} />
+            </div>
+          </div>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={WEIGHT_HISTORY}>
+                <defs>
+                  <linearGradient id="colorWeight" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                <XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }}
+                />
+                <Area type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={4} fillOpacity={1} fill="url(#colorWeight)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Lift Progress Chart */}
+        <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
+          <div className="flex justify-between items-start mb-10">
+            <div>
+              <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Carga Supino Reto (kg)</p>
+              <h4 className="text-3xl font-black italic text-blue-400">+22kg total</h4>
+            </div>
+            <div className="size-12 bg-blue-400/10 text-blue-400 rounded-2xl flex items-center justify-center">
+              <Zap size={24} />
+            </div>
+          </div>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={LIFT_PROGRESS}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+                <XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Tooltip 
+                  cursor={{ fill: '#27272a' }}
+                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }}
+                />
+                <Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Personal Records */}
+      <div className="bg-zinc-900 border border-zinc-800 p-10 rounded-[3rem] shadow-2xl">
+        <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3">
+          <Trophy size={20} className="text-orange-400"/> Recordes Pessoais
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {PERSONAL_RECORDS.map((record, i) => (
+            <div key={i} className="bg-zinc-950 border border-zinc-800 p-6 rounded-[2rem] hover:border-zinc-700 transition-all group">
+              <div className="flex justify-between items-start mb-6">
+                <div className={`p-3 rounded-xl bg-zinc-900 ${record.color}`}>
+                  {record.icon}
+                </div>
+                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{record.date}</span>
+              </div>
+              <p className="text-[10px] font-black uppercase text-zinc-500 mb-1">{record.exercise}</p>
+              <p className="text-4xl font-black italic text-white tracking-tighter group-hover:scale-110 transition-transform origin-left">{record.weight}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- MODULES ---
+
+const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange }: any) => {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [workoutFinished, setWorkoutFinished] = useState(false);
@@ -500,12 +1300,12 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
   if (view === 'store') return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
   
   if (view === 'workouts') return isWorkoutActive ? (
-    <ActiveWorkoutSession workout={WEEKLY_WORKOUTS[selectedDay] || { exercises: [] }} workoutTime={workoutSeconds} onFinish={handleFinish} onClose={() => setIsWorkoutActive(false)} />
+    <ActiveWorkoutSession workout={INITIAL_WORKOUTS[selectedDay] || { exercises: [] }} workoutTime={workoutSeconds} onFinish={handleFinish} onClose={() => setIsWorkoutActive(false)} />
   ) : workoutFinished ? (
     <FinishedSessionView title="Treino Concluído" totalTime={finalTime} reset={() => { setWorkoutFinished(false); setView('dashboard'); }} />
   ) : (
     <CalendarBase title="Planilha" sub="Sua programação de alta performance." selectedDay={selectedDay} setSelectedDay={setSelectedDay} days={['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']}>
-      <WorkoutDetailCard workout={WEEKLY_WORKOUTS[selectedDay] || { exercises: [], title: 'Descanso' }} onStart={startWorkout} />
+      <WorkoutDetailCard workout={INITIAL_WORKOUTS[selectedDay] || { exercises: [], title: 'Descanso' }} onStart={startWorkout} />
     </CalendarBase>
   );
 
@@ -514,24 +1314,42 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
       <NutritionView diet={WEEKLY_DIETS[selectedDay] || DEFAULT_DIET} dayIdx={selectedDay} />
     </CalendarBase>
   );
+
+  if (view === 'evolution') return <EvolutionView />;
+  if (view === 'profile') return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} />;
   
-  return <StudentDashboard setView={setView} onStartWorkout={() => setView('workouts')} />;
+  return <StudentDashboard setView={setView} onStartWorkout={() => setView('workouts')} profileImage={profileImage} biometrics={biometrics} />;
 };
 
-const StudentDashboard = ({ setView, onStartWorkout }: any) => {
+const ProfessorModule = ({ view, setView, students, onAddStudent }: any) => {
+  if (view === 'students') return <StudentManagementView title="Alunos Ativos" type="PROFESSOR" students={students} onAddStudent={onAddStudent} />;
+  if (view === 'plans') return <PlanManagementView plans={PROF_PLANS} />;
+  return <ProfessionalDashboard type="PROFESSOR" />;
+};
+
+const NutriModule = ({ view, setView, students, onAddStudent }: any) => {
+  if (view === 'patients') return <StudentManagementView title="Pacientes Ativos" type="NUTRI" students={students} onAddStudent={onAddStudent} />;
+  if (view === 'plans') return <PlanManagementView plans={NUTRI_PLANS} />;
+  return <ProfessionalDashboard type="NUTRI" />;
+};
+
+const StudentDashboard = ({ setView, onStartWorkout, profileImage, biometrics }: any) => {
   const today = new Date().getDay();
-  const workout = WEEKLY_WORKOUTS[today];
+  const workout = INITIAL_WORKOUTS[today];
   const diet = WEEKLY_DIETS[today] || DEFAULT_DIET;
   return (
     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12">
       <header className="flex flex-col md:flex-row justify-between items-center gap-8">
         <div className="flex items-center gap-8">
-          <div className="relative"><img src="https://picsum.photos/seed/fitness/200" className="size-24 rounded-[3rem] border-[6px] border-zinc-900 shadow-2xl" alt="Avatar"/><div className="absolute -bottom-2 -right-2 size-10 bg-lime-400 text-black rounded-2xl flex items-center justify-center shadow-xl border-4 border-zinc-950"><Trophy size={20} strokeWidth={3} /></div></div>
+          <div className="relative group cursor-pointer" onClick={() => setView('profile')}>
+            <img src={profileImage} className="size-24 rounded-[3rem] border-[6px] border-zinc-900 shadow-2xl group-hover:scale-105 transition-transform object-cover" alt="Avatar"/>
+            <div className="absolute -bottom-2 -right-2 size-10 bg-lime-400 text-black rounded-2xl flex items-center justify-center shadow-xl border-4 border-zinc-950"><Trophy size={20} strokeWidth={3} /></div>
+          </div>
           <div><h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none mb-3">Alex Rivers</h1><div className="flex items-center gap-4"><span className="bg-zinc-900 border border-zinc-800 px-4 py-1.5 rounded-xl text-xs font-black uppercase text-zinc-500">Nível 28</span><div className="w-48 h-2.5 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800"><div className="h-full bg-lime-400 w-3/4 shadow-[0_0_15px_#D9FF00]" /></div></div></div>
         </div>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Peso" value="84.2kg" trend="-0.4" color="text-lime-400" />
+        <StatCard label="Peso" value={`${biometrics.weight}kg`} trend="-0.4" color="text-lime-400" />
         <StatCard label="Kcal Diárias" value={diet.kcal.toString()} subValue="kcal" color="text-blue-400" />
         <StatCard label="Sessões" value="18" trend="🔥" color="text-orange-500" />
         <StatCard label="Hidratação" value="2.8L" trend="💧" color="text-blue-500" />
@@ -558,9 +1376,21 @@ const App: React.FC = () => {
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  
+  // Global Profile Image State
+  const [profileImage, setProfileImage] = useState("https://picsum.photos/seed/fitness/300");
+
+  // Global Biometrics State
+  const [biometrics, setBiometrics] = useState<Biometrics>({
+    height: '1.82',
+    weight: '84.2',
+    age: '26',
+    goal: 'Hipertrofia'
+  });
 
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -569,6 +1399,20 @@ const App: React.FC = () => {
       return [...prev, {...product, quantity: 1}];
     });
     setIsCartOpen(true);
+  };
+
+  const handleAddStudent = (data: Partial<Student>) => {
+    const newStudent: Student = {
+      id: Date.now(),
+      name: data.name || '',
+      email: data.email || '',
+      phone: data.phone || '',
+      plan: data.plan || 'Plano Básico',
+      lastVisit: 'Nunca',
+      progress: 0,
+      avatar: `https://picsum.photos/seed/${data.name}/100`
+    };
+    setStudents([newStudent, ...students]);
   };
 
   const removeFromCart = (id: number) => { setCart(prev => prev.filter(item => item.id !== id)); };
@@ -580,9 +1424,9 @@ const App: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans">
-      <div className="fixed top-6 right-6 z-[100] bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 p-2 rounded-3xl flex gap-1 shadow-2xl">
+      <div className="fixed top-6 right-6 z-[100] bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 p-2 rounded-3xl flex gap-1 shadow-2xl overflow-x-auto no-scrollbar max-w-[90vw]">
         {(['ALUNO', 'NUTRI', 'PROFESSOR', 'ADMIN'] as Role[]).map(r => (
-          <button key={r} onClick={() => { setRole(r); setActiveView('dashboard'); }} className={`px-5 py-2.5 text-[10px] font-black rounded-2xl transition-all ${role === r ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}>{r}</button>
+          <button key={r} onClick={() => { setRole(r); setActiveView('dashboard'); }} className={`px-5 py-2.5 text-[10px] font-black rounded-2xl transition-all whitespace-nowrap ${role === r ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}>{r}</button>
         ))}
       </div>
 
@@ -599,18 +1443,59 @@ const App: React.FC = () => {
               <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => setActiveView('diet')} collapsed={!sidebarOpen} />
               <NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === 'store'} onClick={() => { if(activeView === 'store') setIsCartOpen(true); setActiveView('store'); }} collapsed={!sidebarOpen} badge={cartCount} />
               <NavItem icon={<TrendingUp size={24}/>} label="Performance" active={activeView === 'evolution'} onClick={() => setActiveView('evolution')} collapsed={!sidebarOpen} />
+              <NavItem icon={<User size={24}/>} label="Perfil" active={activeView === 'profile'} onClick={() => setActiveView('profile')} collapsed={!sidebarOpen} />
             </>
           )}
-          {role === 'ADMIN' && (<><NavItem icon={<Users size={24}/>} label="Alunos" active={activeView === 'students'} onClick={() => setActiveView('students')} collapsed={!sidebarOpen} /><NavItem icon={<Package size={24}/>} label="Gestão Loja" active={activeView === 'adminStore'} onClick={() => setActiveView('adminStore')} collapsed={!sidebarOpen} /><NavItem icon={<Percent size={24}/>} label="Campanhas" active={activeView === 'campaigns'} onClick={() => setActiveView('campaigns')} collapsed={!sidebarOpen} /></>)}
-          {role === 'NUTRI' && (<><NavItem icon={<Users size={24}/>} label="Pacientes" active={activeView === 'patients'} onClick={() => setActiveView('patients')} collapsed={!sidebarOpen} /><NavItem icon={<Salad size={24}/>} label="Planos" active={activeView === 'diet'} onClick={() => setActiveView('diet')} collapsed={!sidebarOpen} /></>)}
+          {role === 'PROFESSOR' && (
+            <>
+              <NavItem icon={<Users size={24}/>} label="Alunos" active={activeView === 'students'} onClick={() => setActiveView('students')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Dumbbell size={24}/>} label="Biblioteca" active={activeView === 'library'} onClick={() => setActiveView('library')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Zap size={24}/>} label="Planos" active={activeView === 'plans'} onClick={() => setActiveView('plans')} collapsed={!sidebarOpen} />
+            </>
+          )}
+          {role === 'NUTRI' && (
+            <>
+              <NavItem icon={<Users size={24}/>} label="Pacientes" active={activeView === 'patients'} onClick={() => setActiveView('patients')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Apple size={24}/>} label="Cardápios" active={activeView === 'menus'} onClick={() => setActiveView('menus')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Zap size={24}/>} label="Planos" active={activeView === 'plans'} onClick={() => setActiveView('plans')} collapsed={!sidebarOpen} />
+            </>
+          )}
+          {role === 'ADMIN' && (<><NavItem icon={<Users size={24}/>} label="Usuários" active={activeView === 'students'} onClick={() => setActiveView('students')} collapsed={!sidebarOpen} /><NavItem icon={<Package size={24}/>} label="Gestão Loja" active={activeView === 'adminStore'} onClick={() => setActiveView('adminStore')} collapsed={!sidebarOpen} /><NavItem icon={<Percent size={24}/>} label="Campanhas" active={activeView === 'campaigns'} onClick={() => setActiveView('campaigns')} collapsed={!sidebarOpen} /></>)}
         </nav>
+        
+        {/* Sidebar Mini Profile */}
+        {sidebarOpen && (
+          <div className="p-6 bg-zinc-900/50 rounded-[2rem] border border-zinc-800 flex items-center gap-4">
+             <img src={role === 'ALUNO' ? profileImage : 'https://picsum.photos/seed/doc/100'} className="size-12 rounded-2xl object-cover border border-zinc-800" />
+             <div className="min-w-0">
+                <p className="text-[10px] font-black text-white uppercase italic truncate">{role === 'ALUNO' ? 'Alex Rivers' : 'Dr. Silva'}</p>
+                <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">{role}</p>
+             </div>
+          </div>
+        )}
+
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-4 bg-zinc-900 border border-zinc-800 rounded-3xl flex justify-center text-zinc-400 hover:text-white transition-all">{sidebarOpen ? <ArrowLeft size={24}/> : <ArrowRight size={24}/>}</button>
       </aside>
 
       <main className="flex-1 p-6 md:p-12 lg:px-20 max-w-8xl mx-auto w-full pb-32">
-        {role === 'ALUNO' && <StudentModule view={activeView} setView={setActiveView} products={products} addToCart={addToCart} cartCount={cartCount} setIsCartOpen={setIsCartOpen} />}
+        {role === 'ALUNO' && (
+          <StudentModule 
+            view={activeView} 
+            setView={setActiveView} 
+            products={products} 
+            addToCart={addToCart} 
+            cartCount={cartCount} 
+            setIsCartOpen={setIsCartOpen} 
+            profileImage={profileImage}
+            onImageChange={setProfileImage}
+            biometrics={biometrics}
+            onBiometricsChange={setBiometrics}
+          />
+        )}
+        {role === 'PROFESSOR' && <ProfessorModule view={activeView} setView={setActiveView} students={students} onAddStudent={handleAddStudent} />}
+        {role === 'NUTRI' && <NutriModule view={activeView} setView={setActiveView} students={students} onAddStudent={handleAddStudent} />}
         {role === 'ADMIN' && activeView === 'adminStore' && <AdminStoreView products={products} setProducts={setProducts} />}
-        {role === 'ADMIN' && activeView !== 'adminStore' && (<div className="flex flex-col items-center justify-center min-h-[60vh] text-center italic"><Package size={80} className="text-zinc-800 mb-6" /><h2 className="text-2xl font-black uppercase text-zinc-700">Selecione "Gestão Loja" no menu lateral</h2></div>)}
+        {role === 'ADMIN' && activeView !== 'adminStore' && (<div className="flex flex-col items-center justify-center min-h-[60vh] text-center italic"><Package size={80} className="text-zinc-800 mb-6" /><h2 className="text-2xl font-black uppercase text-zinc-700">Painel Administrativo</h2></div>)}
       </main>
 
       {/* CART DRAWER */}
@@ -735,8 +1620,13 @@ const App: React.FC = () => {
       {/* MOBILE NAV */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 h-24 bg-zinc-950/90 backdrop-blur-3xl border-t border-zinc-900 flex items-center justify-around z-50 px-8 pb-4">
         <button onClick={() => setActiveView('dashboard')} className={activeView === 'dashboard' ? 'text-lime-400' : 'text-zinc-600'}><LayoutDashboard size={28}/></button>
-        <button onClick={() => setActiveView('workouts')} className={activeView === 'workouts' ? 'text-lime-400' : 'text-zinc-600'}><Dumbbell size={28}/></button>
-        <button onClick={() => setActiveView('store')} className={activeView === 'store' ? 'text-lime-400' : 'text-zinc-600'}><ShoppingBag size={28}/></button>
+        <button onClick={() => setActiveView(role === 'ALUNO' ? 'workouts' : (role === 'PROFESSOR' ? 'students' : 'patients'))} className={activeView === (role === 'ALUNO' ? 'workouts' : 'students') ? 'text-lime-400' : 'text-zinc-600'}>
+          {role === 'ALUNO' ? <Dumbbell size={28}/> : <Users size={28}/>}
+        </button>
+        <button onClick={() => setActiveView(role === 'ALUNO' ? 'store' : 'plans')} className={activeView === (role === 'ALUNO' ? 'store' : 'plans') ? 'text-lime-400' : 'text-zinc-600'}>
+          {role === 'ALUNO' ? <ShoppingBag size={28}/> : <Zap size={28}/>}
+        </button>
+        <button onClick={() => setActiveView('profile')} className={activeView === 'profile' ? 'text-lime-400' : 'text-zinc-600'}><User size={28}/></button>
       </nav>
     </div>
   );
