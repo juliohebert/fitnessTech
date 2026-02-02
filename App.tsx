@@ -1,4 +1,5 @@
 
+// ... (imports remain mostly the same, ensuring Lucide icons are there)
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Dumbbell, LayoutDashboard, Apple, TrendingUp, Trophy,
@@ -9,13 +10,21 @@ import {
   ChevronRight, CheckCircle, Video, Wrench, BookOpen, ExternalLink, PlayCircle,
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
-  MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download
+  MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
+  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
-  XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar, Legend, LineChart, Line
+  XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar, Legend, LineChart, Line,
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
 } from 'recharts';
+import { GoogleGenAI } from "@google/genai";
 
+// --- AI CONFIG ---
+// Initialize Gemini AI. Assumes API_KEY is available in process.env
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+
+// ... (Types and Interfaces remain the same)
 type Role = 'ALUNO' | 'PROFESSOR' | 'NUTRI' | 'ADMIN';
 
 interface Product {
@@ -46,17 +55,11 @@ interface Student {
   phone: string;
   plan: string;
   lastVisit: string;
+  daysAbsent: number; // For Retention Radar
   progress: number;
   avatar: string;
-}
-
-interface ServicePlan {
-  id: number;
-  title: string;
-  price: number;
-  duration: string;
-  activeStudents: number;
-  description: string;
+  financialStatus: 'OK' | 'LATE'; // For Admin
+  risk: boolean; // For Retention Radar
 }
 
 interface Exercise {
@@ -78,24 +81,13 @@ interface WorkoutTemplate {
   exercises: Exercise[];
 }
 
-interface LibraryExercise {
-  id: string;
-  name: string;
-  group: string;
-  defaultOrientations: string[];
-  video: string;
-}
-
 // --- CONSTANTS & MOCKS ---
-
-const EXERCISE_LIBRARY: LibraryExercise[] = [
-  { id: 'lib1', name: 'Supino Reto com Barra', group: 'Peito', defaultOrientations: ['Mantenha as escápulas aduzidas contra o banco.', 'Desça a barra até tocar levemente o centro do peito.', 'Suba de forma explosiva, sem estender totalmente os cotovelos.'], video: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-  { id: 'lib2', name: 'Agachamento Livre', group: 'Pernas', defaultOrientations: ['Mantenha a coluna em posição neutra.', 'Desça até que as coxas fiquem paralelas ao chão.', 'Pressione os calcanhares firmemente contra o solo.'], video: 'https://www.w3schools.com/html/mov_bbb.mp4' },
-];
+// ... (Keeping Mocks mostly same, ensuring INITIAL_DIETS is there)
 
 const INITIAL_STUDENTS: Student[] = [
-  { id: 1, name: 'Alex Rivers', email: 'alex@rivers.com', phone: '5511999999999', plan: 'VIP Performance', lastVisit: 'Hoje, 09:00', progress: 75, avatar: 'https://picsum.photos/seed/alex/100' },
-  { id: 2, name: 'Bia Silva', email: 'bia@fitness.com', phone: '5511988888888', plan: 'Básico Semanal', lastVisit: 'Ontem', progress: 40, avatar: 'https://picsum.photos/seed/bia/100' },
+  { id: 1, name: 'Alex Rivers', email: 'alex@rivers.com', phone: '5511999999999', plan: 'VIP Performance', lastVisit: 'Hoje, 09:00', daysAbsent: 0, progress: 75, avatar: 'https://picsum.photos/seed/alex/100', financialStatus: 'OK', risk: false },
+  { id: 2, name: 'Bia Silva', email: 'bia@fitness.com', phone: '5511988888888', plan: 'Básico Semanal', lastVisit: 'Ontem', daysAbsent: 1, progress: 40, avatar: 'https://picsum.photos/seed/bia/100', financialStatus: 'LATE', risk: false },
+  { id: 3, name: 'Carlos Motta', email: 'carlos@m.com', phone: '5511977777777', plan: 'Trimestral', lastVisit: '12 dias atrás', daysAbsent: 12, progress: 10, avatar: 'https://picsum.photos/seed/carlos/100', financialStatus: 'OK', risk: true },
 ];
 
 const INITIAL_TEMPLATES: WorkoutTemplate[] = [
@@ -105,6 +97,7 @@ const INITIAL_TEMPLATES: WorkoutTemplate[] = [
 const INITIAL_PRODUCTS: Product[] = [
   { id: 1, name: 'Whey Isolate 900g', price: 249.90, brand: 'Max Titanium', img: 'https://images.unsplash.com/photo-1593095191850-2a733009e073?q=80&w=400', category: 'Suplementos', stock: 15 },
   { id: 2, name: 'Creatina Monohidratada', price: 89.90, brand: 'Growth', img: 'https://images.unsplash.com/photo-1579722820308-d74e5719d54e?q=80&w=400', category: 'Suplementos', stock: 40 },
+  { id: 3, name: 'Strap de Punho', price: 49.90, brand: 'Fitness Tech', img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400', category: 'Equipamentos', stock: 5 },
 ];
 
 const INITIAL_WORKOUTS: Record<number, any> = {
@@ -114,12 +107,47 @@ const INITIAL_WORKOUTS: Record<number, any> = {
   ], duration: '65m' },
 };
 
-const WEEKLY_DIETS: Record<number, any> = {
+const INITIAL_DIETS: Record<number, any> = {
   1: { title: 'High Carb', kcal: 3150, meals: [
     { n: 'Café da Manhã', t: '07:30', kcal: 650, icon: <Coffee />, items: [{ name: '4 Ovos Mexidos', kcal: 320 }, { name: '100g Aveia', kcal: 330 }] },
     { n: 'Almoço', t: '13:00', kcal: 850, icon: <Sun />, items: [{ name: '200g Frango', kcal: 400 }, { name: '250g Arroz', kcal: 450 }] },
   ]},
 };
+
+const FOOD_SUBSTITUTIONS: Record<string, string[]> = {
+  'Frango': ['Peixe Branco', 'Lombo Suíno', 'Ovos', 'Tofu'],
+  'Arroz': ['Batata Inglesa', 'Batata Doce', 'Mandioca', 'Macarrão'],
+  'Aveia': ['Granola Sem Açúcar', 'Farinha de Arroz', 'Corn Flakes'],
+  'Ovos': ['Albumina', 'Queijo Cotagge', 'Whey Protein'],
+};
+
+const VISUAL_DIARY_MOCK = [
+  { id: 1, meal: 'Café da Manhã', img: 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?q=80&w=400', time: '08:15', status: 'approved' },
+  { id: 2, meal: 'Almoço', img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400', time: '13:30', status: 'warning' },
+];
+
+const CRM_DATA = [
+  { id: 1, name: 'Lucas Pereira', status: 'LEAD', contact: '11 9999-0000', origin: 'Instagram' },
+  { id: 2, name: 'Fernanda Lima', status: 'VISIT', contact: '11 9888-1111', origin: 'Indicação' },
+  { id: 3, name: 'Ricardo Souza', status: 'TRIAL', contact: '11 9777-2222', origin: 'Google' },
+  { id: 4, name: 'Juliana Costa', status: 'CLOSED', contact: '11 9666-3333', origin: 'Walk-in' },
+  { id: 5, name: 'Marcos Vilela', status: 'LEAD', contact: '11 9555-4444', origin: 'Site' },
+];
+
+const MAINTENANCE_TICKETS = [
+  { id: 1, equipment: 'Esteira 04', issue: 'Lona travando', status: 'OPEN', date: 'Hoje', priority: 'HIGH' },
+  { id: 2, equipment: 'Cadeira Extensora', issue: 'Estofado rasgado', status: 'PENDING', date: 'Ontem', priority: 'LOW' },
+  { id: 3, equipment: 'Crossfit Rig', issue: 'Parafuso solto', status: 'FIXED', date: '01/10', priority: 'MEDIUM' },
+];
+
+const ASSESSMENT_RADAR_DATA = [
+  { subject: 'Força', A: 120, B: 110, fullMark: 150 },
+  { subject: 'Cardio', A: 98, B: 130, fullMark: 150 },
+  { subject: 'Flexib.', A: 86, B: 130, fullMark: 150 },
+  { subject: 'Core', A: 99, B: 100, fullMark: 150 },
+  { subject: 'Potência', A: 85, B: 90, fullMark: 150 },
+  { subject: 'Resist.', A: 65, B: 85, fullMark: 150 },
+];
 
 const DEFAULT_DIET = { title: 'Padrão', kcal: 2500, meals: [{ n: 'Café', t: '08:00', kcal: 500, icon: <Coffee />, items: [{ name: 'Pão c/ Ovo', kcal: 500 }] }] };
 const DAYS_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -160,8 +188,60 @@ const formatTime = (seconds: number) => {
   return [h, m, s].map(v => (v < 10 ? '0' + v : v)).filter((v, i) => v !== '00' || i > 0).join(':');
 };
 
-// --- BASE UI COMPONENTS ---
+const getBase64FromUrl = async (url: string): Promise<string> => {
+  try {
+    const data = await fetch(url);
+    const blob = await data.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(blob); 
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        resolve(base64data.split(',')[1]); // remove data:image/jpeg;base64,
+      }
+    });
+  } catch (e) {
+    console.error("Failed to fetch image for AI", e);
+    return "";
+  }
+}
 
+// Helper to extract frames from video for AI Analysis
+const extractFramesFromVideo = async (videoFile: File, numFrames: number = 3): Promise<string[]> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(videoFile);
+    video.muted = true;
+    video.playsInline = true;
+
+    const frames: string[] = [];
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    video.onloadedmetadata = async () => {
+      canvas.width = video.videoWidth / 4; // Resize for quicker AI processing
+      canvas.height = video.videoHeight / 4;
+      const duration = video.duration;
+      const interval = duration / (numFrames + 1);
+
+      for (let i = 1; i <= numFrames; i++) {
+        video.currentTime = interval * i;
+        await new Promise(r => { video.onseeked = r; });
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          frames.push(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+        }
+      }
+      URL.revokeObjectURL(video.src);
+      resolve(frames);
+    };
+    video.onerror = reject;
+  });
+};
+
+// --- BASE UI COMPONENTS ---
+// ... (NavItem, StatCard, CalendarBase remain unchanged)
 const NavItem = ({ icon, label, active, onClick, collapsed, badge }: any) => (
   <div onClick={onClick} className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer transition-all relative ${active ? 'bg-lime-400 text-black shadow-xl shadow-lime-400/20 scale-[1.02]' : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'}`}>
     <div className={`shrink-0 transition-transform ${active ? 'scale-110' : ''}`}>{icon}</div>
@@ -193,6 +273,91 @@ const CalendarBase = ({ title, sub, selectedDay, setSelectedDay, days, children 
   </div>
 );
 
+// --- AI COMPONENTS ---
+// ... (AIChatWidget remains unchanged)
+const AIChatWidget = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<{role: 'user' | 'model', text: string}[]>([
+    {role: 'model', text: 'Olá! Sou seu AI Coach. Como posso te ajudar hoje com seus treinos ou dieta?'}
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async () => {
+    if(!input.trim()) return;
+    const userMsg = input;
+    setInput('');
+    setMessages(prev => [...prev, {role: 'user', text: userMsg}]);
+    setIsLoading(true);
+
+    try {
+      const history = messages.map(m => ({
+        role: m.role,
+        parts: [{ text: m.text }]
+      }));
+      
+      const chat = ai.chats.create({
+        model: 'gemini-3-flash-preview',
+        config: {
+          systemInstruction: "Você é um personal trainer e nutricionista experiente, motivador e técnico. Responda de forma concisa e útil.",
+        },
+        history: history
+      });
+
+      const result = await chat.sendMessage({ message: userMsg });
+      setMessages(prev => [...prev, { role: 'model', text: result.text || "Desculpe, não consegui processar." }]);
+    } catch (error) {
+      console.error(error);
+      setMessages(prev => [...prev, { role: 'model', text: "Erro de conexão com o Coach AI." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <button onClick={() => setIsOpen(!isOpen)} className="fixed bottom-6 right-6 md:right-10 z-[100] size-16 bg-lime-400 text-black rounded-[2rem] flex items-center justify-center shadow-2xl hover:scale-110 transition-all border-4 border-zinc-950">
+        <Sparkles size={28} className={isOpen ? 'rotate-90 transition-transform' : ''} />
+      </button>
+
+      {isOpen && (
+        <div className="fixed bottom-24 right-6 md:right-10 z-[99] w-[90vw] md:w-96 h-[60vh] bg-zinc-900/90 backdrop-blur-xl border border-zinc-800 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-300">
+           <div className="p-6 border-b border-zinc-800 flex items-center gap-4 bg-zinc-950/50">
+              <div className="size-10 bg-lime-400/10 text-lime-400 rounded-xl flex items-center justify-center"><Bot size={20}/></div>
+              <div><h4 className="font-black italic uppercase text-white">AI Coach</h4><p className="text-[10px] font-bold text-zinc-500">Gemini Powered</p></div>
+           </div>
+           <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {messages.map((m, i) => (
+                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                   <div className={`max-w-[80%] p-4 rounded-2xl text-xs font-medium leading-relaxed ${m.role === 'user' ? 'bg-zinc-800 text-zinc-200 rounded-br-none' : 'bg-lime-400/10 text-lime-400 rounded-bl-none'}`}>
+                      {m.text}
+                   </div>
+                </div>
+              ))}
+              {isLoading && <div className="flex justify-start"><div className="bg-lime-400/10 p-4 rounded-2xl rounded-bl-none"><Loader2 size={16} className="text-lime-400 animate-spin"/></div></div>}
+              <div ref={messagesEndRef} />
+           </div>
+           <div className="p-4 bg-zinc-950 border-t border-zinc-800 flex gap-2">
+              <input 
+                value={input} 
+                onChange={e => setInput(e.target.value)} 
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                placeholder="Pergunte ao Coach..." 
+                className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs outline-none focus:border-lime-400 transition-all"
+              />
+              <button onClick={handleSend} disabled={isLoading} className="size-10 bg-lime-400 text-black rounded-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all disabled:opacity-50"><Send size={16}/></button>
+           </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 // --- ALUNO COMPONENTS ---
 
 const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) => {
@@ -200,6 +365,12 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
   const [expandedId, setExpandedId] = useState<string | null>(workout.exercises[0]?.id || null);
   const [restingExerciseId, setRestingExerciseId] = useState<string | null>(null);
   const [restSeconds, setRestSeconds] = useState<number>(0);
+  
+  // AI Posture & Voice States
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [postureFeedback, setPostureFeedback] = useState<string | null>(null);
+  const [showPostureModal, setShowPostureModal] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   useEffect(() => {
     let interval: any;
@@ -211,6 +382,46 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
   const totalPossibleSets: number = (workout.exercises || []).reduce((acc: number, ex: any) => acc + (Number(ex.s) || 0), 0);
   const totalCompletedSets: number = (Object.values(exerciseProgress) as number[]).reduce((acc: number, val: number) => acc + val, 0);
   const workoutPercentage = totalPossibleSets > 0 ? (totalCompletedSets / totalPossibleSets) * 100 : 0;
+
+  const handleVoiceGuidance = (text: string) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 1.1;
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    window.speechSynthesis.cancel(); // Stop previous
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleVideoAnalysis = async (e: any) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsAnalyzing(true);
+    setPostureFeedback(null);
+    
+    try {
+      // Extract frames from video for AI analysis
+      const frames = await extractFramesFromVideo(file, 3);
+      const parts = frames.map(f => ({ inlineData: { mimeType: 'image/jpeg', data: f } }));
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview', // Pro model for better vision reasoning
+        contents: {
+          parts: [
+            ...parts,
+            { text: "Analise a técnica deste exercício de musculação baseado nesses frames do vídeo. Identifique erros de postura (como valgo, coluna torta, amplitude) e dê 3 dicas de correção diretas e motivadoras. Responda em português." }
+          ]
+        }
+      });
+      setPostureFeedback(response.text || "Não foi possível analisar o vídeo.");
+    } catch (err) {
+      console.error(err);
+      setPostureFeedback("Erro ao analisar vídeo. Tente um arquivo menor ou mais curto.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-10 duration-500 pb-32 max-w-3xl mx-auto">
@@ -261,9 +472,16 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
                         <div className="bg-zinc-950 border border-zinc-800 p-5 rounded-3xl"><p className="text-[10px] text-zinc-600 font-black uppercase mb-1">Reps</p><p className="text-2xl font-black italic text-blue-400">{ex.r}</p></div>
                       </div>
                       <div className="bg-zinc-950/50 p-6 rounded-3xl border border-zinc-800/50">
-                        <p className="text-[10px] font-black uppercase text-zinc-500 mb-3 flex items-center gap-2"><BookOpen size={14}/> Técnica</p>
+                        <div className="flex justify-between items-center mb-3">
+                           <p className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2"><BookOpen size={14}/> Técnica</p>
+                           <button onClick={() => handleVoiceGuidance(ex.orientations.join('. '))} className={`flex items-center gap-2 text-[10px] font-black uppercase transition-colors px-3 py-1.5 rounded-lg border ${isSpeaking ? 'bg-lime-400 text-black border-lime-400 animate-pulse' : 'bg-zinc-900 text-lime-400 border-zinc-800 hover:border-lime-400/50'}`}>
+                              {isSpeaking ? <Volume2 size={12} className="animate-bounce"/> : <Volume2 size={12}/>} 
+                              {isSpeaking ? 'Falando...' : 'Ouvir Dicas'}
+                           </button>
+                        </div>
                         <ul className="space-y-2">{ex.orientations.map((item: string, i: number) => (<li key={i} className="text-xs text-zinc-400 italic"><span className="text-lime-400 font-black mr-1">{i+1}.</span> {item}</li>))}</ul>
                       </div>
+                      <button onClick={() => setShowPostureModal(true)} className="w-full bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 text-zinc-400 hover:text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all"><Video size={16} className="text-blue-500"/> Analisar Postura (AI)</button>
                     </div>
                   </div>
                   {!isDone && (
@@ -284,6 +502,44 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
           );
         })}
       </div>
+
+      {showPostureModal && (
+        <div className="fixed inset-0 z-[150] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowPostureModal(false)}>
+           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[3rem] p-10 animate-in zoom-in duration-300 relative" onClick={e => e.stopPropagation()}>
+              <button onClick={() => setShowPostureModal(false)} className="absolute top-8 right-8 text-zinc-500 hover:text-white"><X size={24}/></button>
+              <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Análise de Postura</h3>
+              <p className="text-zinc-500 text-sm font-bold mb-8">Envie um vídeo curto do seu exercício. A IA analisará sua biomecânica frame a frame.</p>
+              
+              {!postureFeedback ? (
+                 <div className="border-2 border-dashed border-zinc-800 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 hover:border-lime-400 transition-colors bg-zinc-950/50">
+                    {isAnalyzing ? (
+                       <div className="flex flex-col items-center gap-4 animate-in fade-in">
+                          <Loader2 size={48} className="text-lime-400 animate-spin"/>
+                          <p className="text-xs font-black uppercase text-lime-400 animate-pulse">Analisando frames...</p>
+                       </div>
+                    ) : (
+                       <>
+                          <div className="size-16 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-600"><FileVideo size={32}/></div>
+                          <label className="cursor-pointer bg-white text-black px-6 py-3 rounded-xl text-xs font-black uppercase hover:scale-105 transition-transform">
+                             Selecionar Vídeo
+                             <input type="file" accept="video/*" className="hidden" onChange={handleVideoAnalysis} />
+                          </label>
+                          <p className="text-[10px] text-zinc-600 font-bold">Max 15 segundos</p>
+                       </>
+                    )}
+                 </div>
+              ) : (
+                 <div className="space-y-6 animate-in slide-in-from-bottom-4">
+                    <div className="bg-zinc-950 border border-zinc-800 p-6 rounded-3xl max-h-60 overflow-y-auto">
+                       <div className="flex items-center gap-3 mb-4"><Sparkles size={18} className="text-lime-400"/><span className="text-xs font-black uppercase text-white">Feedback do Coach AI</span></div>
+                       <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">{postureFeedback}</p>
+                    </div>
+                    <button onClick={() => setPostureFeedback(null)} className="w-full bg-zinc-800 text-white py-4 rounded-2xl font-black uppercase text-xs">Nova Análise</button>
+                 </div>
+              )}
+           </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -305,56 +561,6 @@ const WorkoutDetailCard = ({ workout, onStart }: any) => {
       <h3 className="text-5xl font-black italic uppercase tracking-tighter mb-12 leading-none">{workout.title}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">{workout.exercises.map((ex: any, i: number) => (<div key={i} className="flex items-center justify-between p-6 bg-zinc-950/60 rounded-3xl border border-zinc-800"><div className="flex items-center gap-4"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-lime-400 font-black italic">{i+1}</div><div className="min-w-0"><p className="font-bold text-sm truncate uppercase tracking-tight italic">{ex.n}</p><p className="text-[10px] text-zinc-500 font-bold uppercase">{ex.s}X {ex.r} • {ex.w} • {ex.rest}s descanso</p></div></div></div>))}</div>
       <button onClick={onStart} className="w-full bg-lime-400 text-black py-7 rounded-[2rem] font-black uppercase tracking-widest text-xl flex items-center justify-center gap-4 shadow-xl active:scale-[0.98] transition-all shadow-lime-400/20"><Play size={28} fill="currentColor" /> COMEÇAR AGORA</button>
-    </div>
-  );
-};
-
-const NutritionView = ({ diet, dayIdx }: { diet: any, dayIdx: number }) => {
-  const [completedMeals, setCompletedMeals] = useState<number[]>([]);
-  useEffect(() => {
-    const saved = localStorage.getItem(`diet_day_${dayIdx}`);
-    if (saved) setCompletedMeals(JSON.parse(saved));
-    else setCompletedMeals([]);
-  }, [dayIdx]);
-
-  const toggleMeal = (idx: number) => {
-    const newCompleted = completedMeals.includes(idx) ? completedMeals.filter(i => i !== idx) : [...completedMeals, idx];
-    setCompletedMeals(newCompleted);
-    localStorage.setItem(`diet_day_${dayIdx}`, JSON.stringify(newCompleted));
-  };
-
-  const progress = diet.meals.length > 0 ? (completedMeals.length / diet.meals.length) * 100 : 0;
-
-  return (
-    <div className="space-y-10 animate-in fade-in duration-500">
-      <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-[2.5rem] shadow-xl">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-3"><div className="size-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center"><Utensils size={20} /></div><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Adesão Diária</p><h4 className="text-lg font-black italic uppercase">{completedMeals.length} de {diet.meals.length} refeições</h4></div></div>
-          <span className="text-xl font-black italic text-lime-400">{Math.round(progress)}%</span>
-        </div>
-        <div className="h-3 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-800 p-0.5"><div className="h-full bg-lime-400 rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }} /></div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-           {diet.meals.map((meal: any, idx: number) => {
-             const isDone = completedMeals.includes(idx);
-             return (
-               <div key={idx} onClick={() => toggleMeal(idx)} className={`group relative bg-zinc-900 border cursor-pointer rounded-[2.5rem] p-8 flex gap-6 transition-all duration-300 active:scale-[0.98] ${isDone ? 'border-lime-400/30 bg-lime-400/5' : 'border-zinc-800 hover:border-zinc-700'}`}>
-                  <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 shadow-lg border transition-all duration-500 ${isDone ? 'bg-lime-400 border-lime-400 text-black rotate-12' : 'bg-zinc-950 border-zinc-800 text-blue-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : meal.icon}</div>
-                  <div className="flex-1">
-                     <div className="flex justify-between items-center mb-4"><h4 className={`text-xl font-black italic uppercase tracking-tight ${isDone ? 'text-zinc-500 line-through' : 'text-white'}`}>{meal.n}</h4><div className="flex gap-3"><span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{meal.t}</span><span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? 'bg-lime-400 text-black' : 'bg-blue-500/20 text-blue-400'}`}>{meal.kcal} kcal</span></div></div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{meal.items.map((item: any, i: number) => (<div key={i} className={`p-4 rounded-2xl flex justify-between items-center border ${isDone ? 'bg-zinc-950/30 border-zinc-800/50 opacity-60' : 'bg-zinc-950 border-zinc-800'}`}><span className="text-xs font-bold text-zinc-300">{item.name}</span><span className="text-[9px] font-black uppercase text-zinc-600">{item.kcal} kcal</span></div>))}</div>
-                  </div>
-               </div>
-             );
-           })}
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-xl h-fit">
-          <h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-8">Macros</h4>
-          <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} /><Pie data={MACRO_DISTRIBUTION} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">{MACRO_DISTRIBUTION.map((e, i) => <Cell key={i} fill={e.fill} />)}</Pie></PieChart></ResponsiveContainer></div>
-          <div className="w-full mt-6 space-y-4">{MACRO_DISTRIBUTION.map((macro, idx) => (<div key={idx} className="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl"><div className="flex items-center gap-3"><div className="size-3 rounded-full" style={{ backgroundColor: macro.fill }} /><span className="text-xs font-black uppercase text-zinc-300">{macro.name}</span></div><span className="text-xs font-black italic text-white">{macro.value}%</span></div>))}</div>
-        </div>
-      </div>
     </div>
   );
 };
@@ -469,285 +675,293 @@ const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
   );
 };
 
-// --- PROFESSIONAL COMPONENTS ---
+// --- NUTRI EXTENSIONS: SUBSTITUTIONS & VISUAL DIARY ---
 
-const ProfessionalDashboard = ({ type }: { type: Role }) => (
-  <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12">
-    <header>
-      <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">Dashboard {type === 'PROFESSOR' ? 'Coach' : 'Nutri'}</h2>
-      <p className="text-zinc-500 font-medium">Visão geral do desempenho da sua consultoria e atividades recentes.</p>
-    </header>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard label="Alunos" value="48" trend="+4" color="text-lime-400" icon={Users}/>
-      <StatCard label="Receita" value="R$ 8.4K" trend="+12%" color="text-blue-400" icon={DollarSign}/>
-      <StatCard label="Consultas" value="12" color="text-orange-500" icon={type === 'PROFESSOR' ? Dumbbell : Salad}/>
-      <StatCard label="Satisfação" value="9.8" color="text-blue-500" icon={Trophy}/>
-    </div>
-
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
-        <h4 className="text-xl font-black italic uppercase mb-8 flex items-center gap-3">
-          <TrendingUp size={20} className="text-lime-400"/> Crescimento Mensal
-        </h4>
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={[{ name: 'Set', s: 30 }, { name: 'Out', s: 48 }, { name: 'Nov', s: 52 }]}>
-              <defs>
-                <linearGradient id="colorS" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-              <XAxis dataKey="name" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} />
-              <Area type="monotone" dataKey="s" stroke="#D9FF00" strokeWidth={4} fill="url(#colorS)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
-        <h4 className="text-xl font-black italic uppercase mb-8 flex items-center gap-3">
-          <Activity size={20} className="text-blue-400"/> Feed de Atividade
-        </h4>
-        <div className="space-y-4">
-          {[
-            { u: 'Alex Rivers', a: 'Concluiu Treino A', t: '15m' },
-            { u: 'Bia Silva', a: 'Registrou Refeição', t: '1h' },
-            { u: 'Carlos Motta', a: 'Assinatura Ativada', t: '4h' },
-            { u: 'Davi Luiz', a: 'Nova Mensagem', t: '6h' },
-          ].map((act, i) => (
-            <div key={i} className="bg-zinc-950 p-4 rounded-2xl border border-zinc-800 flex justify-between items-center group hover:border-zinc-700 transition-colors">
-              <div>
-                <p className="text-xs font-black uppercase text-white group-hover:text-lime-400 transition-colors">{act.u}</p>
-                <p className="text-[10px] text-zinc-500 font-bold">{act.a}</p>
-              </div>
-              <span className="text-[9px] font-black uppercase text-zinc-700">{act.t}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// --- MODULES ---
-
-const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange }: any) => {
-  const [selectedDay, setSelectedDay] = useState(new Date().getDay() || 1);
-  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
-  const [workoutFinished, setWorkoutFinished] = useState(false);
-  const [workoutSeconds, setWorkoutSeconds] = useState<number>(0);
-  const [finalTime, setFinalTime] = useState(0);
+const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: number, onGenerateDiet: (d: any) => void }) => {
+  const [completedMeals, setCompletedMeals] = useState<number[]>([]);
+  const [substitutionModal, setSubstitutionModal] = useState<{ isOpen: boolean, original: string, options: string[] }>({ isOpen: false, original: '', options: [] });
+  const [showAI, setShowAI] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState({ kcal: '2000', type: 'Equilibrada', restrictions: 'Sem restrições' });
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    let interval: any;
-    if (isWorkoutActive) interval = setInterval(() => setWorkoutSeconds(p => p + 1), 1000);
-    else clearInterval(interval);
-    return () => clearInterval(interval);
-  }, [isWorkoutActive]);
+    const saved = localStorage.getItem(`diet_day_${dayIdx}`);
+    if (saved) setCompletedMeals(JSON.parse(saved));
+    else setCompletedMeals([]);
+  }, [dayIdx]);
 
-  if (view === 'store') return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
-  if (view === 'workouts') return isWorkoutActive ? (
-    <ActiveWorkoutSession workout={INITIAL_WORKOUTS[selectedDay] || { exercises: [] }} workoutTime={workoutSeconds} onFinish={(t: any) => { setFinalTime(t); setWorkoutFinished(true); setIsWorkoutActive(false); }} onClose={() => setIsWorkoutActive(false)} />
-  ) : workoutFinished ? (
-    <FinishedSessionView totalTime={finalTime} reset={() => { setWorkoutFinished(false); setView('dashboard'); }} />
-  ) : (
-    <CalendarBase title="Planilha" sub="Sua programação" selectedDay={selectedDay} setSelectedDay={setSelectedDay} days={DAYS_SHORT}>
-      <WorkoutDetailCard workout={INITIAL_WORKOUTS[selectedDay] || { exercises: [], title: 'Descanso' }} onStart={() => { setWorkoutSeconds(0); setIsWorkoutActive(true); }} />
-    </CalendarBase>
-  );
-  if (view === 'diet') return (<CalendarBase title="Nutrição" sub="Seu combustível" selectedDay={selectedDay} setSelectedDay={setSelectedDay} days={DAYS_SHORT}><NutritionView diet={WEEKLY_DIETS[selectedDay] || DEFAULT_DIET} dayIdx={selectedDay} /></CalendarBase>);
-  if (view === 'evolution') return <EvolutionView />;
-  if (view === 'profile') return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} />;
-  return <StudentDashboard setView={setView} profileImage={profileImage} biometrics={biometrics} />;
-};
+  const toggleMeal = (idx: number) => {
+    const newCompleted = completedMeals.includes(idx) ? completedMeals.filter(i => i !== idx) : [...completedMeals, idx];
+    setCompletedMeals(newCompleted);
+    localStorage.setItem(`diet_day_${dayIdx}`, JSON.stringify(newCompleted));
+  };
 
-const ProfessorModule = ({ view, setView, students, onAddStudent, templates, onAddTemplate, onRemoveTemplate }: any) => {
-  if (view === 'students') return <StudentManagementView title="Alunos Ativos" type="PROFESSOR" students={students} onAddStudent={onAddStudent} templates={templates} />;
-  if (view === 'templates') return <WorkoutTemplatesView templates={templates} onAddTemplate={onAddTemplate} onRemoveTemplate={onRemoveTemplate} />;
-  return <ProfessionalDashboard type="PROFESSOR" />;
-};
+  const handleFoodClick = (e: React.MouseEvent, foodName: string) => {
+    e.stopPropagation();
+    const key = Object.keys(FOOD_SUBSTITUTIONS).find(k => foodName.includes(k));
+    if (key) {
+      setSubstitutionModal({ isOpen: true, original: foodName, options: FOOD_SUBSTITUTIONS[key] });
+    }
+  };
 
-const StudentDashboard = ({ setView, profileImage, biometrics }: any) => {
-  const today = new Date().getDay() || 1;
-  const workout = INITIAL_WORKOUTS[today];
-  const diet = WEEKLY_DIETS[today] || DEFAULT_DIET;
+  const generateDiet = async () => {
+    setIsGenerating(true);
+    try {
+        const prompt = `Crie um plano alimentar diário (dieta) em formato JSON.
+        Calorias: ${aiPrompt.kcal}. Tipo: ${aiPrompt.type}. Restrições: ${aiPrompt.restrictions}.
+        
+        Retorne APENAS um objeto JSON válido com esta estrutura exata, sem markdown:
+        {
+          "title": "Nome da Dieta",
+          "kcal": 2000,
+          "meals": [
+            { 
+              "n": "Nome da Refeição (ex: Café)", 
+              "t": "08:00", 
+              "kcal": 500, 
+              "items": [
+                { "name": "Alimento e quantidade", "kcal": 200 }
+              ] 
+            }
+          ]
+        }`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: prompt
+        });
+
+        const text = response.text || "{}";
+        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const generated = JSON.parse(jsonStr);
+        
+        const mealsWithIcons = generated.meals.map((m: any) => ({
+            ...m,
+            icon: m.n.toLowerCase().includes('café') ? <Coffee/> : m.n.toLowerCase().includes('almoço') ? <Sun/> : <Moon/>
+        }));
+
+        onGenerateDiet({ ...generated, meals: mealsWithIcons });
+        setShowAI(false);
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao gerar dieta. Tente novamente.");
+    } finally {
+        setIsGenerating(false);
+    }
+  };
+
+  const progress = diet.meals.length > 0 ? (completedMeals.length / diet.meals.length) * 100 : 0;
+
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12">
-      <header className="flex flex-col md:flex-row justify-between items-center gap-8">
-        <div className="flex items-center gap-8"><div className="relative group cursor-pointer" onClick={() => setView('profile')}><img src={profileImage} className="size-24 rounded-[3rem] border-[6px] border-zinc-900 shadow-2xl object-cover"/><div className="absolute -bottom-2 -right-2 size-10 bg-lime-400 text-black rounded-2xl flex items-center justify-center border-4 border-zinc-950"><Trophy size={20} strokeWidth={3} /></div></div><div><h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none mb-3">Alex Rivers</h1><div className="flex items-center gap-4"><span className="bg-zinc-900 border border-zinc-800 px-4 py-1.5 rounded-xl text-xs font-black uppercase text-zinc-500">Nível 28</span><div className="w-48 h-2.5 bg-zinc-900 rounded-full overflow-hidden"><div className="h-full bg-lime-400 w-3/4 shadow-[0_0_15px_#D9FF00]" /></div></div></div></div>
+    <div className="space-y-10 animate-in fade-in duration-500 relative">
+      <header className="flex justify-between items-end">
+         <div className="flex-1 mr-6">
+            <h2 className="text-5xl font-black italic uppercase mb-2">Nutrição</h2>
+            <p className="text-zinc-500 font-medium">Combustível para o corpo.</p>
+         </div>
+         <button onClick={() => setShowAI(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl hover:scale-105 transition-all">
+            <Sparkles size={16}/> Gerar Dieta AI
+         </button>
       </header>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"><StatCard label="Peso" value={`${biometrics.weight}kg`} trend="-0.4" color="text-lime-400" icon={Scale}/><StatCard label="Meta Kcal" value={diet.kcal.toString()} color="text-blue-400" icon={Utensils}/><StatCard label="Sessões" value="18" trend="🔥" color="text-orange-500" icon={Zap}/><StatCard label="Hidratação" value="2.8L" color="text-blue-500" icon={Droplets}/></div>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-        <div onClick={() => setView('workouts')} className="lg:col-span-8 bg-zinc-900 border border-zinc-800 rounded-[4rem] p-12 relative group cursor-pointer hover:border-lime-400/30 transition-all"><div className="absolute top-0 right-0 p-12 opacity-5 text-lime-400"><Dumbbell size={300} /></div><div className="relative z-10 max-w-lg"><span className="text-[11px] bg-lime-400 text-black px-5 py-2 rounded-full font-black uppercase mb-8 inline-block tracking-widest">HOJE</span><h3 className="text-6xl font-black italic uppercase tracking-tighter mb-6 leading-none">{workout ? workout.title.split(':')[0] : 'Rest Day'}</h3><button className="bg-lime-400 text-black px-12 py-6 rounded-3xl font-black uppercase text-lg flex items-center gap-4 shadow-2xl">INICIAR TREINO <ArrowRight size={28} /></button></div></div>
-        <div onClick={() => setView('diet')} className="lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-[4rem] p-10 relative group cursor-pointer hover:border-blue-400/30 transition-all flex flex-col justify-between"><div className="absolute top-0 right-0 p-8 opacity-5 text-blue-400"><Salad size={160}/></div><div><span className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-4 block">PLANO NUTRI</span><h4 className="text-3xl font-black italic uppercase">Próxima: Almoço</h4></div><div className="mt-10"><p className="text-4xl font-black italic text-white leading-none">{diet.kcal} kcal</p><p className="text-zinc-500 text-xs font-bold uppercase mt-2">Meta Diária</p></div></div>
+
+      <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-[2.5rem] shadow-xl">
+        <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-3"><div className="size-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center"><Utensils size={20} /></div><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Adesão Diária</p><h4 className="text-lg font-black italic uppercase">{completedMeals.length} de {diet.meals.length} refeições</h4></div></div>
+        <span className="text-xl font-black italic text-lime-400">{Math.round(progress)}%</span>
+        </div>
+        <div className="h-3 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-800 p-0.5"><div className="h-full bg-lime-400 rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }} /></div>
       </div>
-    </div>
-  );
-};
 
-const StudentManagementView = ({ title, type, students, onAddStudent, templates }: { title: string, type: 'PROFESSOR' | 'NUTRI', students: Student[], onAddStudent: (s: Partial<Student>) => void, templates?: WorkoutTemplate[] }) => {
-  const [consoleState, setConsoleState] = useState<{ student: Student | null, view: string }>({ student: null, view: 'profile' });
-  if (consoleState.student) return <StudentConsole student={consoleState.student} type={type} templates={templates} onClose={() => setConsoleState({ student: null, view: 'profile' })} />;
-  return (
-    <div className="animate-in fade-in duration-700 space-y-10">
-      <header className="flex justify-between items-end"><div><h2 className="text-5xl font-black italic uppercase">{title}</h2><p className="text-zinc-500 font-medium">Gestão direta.</p></div><button className="bg-lime-400 text-black px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2"><UserPlus size={18}/> Novo Aluno</button></header>
-      <div className="space-y-4">{students.map(s => (<div key={s.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-[2.5rem] flex items-center gap-8 group hover:border-zinc-700 transition-all"><img src={s.avatar} className="size-16 rounded-[1.5rem] object-cover border-2 border-zinc-800"/><div className="flex-1"><h4 className="text-lg font-black italic uppercase text-white">{s.name}</h4><p className="text-[10px] font-black uppercase text-zinc-500">{s.plan} • {s.lastVisit}</p></div><button onClick={() => setConsoleState({ student: s, view: 'profile' })} className="bg-white text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-lime-400 transition-all">Ver Perfil</button></div>))}</div>
-    </div>
-  );
-};
-
-const StudentConsole = ({ student, type, onClose, initialView = 'profile', templates = [] }: any) => {
-  const [view, setView] = useState(initialView);
-  const [selectedDay, setSelectedDay] = useState(1);
-  const [workouts, setWorkouts] = useState(INITIAL_WORKOUTS);
-  const [isAddingExercise, setIsAddingExercise] = useState(false);
-  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
-  const [isDuplicating, setIsDuplicating] = useState(false);
-  const [targetDays, setTargetDays] = useState<number[]>([]);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [orientationItems, setOrientationItems] = useState<string[]>(['']);
-  const [newExercise, setNewExercise] = useState({ n: '', s: '', r: '', w: '', rest: '60', group: '', video: '' });
-
-  const handleSaveExercise = (e: React.FormEvent) => {
-    e.preventDefault();
-    const dayWorkout = workouts[selectedDay] || { title: `Treino de ${DAYS_SHORT[selectedDay]}`, exercises: [] };
-    const updatedExs = editingExerciseId ? dayWorkout.exercises.map((ex: any) => ex.id === editingExerciseId ? { ...newExercise, id: ex.id, orientations: orientationItems.filter(i => i.trim()) } : ex) : [...dayWorkout.exercises, { ...newExercise, id: Date.now().toString(), orientations: orientationItems.filter(i => i.trim()) }];
-    setWorkouts({ ...workouts, [selectedDay]: { ...dayWorkout, exercises: updatedExs } });
-    setIsAddingExercise(false);
-    setEditingExerciseId(null);
-  };
-
-  const handleDuplicate = () => {
-    const src = workouts[selectedDay];
-    if (!src || !src.exercises.length) return;
-    const next = { ...workouts };
-    targetDays.forEach(d => next[d] = { ...src, exercises: src.exercises.map((ex: any, i: number) => ({ ...ex, id: `cloned-${d}-${Date.now()}-${i}` })) });
-    setWorkouts(next);
-    setIsDuplicating(false);
-    setTargetDays([]);
-  };
-
-  return (
-    <div className="fixed inset-0 z-[150] bg-black flex animate-in fade-in duration-500 overflow-y-auto">
-       <aside className="w-80 border-r border-zinc-900 bg-zinc-950 p-8 flex flex-col gap-10 shrink-0">
-          <button onClick={onClose} className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest mb-4"><ChevronLeft size={16}/> Voltar</button>
-          <div className="text-center"><img src={student.avatar} className="size-32 rounded-[3rem] border-4 border-zinc-900 mx-auto mb-6 shadow-2xl" /><h3 className="text-2xl font-black italic uppercase tracking-tighter text-white">{student.name}</h3><p className="text-[10px] font-black text-zinc-500 uppercase mt-2">{student.plan}</p></div>
-          <nav className="space-y-2 mt-4">
-             <button onClick={() => setView('profile')} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === 'profile' ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-900'}`}><User size={18}/> Perfil</button>
-             {(type === 'PROFESSOR' || type === 'ADMIN') && <button onClick={() => setView('workouts')} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === 'workouts' ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-900'}`}><Dumbbell size={18}/> Treino</button>}
-             {(type === 'NUTRI' || type === 'ADMIN') && <button onClick={() => setView('diet')} className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === 'diet' ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-900'}`}><Apple size={18}/> Dieta</button>}
-          </nav>
-       </aside>
-       <main className="flex-1 p-12 lg:p-20 bg-zinc-950">
-          {view === 'diet' && (
-            <div className="space-y-12">
-               <header className="flex justify-between items-end"><div><h2 className="text-5xl font-black italic uppercase mb-2">Plano Alimentar</h2><p className="text-zinc-500 font-medium">Visualização da dieta do aluno.</p></div><div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl gap-1">{DAYS_SHORT.map((d, i) => (<button key={i} onClick={() => setSelectedDay(i)} className={`w-12 h-12 flex items-center justify-center rounded-xl text-[10px] font-black uppercase transition-all ${selectedDay === i ? 'bg-lime-400 text-black' : 'text-zinc-500'}`}>{d}</button>))}</div></header>
-               <NutritionView diet={WEEKLY_DIETS[selectedDay] || DEFAULT_DIET} dayIdx={selectedDay} />
-            </div>
-          )}
-          {view === 'workouts' && (
-            <div className="space-y-12">
-               <header className="flex justify-between items-end"><div><h2 className="text-5xl font-black italic uppercase mb-2">Prescrever Treino</h2><p className="text-zinc-500 font-medium">Monte a rotina do aluno.</p></div><div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl gap-1">{DAYS_SHORT.map((d, i) => (<button key={i} onClick={() => setSelectedDay(i)} className={`w-12 h-12 flex items-center justify-center rounded-xl text-[10px] font-black uppercase transition-all ${selectedDay === i ? 'bg-lime-400 text-black' : 'text-zinc-500'}`}>{d}</button>))}</div></header>
-               <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
-                  <div className="flex flex-col xl:flex-row justify-between xl:items-center mb-10 gap-6">
-                    <h3 className="text-2xl font-black italic uppercase text-white">{workouts[selectedDay]?.title || `Treino de ${DAYS_SHORT[selectedDay]}`}</h3>
-                    <div className="flex flex-wrap gap-3">
-                       <button onClick={() => setIsImportModalOpen(true)} className="px-5 py-3 rounded-2xl font-black uppercase text-[10px] bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-lime-400 transition-all"><Download size={16}/> Importar Modelo</button>
-                       <button onClick={() => setIsDuplicating(!isDuplicating)} className={`px-5 py-3 rounded-2xl font-black uppercase text-[10px] transition-all ${isDuplicating ? 'bg-blue-500' : 'bg-zinc-800 text-zinc-400'}`}><Copy size={16}/> Duplicar Treino</button>
-                       <button onClick={() => { setEditingExerciseId(null); setOrientationItems(['']); setIsAddingExercise(true); }} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 transition-all"><Plus size={16}/> Adicionar Exercício</button>
-                    </div>
-                  </div>
-                  {isDuplicating && (
-                    <div className="bg-zinc-950 border border-blue-500/30 p-8 rounded-3xl mb-10"><h4 className="text-[10px] font-black uppercase text-blue-400 mb-6">Duplicar para:</h4><div className="flex gap-2 mb-8">{DAYS_SHORT.map((d, i) => (<button key={i} disabled={i === selectedDay} onClick={() => setTargetDays(p => p.includes(i) ? p.filter(x => x !== i) : [...p, i])} className={`h-12 min-w-[4rem] rounded-xl text-[10px] font-black border transition-all ${i === selectedDay ? 'opacity-20' : targetDays.includes(i) ? 'bg-blue-500 text-white' : 'bg-zinc-900 text-zinc-500'}`}>{d}</button>))}</div><button onClick={handleDuplicate} disabled={targetDays.length === 0} className="w-full bg-blue-500 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Confirmar ({targetDays.length})</button></div>
-                  )}
-                  <div className="space-y-4">
-                     {(!workouts[selectedDay]?.exercises || workouts[selectedDay].exercises.length === 0) ? (<div className="py-20 text-center italic text-zinc-700 font-bold uppercase tracking-widest">Nenhum exercício</div>) : (
-                       workouts[selectedDay].exercises.map((ex: any, idx: number) => (
-                         <div key={ex.id} className="bg-zinc-950 border border-zinc-800 p-6 rounded-3xl flex flex-col gap-6 group">
-                            <div className="flex items-center justify-between"><div className="flex items-center gap-6"><div className="size-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-lime-400 font-black italic">{idx + 1}</div><div><p className="text-sm font-black text-white uppercase italic">{ex.n}</p><div className="flex gap-3 text-[10px] font-black text-zinc-500 mt-1"><span>{ex.group}</span><span>•</span><span>{ex.s} séries</span><span>•</span><span>{ex.r} reps</span></div></div></div><div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => { setNewExercise(ex); setOrientationItems(ex.orientations || ['']); setEditingExerciseId(ex.id); setIsAddingExercise(true); }} className="size-10 rounded-xl bg-zinc-900 text-zinc-500 hover:text-white"><Pencil size={14}/></button><button onClick={() => { if(confirm('Remover?')) setWorkouts({...workouts, [selectedDay]: { ...workouts[selectedDay], exercises: workouts[selectedDay].exercises.filter((x: any) => x.id !== ex.id) } }); }} className="size-10 rounded-xl bg-red-500/10 text-red-500"><Trash size={14}/></button></div></div>
-                         </div>
-                       ))
-                     )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+           {diet.meals.map((meal: any, idx: number) => {
+             const isDone = completedMeals.includes(idx);
+             return (
+               <div key={idx} onClick={() => toggleMeal(idx)} className={`group relative bg-zinc-900 border cursor-pointer rounded-[2.5rem] p-8 flex gap-6 transition-all duration-300 active:scale-[0.98] ${isDone ? 'border-lime-400/30 bg-lime-400/5' : 'border-zinc-800 hover:border-zinc-700'}`}>
+                  <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 shadow-lg border transition-all duration-500 ${isDone ? 'bg-lime-400 border-lime-400 text-black rotate-12' : 'bg-zinc-950 border-zinc-800 text-blue-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : meal.icon}</div>
+                  <div className="flex-1">
+                     <div className="flex justify-between items-center mb-4"><h4 className={`text-xl font-black italic uppercase tracking-tight ${isDone ? 'text-zinc-500 line-through' : 'text-white'}`}>{meal.n}</h4><div className="flex gap-3"><span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{meal.t}</span><span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? 'bg-lime-400 text-black' : 'bg-blue-500/20 text-blue-400'}`}>{meal.kcal} kcal</span></div></div>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{meal.items.map((item: any, i: number) => (
+                       <div key={i} onClick={(e) => handleFoodClick(e, item.name)} className={`p-4 rounded-2xl flex justify-between items-center border hover:border-lime-400/50 transition-colors ${isDone ? 'bg-zinc-950/30 border-zinc-800/50 opacity-60' : 'bg-zinc-950 border-zinc-800'}`}>
+                         <span className="text-xs font-bold text-zinc-300 flex items-center gap-2">{item.name} {Object.keys(FOOD_SUBSTITUTIONS).some(k => item.name.includes(k)) && <RefreshCw size={10} className="text-lime-400"/>}</span>
+                         <span className="text-[9px] font-black uppercase text-zinc-600">{item.kcal} kcal</span>
+                       </div>
+                     ))}</div>
                   </div>
                </div>
-            </div>
-          )}
-          {view === 'profile' && <ProfileView profileImage={student.avatar} onImageChange={() => {}} biometrics={{ height: '1.80', weight: '80', age: '25', goal: 'Hipertrofia' }} onBiometricsChange={() => {}} />}
-       </main>
+             );
+           })}
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-xl h-fit">
+          <h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-8">Macros</h4>
+          <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} /><Pie data={MACRO_DISTRIBUTION} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">{MACRO_DISTRIBUTION.map((e, i) => <Cell key={i} fill={e.fill} />)}</Pie></PieChart></ResponsiveContainer></div>
+          <div className="w-full mt-6 space-y-4">{MACRO_DISTRIBUTION.map((macro, idx) => (<div key={idx} className="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl"><div className="flex items-center gap-3"><div className="size-3 rounded-full" style={{ backgroundColor: macro.fill }} /><span className="text-xs font-black uppercase text-zinc-300">{macro.name}</span></div><span className="text-xs font-black italic text-white">{macro.value}%</span></div>))}</div>
+        </div>
+      </div>
 
-       {isAddingExercise && (
-         <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto no-scrollbar">
-               <div className="flex justify-between items-center mb-10"><h3 className="text-3xl font-black italic uppercase tracking-tighter">{editingExerciseId ? 'Editar' : 'Adicionar'}</h3><button onClick={() => setIsAddingExercise(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 hover:text-white transition-all"><X size={20}/></button></div>
-               <form onSubmit={handleSaveExercise} className="space-y-6">
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Nome</label><input required value={newExercise.n} onChange={e => setNewExercise({...newExercise, n: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none focus:border-lime-400 transition-all" /></div>
-                  <div className="grid grid-cols-4 gap-4">
-                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Séries</label><input required value={newExercise.s} onChange={e => setNewExercise({...newExercise, s: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
-                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Reps</label><input required value={newExercise.r} onChange={e => setNewExercise({...newExercise, r: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
-                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Peso</label><input required value={newExercise.w} onChange={e => setNewExercise({...newExercise, w: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
-                     <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Descanso</label><input required value={newExercise.rest} onChange={e => setNewExercise({...newExercise, rest: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
-                  </div>
-                  <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl mt-4">Salvar Exercício</button>
-               </form>
-            </div>
-         </div>
-       )}
+      {substitutionModal.isOpen && (
+        <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setSubstitutionModal({...substitutionModal, isOpen: false})}>
+           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-[2rem] p-8 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+              <h4 className="text-xl font-black italic uppercase mb-2">Substituir {substitutionModal.original}</h4>
+              <p className="text-xs text-zinc-500 font-bold mb-6">Opções equivalentes em macros:</p>
+              <div className="space-y-3">
+                 {substitutionModal.options.map((opt, i) => (
+                    <button key={i} className="w-full bg-zinc-950 border border-zinc-800 hover:border-lime-400 p-4 rounded-xl flex items-center justify-between group transition-all">
+                       <span className="text-sm font-bold text-zinc-300 group-hover:text-lime-400">{opt}</span>
+                       <CheckCircle2 size={16} className="text-zinc-700 group-hover:text-lime-400"/>
+                    </button>
+                 ))}
+              </div>
+           </div>
+        </div>
+      )}
 
-       {isImportModalOpen && (
-         <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
-            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-3xl rounded-[3rem] p-10 animate-in zoom-in duration-300">
-               <div className="flex justify-between items-center mb-10"><h3 className="text-3xl font-black italic uppercase">Modelos</h3><button onClick={() => setIsImportModalOpen(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 transition-all"><X size={20}/></button></div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {templates.map((template: WorkoutTemplate) => (
-                    <div key={template.id} className="bg-zinc-950 border border-zinc-800 p-6 rounded-3xl hover:border-lime-400/40 transition-all group">
-                        <span className="text-[10px] font-black uppercase text-lime-400 bg-lime-400/10 px-3 py-1 rounded-full mb-4 inline-block">{template.category}</span>
-                        <h4 className="text-xl font-black italic uppercase text-white mb-6">{template.title}</h4>
-                        <button onClick={() => { const cl = template.exercises.map((ex: any, i: number) => ({ ...ex, id: `imp-${Date.now()}-${i}` })); setWorkouts({ ...workouts, [selectedDay]: { title: template.title, exercises: cl } }); setIsImportModalOpen(false); }} className="w-full bg-zinc-900 border border-zinc-800 group-hover:bg-lime-400 group-hover:text-black py-3 rounded-2xl font-black uppercase text-[10px] transition-all">Importar</button>
-                    </div>
-                  ))}
+      {showAI && (
+        <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAI(false)}>
+            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="flex justify-between items-center mb-8"><h3 className="text-3xl font-black italic uppercase">Gerador Nutri AI</h3><button onClick={() => setShowAI(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 transition-all"><X size={20}/></button></div>
+               <div className="space-y-6">
+                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Calorias Diárias</label><input type="number" value={aiPrompt.kcal} onChange={e => setAiPrompt({...aiPrompt, kcal: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none focus:border-lime-400" /></div>
+                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Tipo de Dieta</label><select value={aiPrompt.type} onChange={e => setAiPrompt({...aiPrompt, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Equilibrada</option><option>Low Carb</option><option>Cetogênica</option><option>Vegana</option><option>Bulking (Ganho de Massa)</option></select></div>
+                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Restrições / Preferências</label><input placeholder="Ex: Sem glúten, barato, rápido de fazer..." value={aiPrompt.restrictions} onChange={e => setAiPrompt({...aiPrompt, restrictions: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
+                  <button onClick={generateDiet} disabled={isGenerating} className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    {isGenerating ? <Loader2 className="animate-spin"/> : <Sparkles size={18}/>} 
+                    {isGenerating ? 'Criando Plano...' : 'Gerar Dieta'}
+                  </button>
                </div>
             </div>
-         </div>
-       )}
-    </div>
-  );
-};
-
-const WorkoutTemplatesView = ({ templates, onAddTemplate, onRemoveTemplate }: any) => {
-  const [showAdd, setShowAdd] = useState(false);
-  const [newTemplate, setNewTemplate] = useState({ title: '', category: 'A' });
-  return (
-    <div className="animate-in fade-in duration-700 space-y-12">
-      <header className="flex justify-between items-end"><div><h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Modelos</h2><p className="text-zinc-500 font-medium">Treinos padronizados.</p></div><button onClick={() => setShowAdd(true)} className="bg-lime-400 text-black px-8 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl"><Plus size={16}/> Criar Modelo</button></header>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {templates.map((template: WorkoutTemplate) => (
-          <div key={template.id} className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-8 relative group hover:border-lime-400/40 transition-all">
-             <div className="mb-8"><span className="text-[10px] font-black uppercase text-lime-400 bg-lime-400/10 px-4 py-1.5 rounded-full mb-4 inline-block">{template.category}</span><h3 className="text-2xl font-black italic uppercase text-white leading-tight">{template.title}</h3></div>
-             <div className="flex items-center justify-between pt-6 border-t border-zinc-800/50"><span className="text-[10px] font-black text-zinc-600 uppercase">{template.exercises.length} Exercícios</span><button onClick={() => onRemoveTemplate(template.id)} className="size-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all"><Trash size={14}/></button></div>
-          </div>
-        ))}
-      </div>
-      {showAdd && (
-         <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
-            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-[3rem] p-10 animate-in zoom-in duration-300">
-               <div className="flex justify-between items-center mb-10"><h3 className="text-3xl font-black italic uppercase">Novo Modelo</h3><button onClick={() => setShowAdd(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 transition-all"><X size={20}/></button></div>
-               <form onSubmit={(e) => { e.preventDefault(); onAddTemplate({...newTemplate, id: Date.now().toString(), exercises: []}); setShowAdd(false); }} className="space-y-6">
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Título</label><input required value={newTemplate.title} onChange={e => setNewTemplate({...newTemplate, title: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Categoria</label><input required value={newTemplate.category} onChange={e => setNewTemplate({...newTemplate, category: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
-                  <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl active:scale-95 transition-all">Salvar</button>
-               </form>
-            </div>
-         </div>
+        </div>
       )}
     </div>
   );
 };
 
-// --- APP ---
+// --- MODULES ---
+
+const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans }: any) => {
+  const [activeSession, setActiveSession] = useState<any>(null);
+  const [activeSessionTime, setActiveSessionTime] = useState(0);
+  const [sessionFinished, setSessionFinished] = useState(false);
+  
+  useEffect(() => {
+    let interval: any;
+    if (activeSession) interval = setInterval(() => setActiveSessionTime(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, [activeSession]);
+
+  if (activeSession) return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); }} onClose={() => setActiveSession(null)} />;
+  if (sessionFinished) return <FinishedSessionView totalTime={activeSessionTime} reset={() => { setSessionFinished(false); setActiveSessionTime(0); setView('dashboard'); }} />;
+
+  switch (view) {
+    case 'dashboard':
+      return (
+        <div className="space-y-12 animate-in fade-in duration-700">
+           <header><h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, Alex</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <StatCard label="Treinos" value="12" trend="+2 essa semana" color="text-lime-400" icon={Dumbbell} />
+             <StatCard label="Calorias" value="2450" trend="Na meta" color="text-orange-400" icon={Flame} />
+             <StatCard label="Peso" value={biometrics.weight} trend="-1.2kg" color="text-blue-400" icon={Scale} />
+           </div>
+           <section>
+              <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-8">Próximo Treino</h3>
+              <WorkoutDetailCard workout={INITIAL_WORKOUTS[1]} onStart={() => setActiveSession(INITIAL_WORKOUTS[1])} />
+           </section>
+        </div>
+      );
+    case 'workouts':
+       return (
+         <div className="space-y-10 animate-in fade-in duration-700">
+            <header><h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Seus Treinos</h2><p className="text-zinc-500 font-medium">Sua rotina semanal.</p></header>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+               {Object.values(INITIAL_WORKOUTS).map((w: any, i) => (
+                  <div key={i} onClick={() => setActiveSession(w)} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2.5rem] hover:border-lime-400/50 transition-all cursor-pointer group">
+                     <div className="flex justify-between items-start mb-8"><span className="bg-zinc-950 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-zinc-500 tracking-widest group-hover:bg-lime-400 group-hover:text-black transition-colors">Série {w.category}</span><ArrowRight className="text-zinc-600 group-hover:text-lime-400 transition-colors"/></div>
+                     <h4 className="text-2xl font-black italic uppercase tracking-tight mb-2">{w.title}</h4>
+                     <p className="text-xs font-bold text-zinc-500 uppercase">{w.duration} • {w.exercises.length} exercícios</p>
+                  </div>
+               ))}
+            </div>
+         </div>
+       );
+    case 'diet':
+       const currentDiet = dietPlans[1] || INITIAL_DIETS[1];
+       return <NutritionView diet={currentDiet} dayIdx={new Date().getDay()} onGenerateDiet={(newDiet: any) => setDietPlans({...dietPlans, 1: newDiet})} />;
+    case 'store':
+       return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
+    case 'evolution': return <EvolutionView />;
+    case 'profile': return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} />;
+    default: return null;
+  }
+};
+
+const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, onRemoveTemplate }: any) => {
+   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+   if (selectedStudent) {
+      return (
+         <div className="animate-in fade-in slide-in-from-right duration-500 space-y-8">
+            <button onClick={() => setSelectedStudent(null)} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4"><ArrowLeft size={20}/><span className="text-xs font-black uppercase">Voltar</span></button>
+            <div className="flex items-center gap-6 mb-8"><img src={selectedStudent.avatar} className="size-24 rounded-3xl object-cover"/><div className=""><h2 className="text-4xl font-black italic uppercase">{selectedStudent.name}</h2><p className="text-zinc-500 font-bold">{selectedStudent.plan}</p></div></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+               <StatCard label="Frequência" value={`${100 - (selectedStudent.daysAbsent * 10)}%`} color="text-lime-400" icon={Activity} />
+               <StatCard label="Progresso" value={`${selectedStudent.progress}%`} color="text-blue-400" icon={TrendingUp} />
+               <StatCard label="Risco" value={selectedStudent.risk ? "ALTO" : "BAIXO"} color={selectedStudent.risk ? "text-red-500" : "text-green-500"} icon={AlertTriangle} />
+            </div>
+         </div>
+      );
+   }
+   switch(view) {
+      case 'dashboard':
+         return (
+            <div className="space-y-10 animate-in fade-in duration-700">
+               <header><h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Painel do Treinador</h1></header>
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <StatCard label="Total Alunos" value={students.length} color="text-white" icon={Users} />
+                  <StatCard label="Em Risco" value={students.filter((s: Student) => s.risk).length} color="text-red-500" icon={AlertTriangle} />
+                  <StatCard label="Treinos Hoje" value="18" color="text-lime-400" icon={Dumbbell} />
+               </div>
+            </div>
+         );
+      case 'students':
+         return (
+            <div className="space-y-8 animate-in fade-in duration-700">
+               <header><h2 className="text-4xl font-black italic uppercase tracking-tighter">Meus Alunos</h2></header>
+               <div className="grid gap-4">
+                  {students.map((s: Student) => (
+                     <div key={s.id} onClick={() => setSelectedStudent(s)} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex items-center justify-between cursor-pointer hover:border-lime-400/50 transition-all">
+                        <div className="flex items-center gap-4"><img src={s.avatar} className="size-14 rounded-2xl"/><div className=""><h4 className="font-black italic uppercase text-lg">{s.name}</h4><p className="text-[10px] font-bold text-zinc-500">{s.lastVisit}</p></div></div>
+                        <div className="flex items-center gap-4">{s.risk && <span className="px-3 py-1 bg-red-500/20 text-red-500 text-[10px] font-black uppercase rounded-lg">Risco de Churn</span>}<ChevronRight className="text-zinc-600"/></div>
+                     </div>
+                  ))}
+               </div>
+            </div>
+         );
+      case 'templates':
+         return (
+            <div className="space-y-8 animate-in fade-in duration-700">
+               <header className="flex justify-between items-end"><h2 className="text-4xl font-black italic uppercase tracking-tighter">Modelos de Treino</h2><button className="bg-lime-400 text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase flex items-center gap-2"><Plus size={16}/> Novo Modelo</button></header>
+               <div className="grid gap-4">{templates.map((t: WorkoutTemplate) => (<div key={t.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex justify-between items-center group"><div><h4 className="font-black italic uppercase text-lg">{t.title}</h4><p className="text-[10px] text-zinc-500 font-bold">{t.exercises.length} Exercícios • Série {t.category}</p></div><button onClick={() => onRemoveTemplate(t.id)} className="size-10 bg-zinc-950 rounded-xl flex items-center justify-center text-zinc-600 hover:text-red-500 transition-colors"><Trash2 size={16}/></button></div>))}</div>
+            </div>
+         );
+      default: return null;
+   }
+}
+
+const AdminModule = () => {
+   const [tab, setTab] = useState('crm');
+   return (
+      <div className="space-y-10 animate-in fade-in duration-700">
+         <header className="flex flex-col md:flex-row justify-between items-end gap-6">
+            <div><h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Administração</h1><p className="text-zinc-500 font-medium">Gestão completa do studio.</p></div>
+            <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl gap-1">
+               <button onClick={() => setTab('crm')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${tab === 'crm' ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}>CRM</button>
+               <button onClick={() => setTab('maintenance')} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${tab === 'maintenance' ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}>Manutenção</button>
+            </div>
+         </header>
+         {tab === 'crm' && (<div className="grid gap-4">{CRM_DATA.map((lead: any) => (<div key={lead.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4"><div className="flex items-center gap-4"><div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center font-black text-zinc-600">{lead.name.charAt(0)}</div><div><h4 className="font-black italic uppercase text-lg">{lead.name}</h4><p className="text-[10px] text-zinc-500 font-bold">{lead.contact} • {lead.origin}</p></div></div><span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${lead.status === 'CLOSED' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}>{lead.status}</span></div>))}</div>)}
+         {tab === 'maintenance' && (<div className="grid gap-4">{MAINTENANCE_TICKETS.map((ticket: any) => (<div key={ticket.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex justify-between items-center"><div><h4 className="font-black italic uppercase text-lg">{ticket.equipment}</h4><p className="text-[10px] text-zinc-500 font-bold">{ticket.issue}</p></div><span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.priority === 'HIGH' ? 'bg-red-500 text-white' : 'bg-zinc-800 text-zinc-400'}`}>{ticket.status}</span></div>))}</div>)}
+      </div>
+   );
+};
 
 const App: React.FC = () => {
   const [role, setRole] = useState<Role>('ALUNO');
@@ -761,6 +975,7 @@ const App: React.FC = () => {
   const [profileImage, setProfileImage] = useState("https://picsum.photos/seed/fitness/300");
   const [biometrics, setBiometrics] = useState<Biometrics>({ height: '1.82', weight: '84.2', age: '26', goal: 'Hipertrofia' });
   const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>(INITIAL_TEMPLATES);
+  const [dietPlans, setDietPlans] = useState<Record<number, any>>(INITIAL_DIETS);
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
@@ -805,17 +1020,23 @@ const App: React.FC = () => {
             cartCount={cart.length} setIsCartOpen={setIsCartOpen} 
             profileImage={profileImage} onImageChange={setProfileImage} 
             biometrics={biometrics} onBiometricsChange={setBiometrics} 
+            dietPlans={dietPlans} setDietPlans={setDietPlans}
           />
         )}
-        {(role === 'PROFESSOR' || role === 'NUTRI' || role === 'ADMIN') && (
+        {(role === 'PROFESSOR' || role === 'NUTRI') && (
           <ProfessorModule 
             view={activeView} setView={setActiveView} students={students} 
             onAddStudent={()=>{}} templates={workoutTemplates} 
             onAddTemplate={(d:any)=>setWorkoutTemplates([d, ...workoutTemplates])} 
             onRemoveTemplate={(id:any)=>setWorkoutTemplates(workoutTemplates.filter(t=>t.id!==id))} 
+            dietPlans={dietPlans} setDietPlans={setDietPlans}
           />
         )}
+        {role === 'ADMIN' && <AdminModule />}
       </main>
+
+      {/* AI CHATBOT GLOBAL */}
+      <AIChatWidget />
 
       {/* CART DRAWER */}
       {isCartOpen && (
