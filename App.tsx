@@ -1,5 +1,5 @@
 
-// ... (imports remain mostly the same, ensuring Lucide icons are there)
+// ... (imports remain the same)
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Dumbbell, LayoutDashboard, Apple, TrendingUp, Trophy,
@@ -11,7 +11,7 @@ import {
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
-  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic
+  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
@@ -360,7 +360,7 @@ const AIChatWidget = () => {
 
 // --- ALUNO COMPONENTS ---
 
-const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) => {
+const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchConnected, connectedDeviceName }: any) => {
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, number>>({});
   const [expandedId, setExpandedId] = useState<string | null>(workout.exercises[0]?.id || null);
   const [restingExerciseId, setRestingExerciseId] = useState<string | null>(null);
@@ -372,12 +372,26 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
   const [showPostureModal, setShowPostureModal] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  // Watch Telemetry Simulation
+  const [bpm, setBpm] = useState(110);
+  const [cal, setCal] = useState(0);
+
   useEffect(() => {
     let interval: any;
     if (restingExerciseId && restSeconds > 0) interval = setInterval(() => setRestSeconds((p: number) => p - 1), 1000);
     else if (restSeconds === 0) setRestingExerciseId(null);
     return () => clearInterval(interval);
   }, [restingExerciseId, restSeconds]);
+
+  // Simulate Heart Rate if connected
+  useEffect(() => {
+    if (!watchConnected) return;
+    const interval = setInterval(() => {
+      setBpm(prev => Math.min(185, Math.max(90, prev + Math.floor(Math.random() * 10) - 4)));
+      setCal(prev => prev + 0.2);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [watchConnected]);
 
   const totalPossibleSets: number = (workout.exercises || []).reduce((acc: number, ex: any) => acc + (Number(ex.s) || 0), 0);
   const totalCompletedSets: number = (Object.values(exerciseProgress) as number[]).reduce((acc: number, val: number) => acc + val, 0);
@@ -432,7 +446,16 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
             <div className="flex items-center justify-center gap-2 mb-0.5"><TimerIcon size={16} className="text-lime-400" /><span className="text-2xl font-black italic text-lime-400 tracking-tighter">{formatTime(workoutTime)}</span></div>
             <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Treinando Agora</p>
           </div>
-          <div className="size-12 flex items-center justify-center"><div className="size-3 bg-red-500 rounded-full animate-pulse" /></div>
+          <div className="flex gap-2">
+             {watchConnected ? (
+               <div className="flex flex-col items-end">
+                  <div className="flex items-center gap-1.5 animate-pulse text-red-500 font-black italic text-xl"><Heart size={20} fill="currentColor"/> {bpm}</div>
+                  <p className="text-[8px] font-bold text-zinc-600 uppercase max-w-[80px] truncate">{connectedDeviceName}</p>
+               </div>
+             ) : (
+               <div className="size-12 flex items-center justify-center"><div className="size-3 bg-red-500 rounded-full animate-pulse" /></div>
+             )}
+          </div>
         </div>
         <div className="px-1">
           <div className="flex justify-between items-end mb-2">
@@ -592,15 +615,41 @@ const EvolutionView = () => (
   </div>
 );
 
-const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChange }: { profileImage: string, onImageChange: (url: string) => void, biometrics: Biometrics, onBiometricsChange: (b: Biometrics) => void }) => {
+const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChange, watchConnected, toggleWatch, deviceName }: any) => {
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tempBiometrics, setTempBiometrics] = useState({...biometrics});
   const [notif, setNotif] = useState(true);
+  const [isPairing, setIsPairing] = useState(false);
+  const [showDeviceList, setShowDeviceList] = useState(false);
 
   useEffect(() => { if (!isEditing) setTempBiometrics({...biometrics}); }, [biometrics, isEditing]);
   const handleSave = () => { onBiometricsChange({...tempBiometrics}); setIsEditing(false); };
   const handleCancel = () => { setTempBiometrics({...biometrics}); setIsEditing(false); };
+
+  const mockDevices = [
+    { id: 1, name: 'Apple Watch Series 8', os: '8.8.1 (19U512)', signal: 'Forte', type: 'apple' },
+    { id: 2, name: 'Apple Watch SE', os: '8.7', signal: 'Fraco', type: 'apple' },
+    { id: 3, name: 'Mi Band 7', os: 'N/A', signal: 'Médio', type: 'other' }
+  ];
+
+  const handleDevicePairing = () => {
+    if (watchConnected) {
+      toggleWatch(false);
+    } else {
+      setIsPairing(true);
+      // Simulate scanning delay
+      setTimeout(() => {
+        setIsPairing(false);
+        setShowDeviceList(true);
+      }, 2000);
+    }
+  };
+
+  const selectDevice = (device: any) => {
+    setShowDeviceList(false);
+    toggleWatch(true, device.name + ' - ' + device.os);
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12 max-w-4xl mx-auto">
@@ -629,10 +678,42 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
             </div>
             <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
                <div className="flex items-center gap-4"><div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><Smartphone size={20}/></div><div><p className="text-sm font-black uppercase italic text-zinc-200">Dispositivos</p><p className="text-[10px] font-bold text-zinc-600">Apple Health / Watch</p></div></div>
-               <ChevronRight size={20} className="text-zinc-700" />
+               <button onClick={handleDevicePairing} disabled={isPairing} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${watchConnected ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 'bg-zinc-950 border border-zinc-800 hover:text-white'}`}>
+                  {isPairing ? <Loader2 size={12} className="animate-spin"/> : watchConnected ? <Watch size={14}/> : <Plus size={14}/>}
+                  {isPairing ? 'Buscando...' : watchConnected ? `Conectado: ${deviceName || 'Apple Watch'}` : 'Conectar'}
+               </button>
             </div>
          </div>
       </section>
+
+      {/* DEVICE SELECTION MODAL */}
+      {showDeviceList && (
+        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowDeviceList(false)}>
+           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-[3rem] p-8 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-6">
+                 <h4 className="text-xl font-black italic uppercase flex items-center gap-3"><Bluetooth size={20} className="text-blue-500"/> Dispositivos</h4>
+                 <button onClick={() => setShowDeviceList(false)}><X size={20} className="text-zinc-500 hover:text-white"/></button>
+              </div>
+              <p className="text-xs text-zinc-500 font-bold mb-6 uppercase tracking-widest">Selecione seu dispositivo para parear:</p>
+              <div className="space-y-3">
+                 {mockDevices.map((device) => (
+                    <button key={device.id} onClick={() => selectDevice(device)} className="w-full bg-zinc-950 border border-zinc-800 hover:border-lime-400 p-4 rounded-2xl flex items-center justify-between group transition-all">
+                       <div className="text-left">
+                          <p className="text-sm font-bold text-white group-hover:text-lime-400">{device.name}</p>
+                          <p className="text-[10px] font-black text-zinc-500 uppercase">{device.os}</p>
+                       </div>
+                       <div className="flex items-center gap-2">
+                          <Signal size={14} className={device.signal === 'Forte' ? 'text-green-500' : 'text-orange-500'} />
+                       </div>
+                    </button>
+                 ))}
+              </div>
+              <div className="mt-6 pt-6 border-t border-zinc-800 text-center">
+                 <p className="text-[9px] text-zinc-600 animate-pulse">Buscando novos dispositivos...</p>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -838,10 +919,11 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 
 // --- MODULES ---
 
-const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans }: any) => {
+const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch }: any) => {
   const [activeSession, setActiveSession] = useState<any>(null);
   const [activeSessionTime, setActiveSessionTime] = useState(0);
   const [sessionFinished, setSessionFinished] = useState(false);
+  const [connectedDeviceName, setConnectedDeviceName] = useState("");
   
   useEffect(() => {
     let interval: any;
@@ -849,8 +931,13 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
     return () => clearInterval(interval);
   }, [activeSession]);
 
-  if (activeSession) return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); }} onClose={() => setActiveSession(null)} />;
+  if (activeSession) return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); }} onClose={() => setActiveSession(null)} watchConnected={watchConnected} connectedDeviceName={connectedDeviceName} />;
   if (sessionFinished) return <FinishedSessionView totalTime={activeSessionTime} reset={() => { setSessionFinished(false); setActiveSessionTime(0); setView('dashboard'); }} />;
+
+  const handleToggleWatch = (status: boolean, name: string = "") => {
+    toggleWatch(status);
+    setConnectedDeviceName(name);
+  }
 
   switch (view) {
     case 'dashboard':
@@ -889,7 +976,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
     case 'store':
        return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
     case 'evolution': return <EvolutionView />;
-    case 'profile': return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} />;
+    case 'profile': return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={handleToggleWatch} deviceName={connectedDeviceName} />;
     default: return null;
   }
 };
@@ -976,6 +1063,9 @@ const App: React.FC = () => {
   const [biometrics, setBiometrics] = useState<Biometrics>({ height: '1.82', weight: '84.2', age: '26', goal: 'Hipertrofia' });
   const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>(INITIAL_TEMPLATES);
   const [dietPlans, setDietPlans] = useState<Record<number, any>>(INITIAL_DIETS);
+  
+  // State for Watch Integration
+  const [watchConnected, setWatchConnected] = useState(false);
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
@@ -1021,6 +1111,7 @@ const App: React.FC = () => {
             profileImage={profileImage} onImageChange={setProfileImage} 
             biometrics={biometrics} onBiometricsChange={setBiometrics} 
             dietPlans={dietPlans} setDietPlans={setDietPlans}
+            watchConnected={watchConnected} toggleWatch={setWatchConnected}
           />
         )}
         {(role === 'PROFESSOR' || role === 'NUTRI') && (
