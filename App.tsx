@@ -40,14 +40,6 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: 4, name: 'Camiseta Oversized Zinc', price: 119.00, brand: 'Vou de Gym', img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400', category: 'Vestuário', stock: 25 },
 ];
 
-const WEIGHT_HISTORY = [
-  { day: '01/05', weight: 86.5 },
-  { day: '08/05', weight: 85.8 },
-  { day: '15/05', weight: 85.2 },
-  { day: '22/05', weight: 84.7 },
-  { day: '29/05', weight: 84.2 },
-];
-
 const MACRO_DISTRIBUTION = [
   { name: 'Proteínas', value: 30, fill: '#D9FF00' },
   { name: 'Carbos', value: 50, fill: '#3b82f6' },
@@ -171,7 +163,6 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose }: any) 
   const skipRest = () => { setRestSeconds(0); setRestingExerciseId(null); };
 
   const totalPossibleSets: number = (workout?.exercises || []).reduce((acc: number, ex: any): number => acc + (Number(ex.s) || 0), 0);
-  // Fix: Explicitly cast the values from exerciseProgress to number[] to avoid 'unknown' type issues during reduction
   const totalCompletedSets: number = (Object.values(exerciseProgress) as number[]).reduce((acc: number, val: number): number => acc + val, 0);
   const workoutPercentage = totalPossibleSets > 0 ? (totalCompletedSets / totalPossibleSets) * 100 : 0;
 
@@ -274,24 +265,36 @@ const WorkoutDetailCard = ({ workout, onStart }: any) => {
 
 // --- STORE COMPONENTS ---
 
-const StoreView = ({ products, addToCart, cartCount }: any) => {
+const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
   const [filter, setFilter] = useState('Todos');
   const categories = ['Todos', 'Suplementos', 'Equipamentos', 'Vestuário'];
   const filteredProducts = filter === 'Todos' ? products : products.filter((p: Product) => p.category === filter);
 
   return (
-    <div className="animate-in fade-in duration-700 space-y-10">
+    <div className="animate-in fade-in duration-700 space-y-10 relative">
       <header className="flex flex-col lg:row justify-between lg:items-end gap-6">
         <div>
           <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">Marketplace</h2>
           <p className="text-zinc-500 font-medium">Equipamentos e suplementos de elite.</p>
         </div>
-        <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-3xl gap-1 shadow-xl overflow-x-auto no-scrollbar">
-          {categories.map((c) => (
-            <button key={c} onClick={() => setFilter(c)} className={`min-w-[6rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-6 ${filter === c ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-800'}`}>
-              {c}
-            </button>
-          ))}
+        <div className="flex items-center gap-4">
+          <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-3xl gap-1 shadow-xl overflow-x-auto no-scrollbar">
+            {categories.map((c) => (
+              <button key={c} onClick={() => setFilter(c)} className={`min-w-[6rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-6 ${filter === c ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-800'}`}>
+                {c}
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={openCart}
+            className="hidden md:flex bg-zinc-900 border border-zinc-800 h-14 px-6 rounded-3xl items-center gap-4 hover:border-lime-400/40 transition-all text-zinc-400 hover:text-white group"
+          >
+            <div className="relative">
+              <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
+              {cartCount > 0 && <div className="absolute -top-2 -right-2 size-4 bg-lime-400 text-black text-[9px] font-black rounded-full flex items-center justify-center">{cartCount}</div>}
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">Ver Carrinho</span>
+          </button>
         </div>
       </header>
 
@@ -317,6 +320,17 @@ const StoreView = ({ products, addToCart, cartCount }: any) => {
           </div>
         ))}
       </div>
+
+      {/* FAB - FLOATING ACTION BUTTON PARA CARRINHO */}
+      <button 
+        onClick={openCart}
+        className="fixed bottom-32 md:bottom-12 right-6 md:right-12 size-16 md:size-20 bg-lime-400 text-black rounded-[2rem] flex items-center justify-center shadow-2xl shadow-lime-400/30 hover:scale-110 active:scale-95 transition-all z-[60]"
+      >
+        <div className="relative">
+          <ShoppingBag size={32} />
+          {cartCount > 0 && <div className="absolute -top-3 -right-3 size-7 bg-black text-lime-400 text-xs font-black rounded-full flex items-center justify-center border-4 border-lime-400">{cartCount}</div>}
+        </div>
+      </button>
     </div>
   );
 };
@@ -466,7 +480,7 @@ const NutritionView = ({ diet, dayIdx }: { diet: any, dayIdx: number }) => {
 
 // --- STUDENT MODULE ---
 
-const StudentModule = ({ view, setView, products, addToCart, cartCount }: any) => {
+const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen }: any) => {
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [workoutFinished, setWorkoutFinished] = useState(false);
@@ -483,7 +497,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount }: any) =
   const startWorkout = () => { setWorkoutSeconds(0); setIsWorkoutActive(true); setWorkoutFinished(false); setView('workouts'); };
   const handleFinish = (t: number) => { setFinalTime(t); setWorkoutFinished(true); setIsWorkoutActive(false); };
 
-  if (view === 'store') return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} />;
+  if (view === 'store') return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
   
   if (view === 'workouts') return isWorkoutActive ? (
     <ActiveWorkoutSession workout={WEEKLY_WORKOUTS[selectedDay] || { exercises: [] }} workoutTime={workoutSeconds} onFinish={handleFinish} onClose={() => setIsWorkoutActive(false)} />
@@ -546,6 +560,7 @@ const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
 
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -557,7 +572,10 @@ const App: React.FC = () => {
   };
 
   const removeFromCart = (id: number) => { setCart(prev => prev.filter(item => item.id !== id)); };
-  const cartTotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  
+  const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
+  const cartTotal = subtotal - discount;
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
@@ -575,29 +593,151 @@ const App: React.FC = () => {
         </div>
         <nav className="flex-1 space-y-3">
           <NavItem icon={<LayoutDashboard size={24}/>} label="Painel" active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} collapsed={!sidebarOpen} />
-          {role === 'ALUNO' && (<><NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => setActiveView('workouts')} collapsed={!sidebarOpen} /><NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => setActiveView('diet')} collapsed={!sidebarOpen} /><NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === 'store'} onClick={() => setActiveView('store')} collapsed={!sidebarOpen} badge={cartCount} /><NavItem icon={<TrendingUp size={24}/>} label="Performance" active={activeView === 'evolution'} onClick={() => setActiveView('evolution')} collapsed={!sidebarOpen} /></>)}
+          {role === 'ALUNO' && (
+            <>
+              <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => setActiveView('workouts')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => setActiveView('diet')} collapsed={!sidebarOpen} />
+              <NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === 'store'} onClick={() => { if(activeView === 'store') setIsCartOpen(true); setActiveView('store'); }} collapsed={!sidebarOpen} badge={cartCount} />
+              <NavItem icon={<TrendingUp size={24}/>} label="Performance" active={activeView === 'evolution'} onClick={() => setActiveView('evolution')} collapsed={!sidebarOpen} />
+            </>
+          )}
           {role === 'ADMIN' && (<><NavItem icon={<Users size={24}/>} label="Alunos" active={activeView === 'students'} onClick={() => setActiveView('students')} collapsed={!sidebarOpen} /><NavItem icon={<Package size={24}/>} label="Gestão Loja" active={activeView === 'adminStore'} onClick={() => setActiveView('adminStore')} collapsed={!sidebarOpen} /><NavItem icon={<Percent size={24}/>} label="Campanhas" active={activeView === 'campaigns'} onClick={() => setActiveView('campaigns')} collapsed={!sidebarOpen} /></>)}
           {role === 'NUTRI' && (<><NavItem icon={<Users size={24}/>} label="Pacientes" active={activeView === 'patients'} onClick={() => setActiveView('patients')} collapsed={!sidebarOpen} /><NavItem icon={<Salad size={24}/>} label="Planos" active={activeView === 'diet'} onClick={() => setActiveView('diet')} collapsed={!sidebarOpen} /></>)}
         </nav>
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-4 bg-zinc-900 border border-zinc-800 rounded-3xl flex justify-center text-zinc-400 hover:text-white">{sidebarOpen ? <ArrowLeft size={24}/> : <ArrowRight size={24}/>}</button>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-4 bg-zinc-900 border border-zinc-800 rounded-3xl flex justify-center text-zinc-400 hover:text-white transition-all">{sidebarOpen ? <ArrowLeft size={24}/> : <ArrowRight size={24}/>}</button>
       </aside>
 
       <main className="flex-1 p-6 md:p-12 lg:px-20 max-w-8xl mx-auto w-full pb-32">
-        {role === 'ALUNO' && <StudentModule view={activeView} setView={setActiveView} products={products} addToCart={addToCart} cartCount={cartCount} />}
+        {role === 'ALUNO' && <StudentModule view={activeView} setView={setActiveView} products={products} addToCart={addToCart} cartCount={cartCount} setIsCartOpen={setIsCartOpen} />}
         {role === 'ADMIN' && activeView === 'adminStore' && <AdminStoreView products={products} setProducts={setProducts} />}
-        {role === 'ADMIN' && activeView !== 'adminStore' && (<div className="flex flex-col items-center justify-center min-h-[60vh] text-center italic"><Package size={80} className="text-zinc-800 mb-6" /><h2 className="text-2xl font-black uppercase text-zinc-700">Selecione "Gestão Loja"</h2></div>)}
+        {role === 'ADMIN' && activeView !== 'adminStore' && (<div className="flex flex-col items-center justify-center min-h-[60vh] text-center italic"><Package size={80} className="text-zinc-800 mb-6" /><h2 className="text-2xl font-black uppercase text-zinc-700">Selecione "Gestão Loja" no menu lateral</h2></div>)}
       </main>
 
       {/* CART DRAWER */}
       {isCartOpen && (
-        <div className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-md flex justify-end">
-          <div className="w-full max-w-md bg-zinc-950 border-l border-zinc-900 h-screen flex flex-col animate-in slide-in-from-right duration-500 shadow-2xl">
-             <div className="p-8 border-b border-zinc-900 flex justify-between items-center"><div className="flex items-center gap-4 text-2xl font-black italic uppercase"><ShoppingCart size={32} className="text-lime-400" /> Carrinho</div><button onClick={() => setIsCartOpen(false)} className="size-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button></div>
-             <div className="flex-1 overflow-y-auto p-8 space-y-6">{cart.length === 0 ? (<div className="h-full flex flex-col items-center justify-center text-zinc-600 italic"><ShoppingBag size={64} className="mb-6 opacity-20" /><p>Carrinho vazio.</p></div>) : (cart.map(item => (<div key={item.id} className="bg-zinc-900 border border-zinc-800 p-5 rounded-3xl flex gap-4"><img src={item.img} className="size-20 rounded-2xl object-cover" /><div className="flex-1 min-w-0"><h5 className="font-bold text-sm truncate uppercase italic">{item.name}</h5><p className="text-[10px] text-zinc-500 font-bold uppercase mb-3">{item.brand}</p><div className="flex items-center justify-between"><p className="font-black text-lime-400">R$ {item.price.toFixed(2)}</p><div className="flex items-center bg-zinc-950 rounded-xl px-2 py-1 gap-4 border border-zinc-800"><button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1"><Trash2 size={14}/></button><span className="text-xs font-black">{item.quantity}</span></div></div></div></div>)))}</div>
-             <div className="p-8 bg-zinc-900/50 border-t border-zinc-900 space-y-6"><div className="flex justify-between items-center"><span className="text-zinc-500 font-black uppercase text-xs">Subtotal</span><span className="text-2xl font-black italic">R$ {cartTotal.toFixed(2)}</span></div><button className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase text-sm shadow-xl">Finalizar Compra</button></div>
+        <div className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-lg flex justify-end" onClick={() => setIsCartOpen(false)}>
+          <div 
+            className="w-full max-w-md bg-zinc-950 border-l border-zinc-900 h-screen flex flex-col animate-in slide-in-from-right duration-500 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+             <div className="p-8 border-b border-zinc-900 flex justify-between items-center">
+               <div className="flex items-center gap-4 text-2xl font-black italic uppercase">
+                 <ShoppingCart size={32} className="text-lime-400" /> Carrinho
+               </div>
+               <button onClick={() => setIsCartOpen(false)} className="size-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-zinc-500 hover:text-white transition-all">
+                 <X size={24}/>
+               </button>
+             </div>
+
+             <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
+               <section>
+                 <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 mb-6">Itens Escolhidos</h6>
+                 <div className="space-y-4">
+                  {cart.length === 0 ? (
+                    <div className="py-12 flex flex-col items-center justify-center text-zinc-600 italic">
+                      <ShoppingBag size={64} className="mb-6 opacity-20" />
+                      <p className="font-bold uppercase tracking-widest text-xs">Seu carrinho está vazio</p>
+                    </div>
+                  ) : (
+                    cart.map(item => (
+                      <div key={item.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-[2rem] flex gap-4 hover:border-zinc-700 transition-all">
+                          <img src={item.img} className="size-16 rounded-2xl object-cover border border-zinc-800" />
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-bold text-xs truncate uppercase italic tracking-tight text-white">{item.name}</h5>
+                            <div className="flex items-center justify-between mt-2">
+                                <p className="font-black text-lime-400 italic text-sm">R$ {item.price.toFixed(2)}</p>
+                                <div className="flex items-center bg-zinc-950 rounded-xl px-2 py-1 gap-3 border border-zinc-800">
+                                  <button onClick={() => removeFromCart(item.id)} className="text-red-500 hover:scale-110 transition-transform"><Trash2 size={12}/></button>
+                                  <span className="text-[10px] font-black text-zinc-300">{item.quantity}</span>
+                                </div>
+                            </div>
+                          </div>
+                      </div>
+                    ))
+                  )}
+                 </div>
+               </section>
+
+               {cart.length > 0 && (
+                 <section className="animate-in slide-in-from-bottom-4 duration-500">
+                   <h6 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600 mb-6">Forma de Pagamento</h6>
+                   <div className="grid grid-cols-1 gap-3">
+                     <button 
+                       onClick={() => setPaymentMethod('pix')}
+                       className={`flex items-center gap-4 p-5 rounded-3xl border transition-all text-left group ${paymentMethod === 'pix' ? 'bg-lime-400/10 border-lime-400 shadow-xl shadow-lime-400/5' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}
+                     >
+                       <div className={`size-12 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'pix' ? 'bg-lime-400 text-black' : 'bg-zinc-950 text-lime-400'}`}><QrCode size={24}/></div>
+                       <div>
+                         <p className={`font-black uppercase italic tracking-tighter text-sm ${paymentMethod === 'pix' ? 'text-lime-400' : 'text-zinc-300'}`}>PIX Instantâneo</p>
+                         <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Aprovação Imediata • 5% OFF</p>
+                       </div>
+                       {paymentMethod === 'pix' && <CheckCircle2 size={20} className="ml-auto text-lime-400" />}
+                     </button>
+
+                     <button 
+                       onClick={() => setPaymentMethod('credit_card')}
+                       className={`flex items-center gap-4 p-5 rounded-3xl border transition-all text-left group ${paymentMethod === 'credit_card' ? 'bg-lime-400/10 border-lime-400 shadow-xl shadow-lime-400/5' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}
+                     >
+                       <div className={`size-12 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'credit_card' ? 'bg-lime-400 text-black' : 'bg-zinc-950 text-blue-400'}`}><CreditCard size={24}/></div>
+                       <div>
+                         <p className={`font-black uppercase italic tracking-tighter text-sm ${paymentMethod === 'credit_card' ? 'text-lime-400' : 'text-zinc-300'}`}>Cartão de Crédito</p>
+                         <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Em até 12x sem juros</p>
+                       </div>
+                       {paymentMethod === 'credit_card' && <CheckCircle2 size={20} className="ml-auto text-lime-400" />}
+                     </button>
+
+                     <button 
+                       onClick={() => setPaymentMethod('wallet')}
+                       className={`flex items-center gap-4 p-5 rounded-3xl border transition-all text-left group ${paymentMethod === 'wallet' ? 'bg-lime-400/10 border-lime-400 shadow-xl shadow-lime-400/5' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}
+                     >
+                       <div className={`size-12 rounded-2xl flex items-center justify-center transition-all ${paymentMethod === 'wallet' ? 'bg-lime-400 text-black' : 'bg-zinc-950 text-orange-400'}`}><Wallet size={24}/></div>
+                       <div>
+                         <p className={`font-black uppercase italic tracking-tighter text-sm ${paymentMethod === 'wallet' ? 'text-lime-400' : 'text-zinc-300'}`}>Saldo em Carteira</p>
+                         <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">Saldo disponível: R$ 850,00</p>
+                       </div>
+                       {paymentMethod === 'wallet' && <CheckCircle2 size={20} className="ml-auto text-lime-400" />}
+                     </button>
+                   </div>
+                 </section>
+               )}
+             </div>
+
+             <div className="p-8 bg-zinc-900/50 border-t border-zinc-900 space-y-6">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-zinc-500 font-bold text-[10px] uppercase tracking-widest">
+                    <span>Subtotal</span>
+                    <span className="text-zinc-300">R$ {subtotal.toFixed(2)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between items-center text-lime-400 font-bold text-[10px] uppercase tracking-widest">
+                      <span>Desconto PIX (5%)</span>
+                      <span>- R$ {discount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="pt-3 border-t border-zinc-800 flex justify-between items-center">
+                    <span className="text-zinc-500 font-black uppercase text-[10px] tracking-[0.2em]">Total</span>
+                    <span className="text-3xl font-black italic text-white leading-none">R$ {cartTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+                
+                <button 
+                  disabled={cart.length === 0 || !paymentMethod}
+                  className={`w-full py-6 rounded-2xl font-black uppercase tracking-widest text-sm transition-all flex items-center justify-center gap-3 ${!paymentMethod ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50' : 'bg-lime-400 text-black shadow-xl shadow-lime-400/20 active:scale-95'}`}
+                >
+                  {paymentMethod ? 'Finalizar Pedido' : 'Selecione o Pagamento'} 
+                  {paymentMethod && <ArrowRight size={18}/>}
+                </button>
+             </div>
           </div>
         </div>
       )}
+
+      {/* MOBILE NAV */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-24 bg-zinc-950/90 backdrop-blur-3xl border-t border-zinc-900 flex items-center justify-around z-50 px-8 pb-4">
+        <button onClick={() => setActiveView('dashboard')} className={activeView === 'dashboard' ? 'text-lime-400' : 'text-zinc-600'}><LayoutDashboard size={28}/></button>
+        <button onClick={() => setActiveView('workouts')} className={activeView === 'workouts' ? 'text-lime-400' : 'text-zinc-600'}><Dumbbell size={28}/></button>
+        <button onClick={() => setActiveView('store')} className={activeView === 'store' ? 'text-lime-400' : 'text-zinc-600'}><ShoppingBag size={28}/></button>
+      </nav>
     </div>
   );
 };
