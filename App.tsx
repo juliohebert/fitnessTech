@@ -1298,7 +1298,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
    ]);
 
    if (selectedStudent) {
-      return (
+      return (<>
          <div className="animate-in fade-in slide-in-from-right duration-500 space-y-8">
             <button onClick={() => { setSelectedStudent(null); setSubView('overview'); }} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4"><ArrowLeft size={20}/><span className="text-xs font-black uppercase">Voltar</span></button>
             
@@ -1601,6 +1601,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                </div>
             )}
          </div>
+         {renderProfessorModals()}
+         </>
       );
    }
 
@@ -1936,6 +1938,7 @@ const NutriModule = ({ view, students, setView }: any) => {
 
    if (selectedStudent) {
       return (
+         <>
          <div className="animate-in fade-in slide-in-from-right duration-500 space-y-8">
             <button onClick={() => { setSelectedStudent(null); setSubView('overview'); }} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4"><ArrowLeft size={20}/><span className="text-xs font-black uppercase">Voltar</span></button>
             
@@ -2148,6 +2151,85 @@ const NutriModule = ({ view, students, setView }: any) => {
                </div>
             )}
          </div>
+         
+         {/* Modais do NutriModule quando aluno selecionado */}
+         {showCreateDiet && (
+            <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowCreateDiet(false)}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-8">
+                     <h3 className="text-3xl font-black italic uppercase">Novo Plano Alimentar</h3>
+                     <button onClick={() => setShowCreateDiet(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Plano alimentar gerado com sucesso!\n\nCalorias: ' + dietForm.calories + ' kcal\nTipo: ' + dietForm.type); setDietForm({ calories: '', type: 'Equilibrada', restrictions: '' }); setShowCreateDiet(false); }} className="space-y-6">
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Meta Calórica Diária</label><input required type="number" value={dietForm.calories} onChange={(e) => setDietForm({...dietForm, calories: e.target.value})} placeholder="Ex: 2800" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Tipo de Dieta</label><select value={dietForm.type} onChange={(e) => setDietForm({...dietForm, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Equilibrada</option><option>Low Carb</option><option>Cetogênica</option><option>Vegetariana</option><option>Vegana</option><option>Bulking (Ganho de Massa)</option><option>Cutting (Definição)</option></select></div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Restrições Alimentares</label><input value={dietForm.restrictions} onChange={(e) => setDietForm({...dietForm, restrictions: e.target.value})} placeholder="Ex: Sem lactose, sem glúten..." className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all flex items-center justify-center gap-2"><Sparkles size={20}/> Gerar com AI</button>
+                  </form>
+               </div>
+            </div>
+         )}
+
+         {showCompositionAnalysis && (
+            <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowCompositionAnalysis(false)}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-8">
+                     <h3 className="text-3xl font-black italic uppercase">Nova Análise de Composição</h3>
+                     <button onClick={() => setShowCompositionAnalysis(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Análise registrada com sucesso!\n\nPeso: ' + compositionForm.weight + ' kg\nGordura: ' + compositionForm.bodyFat + '%'); setCompositionForm({ weight: '', bodyFat: '', muscle: '', water: '' }); setShowCompositionAnalysis(false); }} className="space-y-6">
+                     <div className="grid grid-cols-2 gap-4">
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Peso (kg)</label><input required type="number" step="0.1" value={compositionForm.weight} onChange={(e) => setCompositionForm({...compositionForm, weight: e.target.value})} placeholder="Ex: 87.2" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Gordura Corporal (%)</label><input required type="number" step="0.1" value={compositionForm.bodyFat} onChange={(e) => setCompositionForm({...compositionForm, bodyFat: e.target.value})} placeholder="Ex: 17.1" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Massa Muscular (kg)</label><input type="number" step="0.1" value={compositionForm.muscle} onChange={(e) => setCompositionForm({...compositionForm, muscle: e.target.value})} placeholder="Ex: 39.2" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Água Corporal (%)</label><input type="number" step="0.1" value={compositionForm.water} onChange={(e) => setCompositionForm({...compositionForm, water: e.target.value})} placeholder="Ex: 59.1" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     </div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Registrar Análise</button>
+                  </form>
+               </div>
+            </div>
+         )}
+
+         {showNewPatient && (
+            <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewPatient(false)}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-8">
+                     <h3 className="text-3xl font-black italic uppercase">Novo Paciente</h3>
+                     <button onClick={() => setShowNewPatient(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Paciente cadastrado com sucesso!\n\nNome: ' + newPatientForm.name + '\nEmail: ' + newPatientForm.email + '\nObjetivo: ' + newPatientForm.goal); setNewPatientForm({ name: '', email: '', phone: '', goal: 'Emagrecimento', restrictions: '' }); setShowNewPatient(false); }} className="space-y-6">
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input required value={newPatientForm.name} onChange={(e) => setNewPatientForm({...newPatientForm, name: e.target.value})} placeholder="Ex: Maria Silva" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Email</label><input required type="email" value={newPatientForm.email} onChange={(e) => setNewPatientForm({...newPatientForm, email: e.target.value})} placeholder="maria@email.com" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Telefone</label><input value={newPatientForm.phone} onChange={(e) => setNewPatientForm({...newPatientForm, phone: e.target.value})} placeholder="(11) 99999-9999" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     </div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Objetivo Nutricional</label><select value={newPatientForm.goal} onChange={(e) => setNewPatientForm({...newPatientForm, goal: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Emagrecimento</option><option>Ganho de Massa</option><option>Performance Esportiva</option><option>Saúde e Bem-estar</option><option>Reeducação Alimentar</option></select></div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Restrições Alimentares</label><input value={newPatientForm.restrictions} onChange={(e) => setNewPatientForm({...newPatientForm, restrictions: e.target.value})} placeholder="Ex: Lactose, glúten, frutos do mar..." className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Cadastrar Paciente</button>
+                  </form>
+               </div>
+            </div>
+         )}
+
+         {showNewContent && (
+            <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewContent(false)}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-8">
+                     <h3 className="text-3xl font-black italic uppercase">Novo Conteúdo Educacional</h3>
+                     <button onClick={() => setShowNewContent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Conteúdo criado com sucesso!\n\nTítulo: ' + newContentForm.title + '\nCategoria: ' + newContentForm.category + '\nDuração: ' + newContentForm.duration); setNewContentForm({ title: '', category: 'Artigo', duration: '' }); setShowNewContent(false); }} className="space-y-6">
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Título do Conteúdo</label><input required value={newContentForm.title} onChange={(e) => setNewContentForm({...newContentForm, title: e.target.value})} placeholder="Ex: Como montar um prato equilibrado" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Categoria</label><select value={newContentForm.category} onChange={(e) => setNewContentForm({...newContentForm, category: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Artigo</option><option>Vídeo</option><option>Infográfico</option><option>Receita</option><option>Guia</option></select></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Duração/Tempo</label><input value={newContentForm.duration} onChange={(e) => setNewContentForm({...newContentForm, duration: e.target.value})} placeholder="Ex: 5 min, 10 páginas" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     </div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Publicar Conteúdo</button>
+                  </form>
+               </div>
+            </div>
+         )}
+         </>
       );
    }
 
