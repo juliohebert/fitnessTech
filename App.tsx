@@ -439,22 +439,26 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-10 duration-500 pb-32 max-w-3xl mx-auto">
-      <div className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-900 pb-6 mb-10 pt-4">
-        <div className="flex justify-between items-center mb-6">
-          <button onClick={onClose} className="size-12 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white transition-all"><X size={20} /></button>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-0.5"><TimerIcon size={16} className="text-lime-400" /><span className="text-2xl font-black italic text-lime-400 tracking-tighter">{formatTime(workoutTime)}</span></div>
-            <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Treinando Agora</p>
-          </div>
-          <div className="flex gap-2">
-             {watchConnected ? (
-               <div className="flex flex-col items-end">
-                  <div className="flex items-center gap-1.5 animate-pulse text-red-500 font-black italic text-xl"><Heart size={20} fill="currentColor"/> {bpm}</div>
-                  <p className="text-[8px] font-bold text-zinc-600 uppercase max-w-[80px] truncate">{connectedDeviceName}</p>
+      <div className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-900 pb-6 mb-10 pt-4 px-4 md:px-0">
+        <div className="flex justify-between items-center mb-6 relative">
+          <button onClick={onClose} className="size-12 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white transition-all z-10"><X size={20} /></button>
+          
+          <div className="absolute left-0 right-0 flex flex-col items-center justify-center pointer-events-none">
+            <div className="flex items-center justify-center gap-2 mb-0.5">
+               <TimerIcon size={16} className="text-lime-400" />
+               <span className="text-2xl font-black italic text-lime-400 tracking-tighter">{formatTime(workoutTime)}</span>
+            </div>
+            {watchConnected ? (
+               <div className="flex items-center gap-1.5 text-red-500 font-black italic text-xs animate-in slide-in-from-top-2">
+                  <Heart size={10} fill="currentColor" className="animate-pulse"/> {bpm} BPM
                </div>
-             ) : (
-               <div className="size-12 flex items-center justify-center"><div className="size-3 bg-red-500 rounded-full animate-pulse" /></div>
-             )}
+            ) : (
+               <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Treinando Agora</p>
+            )}
+          </div>
+
+          <div className="size-12 flex items-center justify-center z-10">
+             {watchConnected && <Watch size={20} className="text-zinc-600" />}
           </div>
         </div>
         <div className="px-1">
@@ -919,11 +923,10 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 
 // --- MODULES ---
 
-const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch }: any) => {
+const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName }: any) => {
   const [activeSession, setActiveSession] = useState<any>(null);
   const [activeSessionTime, setActiveSessionTime] = useState(0);
   const [sessionFinished, setSessionFinished] = useState(false);
-  const [connectedDeviceName, setConnectedDeviceName] = useState("");
   
   useEffect(() => {
     let interval: any;
@@ -931,13 +934,8 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
     return () => clearInterval(interval);
   }, [activeSession]);
 
-  if (activeSession) return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); }} onClose={() => setActiveSession(null)} watchConnected={watchConnected} connectedDeviceName={connectedDeviceName} />;
+  if (activeSession) return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); }} onClose={() => setActiveSession(null)} watchConnected={watchConnected} connectedDeviceName={deviceName} />;
   if (sessionFinished) return <FinishedSessionView totalTime={activeSessionTime} reset={() => { setSessionFinished(false); setActiveSessionTime(0); setView('dashboard'); }} />;
-
-  const handleToggleWatch = (status: boolean, name: string = "") => {
-    toggleWatch(status);
-    setConnectedDeviceName(name);
-  }
 
   switch (view) {
     case 'dashboard':
@@ -976,7 +974,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
     case 'store':
        return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
     case 'evolution': return <EvolutionView />;
-    case 'profile': return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={handleToggleWatch} deviceName={connectedDeviceName} />;
+    case 'profile': return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={toggleWatch} deviceName={deviceName} />;
     default: return null;
   }
 };
@@ -1066,10 +1064,16 @@ const App: React.FC = () => {
   
   // State for Watch Integration
   const [watchConnected, setWatchConnected] = useState(false);
+  const [connectedDeviceName, setConnectedDeviceName] = useState("");
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
   const total = subtotal - discount;
+
+  const handleToggleWatch = (status: boolean, name: string = "") => {
+    setWatchConnected(status);
+    if (name) setConnectedDeviceName(name);
+  };
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans">
@@ -1111,7 +1115,8 @@ const App: React.FC = () => {
             profileImage={profileImage} onImageChange={setProfileImage} 
             biometrics={biometrics} onBiometricsChange={setBiometrics} 
             dietPlans={dietPlans} setDietPlans={setDietPlans}
-            watchConnected={watchConnected} toggleWatch={setWatchConnected}
+            watchConnected={watchConnected} toggleWatch={handleToggleWatch}
+            deviceName={connectedDeviceName}
           />
         )}
         {(role === 'PROFESSOR' || role === 'NUTRI') && (
