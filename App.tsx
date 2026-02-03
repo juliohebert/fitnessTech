@@ -861,7 +861,7 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
               <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Meta</p>{isEditing ? (<select value={tempBiometrics.goal} onChange={(e) => setTempBiometrics({...tempBiometrics, goal: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none appearance-none"><option value="Hipertrofia">Hipertrofia</option><option value="Cutting">Cutting</option><option value="Bulking">Bulking</option></select>) : (<p className="text-xl font-black italic text-lime-400 uppercase tracking-tighter break-words">{biometrics.goal}</p>)}</div>
            </div>
         </section>
-        <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl space-y-8"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-10 opacity-5"><Trophy size={140} className="text-lime-400" /></div><div className="relative z-10"><p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-4 mb-8"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div><div><p className="text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-6 border-t border-zinc-900 flex justify-between items-end"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-sm font-black italic text-white">15 de Nov, 2024</p></div><button className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 transition-all">Gerenciar</button></div></div></div></section>
+        <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl space-y-8"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-10 opacity-5"><Trophy size={140} className="text-lime-400" /></div><div className="relative z-10"><p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-4 mb-8"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div><div><p className="text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-6 border-t border-zinc-900 flex justify-between items-end"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-sm font-black italic text-white">15 de Nov, 2024</p></div><button onClick={() => alert('Gerenciar Assinatura\n\nPlano Atual: BLACK VIP\nPróxima cobrança: 15 de Nov, 2024\n\nOpções:\n• Alterar plano\n• Alterar forma de pagamento\n• Cancelar assinatura')} className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 transition-all">Gerenciar</button></div></div></div></section>
       </div>
       <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
          <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Settings size={20} className="text-orange-400"/> Configurações</h4>
@@ -1629,6 +1629,57 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             </div>
          )}
 
+         {/* Modal Novo Agendamento */}
+         {showNewSchedule && (
+            <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewSchedule(false)}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-8">
+                     <h3 className="text-3xl font-black italic uppercase">Novo Agendamento</h3>
+                     <button onClick={() => setShowNewSchedule(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Agendamento criado com sucesso!\n\nTipo: ' + newScheduleForm.type + '\nData: ' + newScheduleForm.date + '\nHorário: ' + newScheduleForm.time); setNewScheduleForm({ type: 'Personal Training', date: '', time: '', notes: '' }); setShowNewSchedule(false); }} className="space-y-6">
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Tipo de Atendimento</label><select required value={newScheduleForm.type} onChange={(e) => setNewScheduleForm({...newScheduleForm, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Personal Training</option><option>Avaliação Física</option><option>Consultoria</option><option>Aula Experimental</option></select></div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Data</label><input required type="date" value={newScheduleForm.date} onChange={(e) => setNewScheduleForm({...newScheduleForm, date: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Horário</label><input required type="time" value={newScheduleForm.time} onChange={(e) => setNewScheduleForm({...newScheduleForm, time: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     </div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Observações</label><textarea value={newScheduleForm.notes} onChange={(e) => setNewScheduleForm({...newScheduleForm, notes: e.target.value})} rows={3} placeholder="Informações adicionais sobre o atendimento..." className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none resize-none"/></div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Criar Agendamento</button>
+                  </form>
+               </div>
+            </div>
+         )}
+
+         {/* Modal Nova Avaliação */}
+         {showAssessment && (
+            <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAssessment(false)}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-3xl rounded-[3rem] p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-8">
+                     <h3 className="text-3xl font-black italic uppercase">Nova Avaliação Física</h3>
+                     <button onClick={() => setShowAssessment(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Avaliação registrada com sucesso!\n\nPeso: ' + newAssessmentForm.weight + ' kg\nPercentual de Gordura: ' + newAssessmentForm.bodyFat + '%'); setNewAssessmentForm({ weight: '', bodyFat: '', muscle: '', water: '', chest: '', waist: '', arm: '', leg: '' }); setShowAssessment(false); }} className="space-y-6">
+                     <div className="grid grid-cols-2 gap-4">
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Peso (kg)</label><input required type="number" step="0.1" value={newAssessmentForm.weight} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, weight: e.target.value})} placeholder="Ex: 84.2" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Gordura Corporal (%)</label><input required type="number" step="0.1" value={newAssessmentForm.bodyFat} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, bodyFat: e.target.value})} placeholder="Ex: 18.5" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Massa Muscular (%)</label><input type="number" step="0.1" value={newAssessmentForm.muscle} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, muscle: e.target.value})} placeholder="Ex: 42.0" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Água Corporal (%)</label><input type="number" step="0.1" value={newAssessmentForm.water} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, water: e.target.value})} placeholder="Ex: 58.0" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     </div>
+                     <div className="border-t border-zinc-800 pt-6">
+                        <h4 className="text-sm font-black uppercase text-zinc-500 mb-4">Medidas Corporais (cm)</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Peitoral</label><input type="number" step="0.1" value={newAssessmentForm.chest} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, chest: e.target.value})} placeholder="Ex: 105" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Cintura</label><input type="number" step="0.1" value={newAssessmentForm.waist} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, waist: e.target.value})} placeholder="Ex: 85" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Braço</label><input type="number" step="0.1" value={newAssessmentForm.arm} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, arm: e.target.value})} placeholder="Ex: 38" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Coxa</label><input type="number" step="0.1" value={newAssessmentForm.leg} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, leg: e.target.value})} placeholder="Ex: 58" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        </div>
+                     </div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Salvar Avaliação</button>
+                  </form>
+               </div>
+            </div>
+         )}
+
          {/* Modal Novo Modelo */}
          {showNewTemplate && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewTemplate(false)}>
@@ -1796,13 +1847,13 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                            </div>
                         </div>
                         <div className="flex gap-3">
-                           <button className="flex-1 bg-green-500/20 text-green-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
+                           <button onClick={() => alert('Agendamento confirmado!')} className="flex-1 bg-green-500/20 text-green-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
                               <Check size={16}/> Confirmar
                            </button>
-                           <button className="flex-1 bg-red-500/20 text-red-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500/30 transition-all flex items-center justify-center gap-2">
+                           <button onClick={() => alert('Agendamento cancelado!')} className="flex-1 bg-red-500/20 text-red-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500/30 transition-all flex items-center justify-center gap-2">
                               <X size={16}/> Cancelar
                            </button>
-                           <button className="bg-blue-500/20 text-blue-500 py-3 px-5 rounded-2xl hover:bg-blue-500/30 transition-all flex items-center justify-center">
+                           <button onClick={() => alert('Editar agendamento')} className="bg-blue-500/20 text-blue-500 py-3 px-5 rounded-2xl hover:bg-blue-500/30 transition-all flex items-center justify-center">
                               <Pencil size={16}/>
                            </button>
                         </div>
@@ -1856,6 +1907,10 @@ const NutriModule = ({ view, students, setView }: any) => {
    const [subView, setSubView] = useState<string>('overview');
    const [showCreateDiet, setShowCreateDiet] = useState(false);
    const [showCompositionAnalysis, setShowCompositionAnalysis] = useState(false);
+   const [showNewPatient, setShowNewPatient] = useState(false);
+   const [showNewContent, setShowNewContent] = useState(false);
+   const [newPatientForm, setNewPatientForm] = useState({ name: '', email: '', phone: '', goal: 'Emagrecimento', restrictions: '' });
+   const [newContentForm, setNewContentForm] = useState({ title: '', category: 'Artigo', duration: '' });
    
    // Form states
    const [dietForm, setDietForm] = useState({ calories: '', type: 'Equilibrada', restrictions: '' });
@@ -2145,7 +2200,7 @@ const NutriModule = ({ view, students, setView }: any) => {
             <div className="space-y-8 animate-in fade-in duration-700">
                <header className="flex justify-between items-end">
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Meus Pacientes</h2><p className="text-zinc-500 font-medium">{students.length} pacientes ativos</p></div>
-                  <button className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><UserPlus size={16}/> Novo Paciente</button>
+                  <button onClick={() => setShowNewPatient(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><UserPlus size={16}/> Novo Paciente</button>
                </header>
                <div className="grid gap-4">
                   {students.map((s: Student) => (
@@ -2257,7 +2312,7 @@ const NutriModule = ({ view, students, setView }: any) => {
             <div className="space-y-8 animate-in fade-in duration-700">
                <header className="flex justify-between items-end">
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Conteúdos Educacionais</h2><p className="text-zinc-500 font-medium">Biblioteca de materiais para pacientes</p></div>
-                  <button className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Conteúdo</button>
+                  <button onClick={() => setShowNewContent(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Conteúdo</button>
                </header>
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {educationalContent.map(content => (
@@ -2268,13 +2323,58 @@ const NutriModule = ({ view, students, setView }: any) => {
                            <span className="text-[9px] bg-zinc-950 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.category}</span>
                            <span className="text-[9px] bg-zinc-950 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.duration}</span>
                         </div>
-                        <button className="w-full bg-zinc-950 hover:bg-lime-400 hover:text-black py-3 rounded-xl font-black uppercase text-[10px] transition-all">Visualizar</button>
+                        <button onClick={() => alert('Visualizando conteúdo: ' + content.title + '\n\nCategoria: ' + content.category + '\nDuração: ' + content.duration)} className="w-full bg-zinc-950 hover:bg-lime-400 hover:text-black py-3 rounded-xl font-black uppercase text-[10px] transition-all">Visualizar</button>
                      </div>
                   ))}
                </div>
             </div>
          );
-      default: return null;
+      default: return (
+         <>
+            {/* Modal Novo Paciente */}
+            {showNewPatient && (
+               <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewPatient(false)}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                     <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-3xl font-black italic uppercase">Novo Paciente</h3>
+                        <button onClick={() => setShowNewPatient(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                     </div>
+                     <form onSubmit={(e) => { e.preventDefault(); alert('Paciente cadastrado com sucesso!\n\nNome: ' + newPatientForm.name + '\nEmail: ' + newPatientForm.email + '\nObjetivo: ' + newPatientForm.goal); setNewPatientForm({ name: '', email: '', phone: '', goal: 'Emagrecimento', restrictions: '' }); setShowNewPatient(false); }} className="space-y-6">
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input required value={newPatientForm.name} onChange={(e) => setNewPatientForm({...newPatientForm, name: e.target.value})} placeholder="Ex: Maria Silva" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Email</label><input required type="email" value={newPatientForm.email} onChange={(e) => setNewPatientForm({...newPatientForm, email: e.target.value})} placeholder="maria@email.com" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Telefone</label><input value={newPatientForm.phone} onChange={(e) => setNewPatientForm({...newPatientForm, phone: e.target.value})} placeholder="(11) 99999-9999" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        </div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Objetivo Nutricional</label><select value={newPatientForm.goal} onChange={(e) => setNewPatientForm({...newPatientForm, goal: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Emagrecimento</option><option>Ganho de Massa</option><option>Performance Esportiva</option><option>Saúde e Bem-estar</option><option>Reeducação Alimentar</option></select></div>
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Restrições Alimentares</label><input value={newPatientForm.restrictions} onChange={(e) => setNewPatientForm({...newPatientForm, restrictions: e.target.value})} placeholder="Ex: Lactose, glúten, frutos do mar..." className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Cadastrar Paciente</button>
+                     </form>
+                  </div>
+               </div>
+            )}
+
+            {/* Modal Novo Conteúdo */}
+            {showNewContent && (
+               <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewContent(false)}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                     <div className="flex justify-between items-center mb-8">
+                        <h3 className="text-3xl font-black italic uppercase">Novo Conteúdo Educacional</h3>
+                        <button onClick={() => setShowNewContent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
+                     </div>
+                     <form onSubmit={(e) => { e.preventDefault(); alert('Conteúdo criado com sucesso!\n\nTítulo: ' + newContentForm.title + '\nCategoria: ' + newContentForm.category + '\nDuração: ' + newContentForm.duration); setNewContentForm({ title: '', category: 'Artigo', duration: '' }); setShowNewContent(false); }} className="space-y-6">
+                        <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Título do Conteúdo</label><input required value={newContentForm.title} onChange={(e) => setNewContentForm({...newContentForm, title: e.target.value})} placeholder="Ex: Como montar um prato equilibrado" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        <div className="grid grid-cols-2 gap-4">
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Categoria</label><select value={newContentForm.category} onChange={(e) => setNewContentForm({...newContentForm, category: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Artigo</option><option>Vídeo</option><option>Infográfico</option><option>Receita</option><option>Guia</option></select></div>
+                           <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Duração/Tempo</label><input value={newContentForm.duration} onChange={(e) => setNewContentForm({...newContentForm, duration: e.target.value})} placeholder="Ex: 5 min, 10 páginas" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                        </div>
+                        <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Publicar Conteúdo</button>
+                     </form>
+                  </div>
+               </div>
+            )}
+            {null}
+         </>
+      );
    }
 };
 
@@ -2286,6 +2386,8 @@ const AdminModule = ({ view }: any) => {
    const [draggedLead, setDraggedLead] = useState<any>(null);
    const [crmLeads, setCrmLeads] = useState(CRM_DATA);
    const [leadForm, setLeadForm] = useState({ name: '', contact: '', origin: 'Instagram', value: '', notes: '' });
+   const [ticketForm, setTicketForm] = useState({ equipment: '', issue: '', priority: 'Média' });
+   const [employeeForm, setEmployeeForm] = useState({ name: '', role: 'Professor', salary: '' });
    
    const kanbanColumns = [
       { id: 'lead', title: 'Novo Lead', color: 'zinc', icon: UserPlus },
@@ -2571,7 +2673,7 @@ const AdminModule = ({ view }: any) => {
             <div className="space-y-6">
                <div className="flex justify-between items-center">
                   <h2 className="text-3xl font-black italic uppercase">Controle de Estoque</h2>
-                  <button className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Produto</button>
+                  <button onClick={() => alert('Adicionar Novo Produto\n\nFuncionalidade em desenvolvimento.\nEm breve você poderá cadastrar novos produtos no estoque.')} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Produto</button>
                </div>
                <div className="grid gap-4">
                   {stockData.map(item => (
@@ -2583,7 +2685,7 @@ const AdminModule = ({ view }: any) => {
                               <p className="text-[10px] text-zinc-500 font-bold">Quantidade: {item.quantity} un • Mínimo: {item.minStock} un</p>
                            </div>
                         </div>
-                        <button className="px-6 py-3 bg-lime-400 text-black rounded-xl font-black uppercase text-[10px]">Repor</button>
+                        <button onClick={() => alert('Reposição de estoque solicitada para: ' + item.name)} className="px-6 py-3 bg-lime-400 text-black rounded-xl font-black uppercase text-[10px]">Repor</button>
                      </div>
                   ))}
                </div>
@@ -2686,12 +2788,12 @@ const AdminModule = ({ view }: any) => {
                      <h3 className="text-3xl font-black italic uppercase">Novo Chamado</h3>
                      <button onClick={() => setShowAddTicket(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <div className="space-y-6">
-                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Equipamento</label><input placeholder="Ex: Esteira 04" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
-                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Problema</label><input placeholder="Ex: Motor fazendo barulho" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
-                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Prioridade</label><select className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Baixa</option><option>Média</option><option>Alta</option></select></div>
-                     <button className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Criar Chamado</button>
-                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Chamado criado com sucesso!\n\nEquipamento: ' + ticketForm.equipment + '\nProblema: ' + ticketForm.issue + '\nPrioridade: ' + ticketForm.priority); setTicketForm({ equipment: '', issue: '', priority: 'Média' }); setShowAddTicket(false); }} className="space-y-6">
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Equipamento</label><input required value={ticketForm.equipment} onChange={(e) => setTicketForm({...ticketForm, equipment: e.target.value})} placeholder="Ex: Esteira 04" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Problema</label><input required value={ticketForm.issue} onChange={(e) => setTicketForm({...ticketForm, issue: e.target.value})} placeholder="Ex: Motor fazendo barulho" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Prioridade</label><select value={ticketForm.priority} onChange={(e) => setTicketForm({...ticketForm, priority: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Baixa</option><option>Média</option><option>Alta</option></select></div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Criar Chamado</button>
+                  </form>
                </div>
             </div>
          )}
@@ -2703,12 +2805,12 @@ const AdminModule = ({ view }: any) => {
                      <h3 className="text-3xl font-black italic uppercase">Novo Funcionário</h3>
                      <button onClick={() => setShowAddEmployee(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <div className="space-y-6">
-                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
-                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Cargo</label><select className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Professor</option><option>Nutricionista</option><option>Recepção</option><option>Gerente</option></select></div>
-                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Salário Mensal</label><input type="number" placeholder="Ex: 4500" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
-                     <button className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Contratar</button>
-                  </div>
+                  <form onSubmit={(e) => { e.preventDefault(); alert('Funcionário contratado com sucesso!\n\nNome: ' + employeeForm.name + '\nCargo: ' + employeeForm.role + '\nSalário: R$ ' + employeeForm.salary); setEmployeeForm({ name: '', role: 'Professor', salary: '' }); setShowAddEmployee(false); }} className="space-y-6">
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input required value={employeeForm.name} onChange={(e) => setEmployeeForm({...employeeForm, name: e.target.value})} placeholder="Ex: Carlos Silva" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Cargo</label><select value={employeeForm.role} onChange={(e) => setEmployeeForm({...employeeForm, role: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Professor</option><option>Nutricionista</option><option>Recepção</option><option>Gerente</option></select></div>
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Salário Mensal</label><input required type="number" value={employeeForm.salary} onChange={(e) => setEmployeeForm({...employeeForm, salary: e.target.value})} placeholder="Ex: 4500" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
+                     <button type="submit" className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Contratar</button>
+                  </form>
                </div>
             </div>
          )}
