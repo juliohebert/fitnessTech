@@ -1633,27 +1633,40 @@ app.get('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => {
 
 app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => {
   try {
-    console.log('📥 Recebendo requisição para salvar treino:', req.body);
+    console.log('📥 ===== RECEBENDO REQUISIÇÃO =====');
+    console.log('📥 Body completo:', JSON.stringify(req.body, null, 2));
+    console.log('📥 Headers:', req.headers.authorization);
+    
     const { usuarioId, titulo, tipoTreino, duracao, exercicios, observacoes, origem } = req.body;
     const targetUserId = usuarioId || req.usuario?.id;
     
     console.log('👤 Usuario alvo:', targetUserId);
-    console.log('📋 Titulo recebido:', titulo);
-    console.log('💪 Exercicios:', JSON.stringify(exercicios).substring(0, 100) + '...');
+    console.log('📋 Titulo extraído:', titulo);
+    console.log('📋 Tipo do titulo:', typeof titulo);
+    console.log('📋 Titulo é undefined?', titulo === undefined);
+    console.log('📋 Titulo é null?', titulo === null);
+    console.log('📋 Titulo é string vazia?', titulo === '');
     
     // Validações
-    if (!titulo || titulo.trim() === '') {
-      return res.status(400).json({ erro: 'Título do treino é obrigatório' });
+    if (!titulo || typeof titulo !== 'string' || titulo.trim() === '') {
+      console.error('❌ Título inválido:', { titulo, tipo: typeof titulo });
+      return res.status(400).json({ 
+        erro: 'Título do treino é obrigatório',
+        recebido: { titulo, tipo: typeof titulo }
+      });
     }
     
     if (!targetUserId) {
       return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
     }
     
+    const tituloFinal = titulo.trim();
+    console.log('✅ Título que será salvo:', tituloFinal);
+    
     const historico = await prisma.historicoTreino.create({
       data: {
         usuarioId: targetUserId,
-        tituloTreino: titulo.trim(),
+        tituloTreino: tituloFinal,
         duracao: parseInt(duracao) || 60,
         exercicios,
         observacoes: observacoes || '',
@@ -1665,6 +1678,7 @@ app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => 
     res.json(historico);
   } catch (err: any) {
     console.error('❌ Erro ao criar histórico de treino:', err);
+    console.error('❌ Stack:', err.stack);
     res.status(500).json({ 
       erro: 'Erro interno do servidor',
       detalhes: err.message 
