@@ -1633,8 +1633,13 @@ app.get('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => {
 
 app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => {
   try {
+    console.log('📥 Recebendo requisição para salvar treino:', req.body);
     const { usuarioId, titulo, tipoTreino, duracao, exercicios, observacoes, origem } = req.body;
     const targetUserId = usuarioId || req.usuario?.id;
+    
+    console.log('👤 Usuario alvo:', targetUserId);
+    console.log('📋 Titulo:', titulo);
+    console.log('💪 Exercicios:', JSON.stringify(exercicios).substring(0, 100) + '...');
     
     const historico = await prisma.historicoTreino.create({
       data: {
@@ -1647,6 +1652,7 @@ app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => 
       }
     });
     
+    console.log('✅ Treino salvo no banco com ID:', historico.id);
     res.json(historico);
   } catch (err) {
     console.error('Erro ao criar histórico de treino:', err);

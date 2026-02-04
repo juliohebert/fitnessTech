@@ -463,7 +463,8 @@ const carregarNotificacoes = async (token: string) => {
 
 const salvarTreino = async (token: string, dadosTreino: any) => {
   try {
-    const response = await fetch('/api/historico-treinos', {
+    console.log('🔄 Salvando treino:', dadosTreino);
+    const response = await fetch(`${API_URL}/api/historico-treinos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -471,9 +472,18 @@ const salvarTreino = async (token: string, dadosTreino: any) => {
       },
       body: JSON.stringify(dadosTreino)
     });
-    return response.ok ? await response.json() : null;
+    
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('❌ Erro na resposta da API:', error);
+      return null;
+    }
+    
+    const resultado = await response.json();
+    console.log('✅ Treino salvo com sucesso:', resultado);
+    return resultado;
   } catch (error) {
-    console.error('Erro ao salvar treino:', error);
+    console.error('❌ Erro ao salvar treino:', error);
     return null;
   }
 };
@@ -1538,7 +1548,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                              }
                            } else { 
                              setRestingExerciseId(ex.id); 
-                             setRestSeconds(typeof ex.rest === 'string' ? parseInt(ex.rest) : Number(ex.rest) || 60); 
+                             setRestSeconds(typeof ex.rest === 'string' ? parseInt(ex.rest) : Number(ex.rest) || 90); 
                            } 
                          }} className="w-full bg-lime-400 hover:bg-lime-300 text-black py-8 rounded-[2rem] font-black uppercase tracking-widest text-xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-all shadow-lime-400/20"><Zap size={28} fill="currentColor" /> Finalizar Série {completed + 1}</button>
                        )}
@@ -2270,7 +2280,7 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
   // Carregar dados do aluno quando componente montar
   useEffect(() => {
     const carregarDadosAluno = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('fitness_token');
       if (!token) return;
       
       try {
@@ -2338,19 +2348,34 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
         {(() => {
           switch (view) {
     case 'dashboard':
-      // Pegar treino de hoje do histórico real
+      // Pegar treino prescrito para o dia da semana atual
       const hoje = new Date();
+      const diasSemanaArray = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+      const diaAtualNome = diasSemanaArray[hoje.getDay()];
+      
+      // Buscar o treino mais recente que tenha exercícios para hoje
       const treinoHoje = historicoTreinos.find(t => {
-         const dataHistorico = new Date(t.data);
-         return dataHistorico.toDateString() === hoje.toDateString();
+         return t.plano && t.plano[diaAtualNome] && t.plano[diaAtualNome].length > 0;
       });
       
-      const todayWorkout = treinoHoje ? treinoHoje.plano : {
+      const todayWorkout = treinoHoje ? {
+         title: treinoHoje.titulo || 'Treino do Dia',
+         category: treinoHoje.tipo === 'ia' ? 'IA' : 'Manual',
+         duration: '60 min',
+         exercises: (treinoHoje.plano[diaAtualNome] || []).map((ex: any) => ({
+            n: ex.nome,
+            s: ex.series,
+            r: ex.repeticoes,
+            w: ex.carga,
+            rest: ex.descanso || '90s'
+         }))
+      } : {
          name: 'Treino não definido',
          duration: 45,
          exercises: [],
          difficulty: 'medium'
       };
+      
       return (
         <div className="space-y-12 animate-in fade-in duration-700">
            <header><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, {user?.nome?.split(' ')[0] || 'Atleta'}</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
@@ -3485,7 +3510,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
    // Carregar dados do módulo nutricionista
    useEffect(() => {
       const carregarDadosNutri = async () => {
-         const token = localStorage.getItem('token');
+         const token = localStorage.getItem('fitness_token');
          if (!token) return;
          
          try {
@@ -3532,7 +3557,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       const carregarDadosAluno = async () => {
          if (!selectedStudent?.id) return;
          
-         const token = localStorage.getItem('token');
+         const token = localStorage.getItem('fitness_token');
          if (!token) return;
          
          try {
@@ -3580,7 +3605,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
    
    // Função para atualizar feedback de refeição
    const handleFeedback = async (refeicaoId: string, status: string, feedback: string) => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('fitness_token');
       if (!token) return;
       
       const resultado = await atualizarFeedbackRefeicao(token, refeicaoId, status, feedback);
@@ -3599,7 +3624,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
          return;
       }
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('fitness_token');
       if (!token) return;
       
       const dadosAnalise = {
@@ -3634,7 +3659,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
          return;
       }
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('fitness_token');
       if (!token) return;
       
       const dadosConteudo = {
@@ -4485,7 +4510,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    // Carregar dados das APIs quando o componente montar
    useEffect(() => {
       const carregarDadosAdmin = async () => {
-         const token = localStorage.getItem('token');
+         const token = localStorage.getItem('fitness_token');
          if (!token) return;
 
          try {
@@ -4579,7 +4604,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    }, [selectedStudent]);
 
    const carregarHistoricos = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('fitness_token');
       if (!token || !selectedStudent) return;
 
       try {
@@ -4830,7 +4855,7 @@ ${iaConfig.diasTreino === 7 ?
 Retorne APENAS um JSON válido no formato:
 {
   "titulo": "Nome do plano (${iaConfig.diasTreino} dias)",
-  "segunda": [{"nome": "Exercício", "series": "3", "repeticoes": "12", "carga": "Moderada", "descanso": "60s"}],
+  "segunda": [{"nome": "Exercício", "series": "3", "repeticoes": "12", "carga": "Moderada", "descanso": "90s"}],
   "terca": [],
   "quarta": [],
   "quinta": [],
@@ -4858,7 +4883,7 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
             setPlanoTreino(planoGerado);
             
             // Salvar no banco de dados usando a API
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('fitness_token');
             if (token) {
                const dadosTreino = {
                   usuarioId: selectedStudent.id,
@@ -4943,7 +4968,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             setPlanoDieta(planoGerado);
             
             // Salvar no banco de dados usando a API
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('fitness_token');
             if (token) {
                const dadosDieta = {
                   usuarioId: selectedStudent.id,
@@ -5634,7 +5659,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                        series: '',
                                        repeticoes: '',
                                        carga: '',
-                                       descanso: ''
+                                       descanso: '90s'
                                     };
                                     setPlanoTreino({
                                        ...planoTreino,
@@ -5717,7 +5742,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                           />
                                           <input
                                              type="text"
-                                             placeholder="Descanso"
+                                             placeholder="Descanso (ex: 90s)"
                                              value={ex.descanso}
                                              onChange={(e) => {
                                                 const updated = [...planoTreino[selectedDay]];
@@ -5751,7 +5776,10 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         </div>
 
                         <button
-                           onClick={() => {
+                           onClick={async () => {
+                              console.log('🎯 Iniciando salvamento do treino...');
+                              console.log('👤 Aluno selecionado:', selectedStudent);
+                              
                               // Copiar exercícios do dia atual para todos os dias selecionados
                               const planoAtualizado = { ...planoTreino };
                               selectedDays.forEach(dia => {
@@ -5760,18 +5788,61 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  }
                               });
                               
-                              const novoTreino = {
-                                 id: Date.now(),
-                                 titulo: planoTreino.titulo,
-                                 alunoId: selectedStudent.id,
-                                 alunoNome: selectedStudent.nome,
-                                 data: new Date().toLocaleDateString('pt-BR'),
-                                 plano: planoAtualizado,
-                                 tipo: 'manual'
-                              };
-                              setHistoricoTreinos(prev => [novoTreino, ...prev]);
-                              console.log('Plano de Treino:', planoAtualizado);
-                              alert('Treino prescrito com sucesso!');
+                              console.log('📋 Plano atualizado:', planoAtualizado);
+                              
+                              try {
+                                 // Salvar no banco de dados usando a API
+                                 const token = localStorage.getItem('fitness_token');
+                                 console.log('🔑 Token encontrado:', token ? 'Sim' : 'Não');
+                                 
+                                 if (!token) {
+                                    alert('Erro: Token de autenticação não encontrado. Faça login novamente.');
+                                    return;
+                                 }
+                                 
+                                 if (!selectedStudent || !selectedStudent.id) {
+                                    alert('Erro: Aluno não selecionado corretamente.');
+                                    return;
+                                 }
+                                 
+                                 const dadosTreino = {
+                                    usuarioId: selectedStudent.id,
+                                    titulo: planoTreino.titulo,
+                                    tipoTreino: 'Treino Personalizado Manual',
+                                    duracao: 60,
+                                    exercicios: planoAtualizado,
+                                    observacoes: `Treino prescrito manualmente pelo instrutor`,
+                                    origem: 'Manual'
+                                 };
+                                 
+                                 console.log('📤 Enviando dados do treino:', dadosTreino);
+                                 
+                                 const treinoSalvo = await salvarTreino(token, dadosTreino);
+                                 
+                                 if (treinoSalvo) {
+                                    console.log('✅ Treino salvo com sucesso:', treinoSalvo);
+                                    // Atualizar estado local com o treino salvo
+                                    const novoTreino = {
+                                       id: treinoSalvo.id,
+                                       titulo: treinoSalvo.tituloTreino || treinoSalvo.titulo,
+                                       alunoId: selectedStudent.id,
+                                       alunoNome: selectedStudent.nome,
+                                       data: new Date(treinoSalvo.data).toLocaleDateString('pt-BR'),
+                                       plano: treinoSalvo.exercicios || planoAtualizado,
+                                       tipo: 'manual'
+                                    };
+                                    setHistoricoTreinos(prev => [novoTreino, ...prev]);
+                                    console.log('✅ Treino salvo no banco:', treinoSalvo);
+                                    alert('Treino prescrito e salvo com sucesso!');
+                                 } else {
+                                    throw new Error('Erro ao salvar treino');
+                                 }
+                              } catch (error) {
+                                 console.error('❌ Erro ao salvar treino:', error);
+                                 alert('Erro ao salvar treino no banco de dados');
+                                 return;
+                              }
+                              
                               setShowPrescriptionModal(false);
                               setSelectedDays(['segunda']);
                               setSelectedDay('segunda');
@@ -5985,7 +6056,10 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         </div>
 
                         <button
-                           onClick={() => {
+                           onClick={async () => {
+                              console.log('🎯 Iniciando salvamento da dieta...');
+                              console.log('👤 Aluno selecionado:', selectedStudent);
+                              
                               // Copiar refeições do dia atual para todos os dias selecionados
                               const planoAtualizado = { ...planoDieta };
                               selectedDays.forEach(dia => {
@@ -5994,18 +6068,60 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  }
                               });
                               
-                              const novaDieta = {
-                                 id: Date.now(),
-                                 titulo: planoDieta.titulo,
-                                 alunoId: selectedStudent.id,
-                                 alunoNome: selectedStudent.nome,
-                                 data: new Date().toLocaleDateString('pt-BR'),
-                                 plano: planoAtualizado,
-                                 tipo: 'manual'
-                              };
-                              setHistoricoDietas(prev => [novaDieta, ...prev]);
-                              console.log('Plano de Dieta:', planoAtualizado);
-                              alert('Dieta prescrita com sucesso!');
+                              console.log('📋 Plano atualizado:', planoAtualizado);
+                              
+                              try {
+                                 // Salvar no banco de dados usando a API
+                                 const token = localStorage.getItem('fitness_token');
+                                 console.log('🔑 Token encontrado:', token ? 'Sim' : 'Não');
+                                 
+                                 if (!token) {
+                                    alert('Erro: Token de autenticação não encontrado. Faça login novamente.');
+                                    return;
+                                 }
+                                 
+                                 if (!selectedStudent || !selectedStudent.id) {
+                                    alert('Erro: Aluno não selecionado corretamente.');
+                                    return;
+                                 }
+                                 
+                                 const dadosDieta = {
+                                    usuarioId: selectedStudent.id,
+                                    titulo: planoDieta.titulo,
+                                    objetivo: planoDieta.objetivoCalorico,
+                                    refeicoes: planoAtualizado,
+                                    observacoes: `Dieta prescrita manualmente pelo nutricionista`,
+                                    origem: 'Manual'
+                                 };
+                                 
+                                 console.log('📤 Enviando dados da dieta:', dadosDieta);
+                                 
+                                 const dietaSalva = await salvarDieta(token, dadosDieta);
+                                 
+                                 if (dietaSalva) {
+                                    console.log('✅ Dieta salva com sucesso:', dietaSalva);
+                                    // Atualizar estado local com a dieta salva
+                                    const novaDieta = {
+                                       id: dietaSalva.id,
+                                       titulo: dietaSalva.titulo,
+                                       alunoId: selectedStudent.id,
+                                       alunoNome: selectedStudent.nome,
+                                       data: new Date(dietaSalva.criadoEm).toLocaleDateString('pt-BR'),
+                                       plano: typeof dietaSalva.conteudo === 'object' ? dietaSalva.conteudo.refeicoes : planoAtualizado,
+                                       tipo: 'manual'
+                                    };
+                                    setHistoricoDietas(prev => [novaDieta, ...prev]);
+                                    console.log('✅ Dieta salva no banco:', dietaSalva);
+                                    alert('Dieta prescrita e salva com sucesso!');
+                                 } else {
+                                    throw new Error('Erro ao salvar dieta');
+                                 }
+                              } catch (error) {
+                                 console.error('❌ Erro ao salvar dieta:', error);
+                                 alert('Erro ao salvar dieta no banco de dados');
+                                 return;
+                              }
+                              
                               setShowPrescriptionModal(false);
                               setSelectedDays(['segunda']);
                               setSelectedDay('segunda');
@@ -6341,7 +6457,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                            e.preventDefault();
                            if (leadForm.name && leadForm.contact) {
                               try {
-                                 const token = localStorage.getItem('token');
+                                 const token = localStorage.getItem('fitness_token');
                                  const response = await fetch('/api/admin/leads', {
                                     method: 'POST',
                                     headers: {
@@ -6766,7 +6882,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (activeView === 'store' && products.length === 0) {
       const carregarProdutosLoja = async () => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('fitness_token');
         if (!token) return;
         
         try {
