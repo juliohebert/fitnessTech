@@ -2312,8 +2312,8 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
         const treinosFormatados = Array.isArray(treinos) ? treinos.map((treino: any) => ({
           id: treino.id,
           titulo: treino.tituloTreino || treino.titulo || 'Treino',
-          alunoId: usuario?.id,
-          alunoNome: usuario?.nome,
+          alunoId: treino.usuarioId,
+          alunoNome: 'Aluno',
           data: new Date(treino.data).toLocaleDateString('pt-BR'),
           plano: typeof treino.exercicios === 'object' ? treino.exercicios : JSON.parse(treino.exercicios || '{}'),
           tipo: treino.origem === 'IA' ? 'ia' : 'manual'
