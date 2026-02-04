@@ -2254,6 +2254,7 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 // --- MODULES ---
 
 const StudentModule = ({ user, view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime }: any) => {
+  console.log('🔍 StudentModule - user recebido:', user);
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(new Date().getDay());
   const [selectedDayDiet, setSelectedDayDiet] = useState(new Date().getDay());
   
