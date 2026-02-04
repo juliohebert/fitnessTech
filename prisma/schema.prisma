@@ -383,3 +383,134 @@ model ItemCarrinho {
   @@map("itens_carrinho")
   @@index([usuarioId])
 }
+
+// ===== MÓDULO ADMINISTRATIVO =====
+
+// CRM - Gerenciamento de Leads
+model Lead {
+  id          String   @id @default(cuid())
+  academiaId  String
+  nome        String
+  telefone    String
+  email       String?
+  origem      String   @default("site") // instagram, facebook, site, indicacao
+  status      String   @default("lead") // lead, contact, won, lost
+  valorEstimado String @default("R$ 150/mês")
+  observacoes String?
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  @@map("leads")
+  @@index([academiaId])
+  @@index([status])
+}
+
+// Manutenção de Equipamentos
+model TicketManutencao {
+  id          String   @id @default(cuid())
+  academiaId  String
+  equipamento String
+  descricao   String
+  prioridade  String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  status      String   @default("OPEN") // OPEN, PENDING, FIXED
+  criadoPor   String?  // ID do usuário que criou
+  resolvido   DateTime?
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  @@map("tickets_manutencao")
+  @@index([academiaId])
+  @@index([status])
+}
+
+// Produtos da Loja
+model Produto {
+  id          String   @id @default(cuid())
+  academiaId  String
+  nome        String
+  categoria   String   // suplementos, equipamentos, acessorios
+  preco       Float
+  estoque     Int      @default(0)
+  estoqueMinimo Int    @default(10)
+  descricao   String?
+  urlImagem   String?
+  ativo       Boolean  @default(true)
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  vendas      VendaProduto[]
+  
+  @@map("produtos")
+  @@index([academiaId])
+  @@index([categoria])
+  @@index([ativo])
+}
+
+// Vendas de Produtos
+model VendaProduto {
+  id          String   @id @default(cuid())
+  produtoId   String
+  academiaId  String
+  usuarioId   String?  // Cliente que comprou
+  quantidade  Int
+  precoUnitario Float
+  precoTotal  Float
+  dataVenda   DateTime @default(now())
+  
+  produto     Produto  @relation(fields: [produtoId], references: [id])
+  
+  @@map("vendas_produtos")
+  @@index([academiaId])
+  @@index([dataVenda])
+  @@index([produtoId])
+}
+
+// Funcionários
+model Funcionario {
+  id          String   @id @default(cuid())
+  academiaId  String
+  nome        String
+  cargo       String   // Professor, Nutricionista, Recepcao, Gerente
+  salario     Float
+  telefone    String?
+  email       String?
+  dataAdmissao DateTime @default(now())
+  ativo       Boolean  @default(true)
+  performance Int      @default(85) // Pontuação de 0-100
+  
+  @@map("funcionarios")
+  @@index([academiaId])
+  @@index([ativo])
+}
+
+// Relatórios Financeiros
+model RelatorioFinanceiro {
+  id          String   @id @default(cuid())
+  academiaId  String
+  mes         Int      // 1-12
+  ano         Int
+  receita     Float    @default(0)
+  despesas    Float    @default(0)
+  lucro       Float    @default(0)
+  inadimplencia Float  @default(0)
+  criadoEm    DateTime @default(now())
+  
+  @@map("relatorios_financeiros")
+  @@index([academiaId])
+  @@index([ano, mes])
+  @@unique([academiaId, ano, mes])
+}
+
+// Dados de Acesso (para gráficos)
+model RegistroAcesso {
+  id          String   @id @default(cuid())
+  academiaId  String
+  nomeAluno   String
+  hora        String   // "06:30", "07:15", etc
+  data        DateTime @default(now())
+  criadoEm    DateTime @default(now())
+  
+  @@map("registros_acesso")
+  @@index([academiaId])
+  @@index([data])
+}

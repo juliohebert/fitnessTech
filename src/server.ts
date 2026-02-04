@@ -1238,6 +1238,318 @@ app.delete('/api/carrinho/:id', autenticar, async (req: AuthRequest, res) => {
   }
 });
 
+// ===== MÓDULO ADMINISTRATIVO =====
+
+// ===== LEADS (CRM) =====
+app.get('/api/admin/leads', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const leads = await prisma.lead.findMany({
+      where: {
+        academiaId: req.usuario?.academiaId || undefined
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+    res.json(leads);
+  } catch (err) {
+    console.error('Erro ao listar leads:', err);
+    res.status(500).json({ erro: 'Erro ao listar leads' });
+  }
+});
+
+app.post('/api/admin/leads', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { nome, telefone, email, origem, valorEstimado, observacoes } = req.body;
+    
+    const lead = await prisma.lead.create({
+      data: {
+        academiaId: req.usuario?.academiaId || '',
+        nome,
+        telefone,
+        email,
+        origem,
+        valorEstimado: valorEstimado || 'R$ 150/mês',
+        observacoes,
+        status: 'lead'
+      }
+    });
+    
+    res.json(lead);
+  } catch (err) {
+    console.error('Erro ao criar lead:', err);
+    res.status(500).json({ erro: 'Erro ao criar lead' });
+  }
+});
+
+app.patch('/api/admin/leads/:leadId/status', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { leadId } = req.params;
+    const { status } = req.body;
+    
+    const lead = await prisma.lead.update({
+      where: { id: leadId },
+      data: { status }
+    });
+    
+    res.json(lead);
+  } catch (err) {
+    console.error('Erro ao atualizar status do lead:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar status do lead' });
+  }
+});
+
+// ===== TICKETS DE MANUTENÇÃO =====
+app.get('/api/admin/manutencao', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const tickets = await prisma.ticketManutencao.findMany({
+      where: {
+        academiaId: req.usuario?.academiaId || undefined
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+    res.json(tickets);
+  } catch (err) {
+    console.error('Erro ao listar tickets de manutenção:', err);
+    res.status(500).json({ erro: 'Erro ao listar tickets de manutenção' });
+  }
+});
+
+app.post('/api/admin/manutencao', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { equipamento, descricao, prioridade } = req.body;
+    
+    const ticket = await prisma.ticketManutencao.create({
+      data: {
+        academiaId: req.usuario?.academiaId || '',
+        equipamento,
+        descricao,
+        prioridade: prioridade || 'MEDIUM',
+        criadoPor: req.usuario?.id,
+        status: 'OPEN'
+      }
+    });
+    
+    res.json(ticket);
+  } catch (err) {
+    console.error('Erro ao criar ticket de manutenção:', err);
+    res.status(500).json({ erro: 'Erro ao criar ticket de manutenção' });
+  }
+});
+
+app.patch('/api/admin/manutencao/:ticketId/status', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { ticketId } = req.params;
+    const { status } = req.body;
+    
+    const updateData: any = { status };
+    if (status === 'FIXED') {
+      updateData.resolvido = new Date();
+    }
+    
+    const ticket = await prisma.ticketManutencao.update({
+      where: { id: ticketId },
+      data: updateData
+    });
+    
+    res.json(ticket);
+  } catch (err) {
+    console.error('Erro ao atualizar status do ticket:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar status do ticket' });
+  }
+});
+
+// ===== PRODUTOS =====
+app.get('/api/admin/produtos', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const produtos = await prisma.produto.findMany({
+      where: {
+        academiaId: req.usuario?.academiaId || undefined
+      },
+      include: {
+        vendas: {
+          take: 1,
+          orderBy: { dataVenda: 'desc' }
+        }
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+    res.json(produtos);
+  } catch (err) {
+    console.error('Erro ao listar produtos:', err);
+    res.status(500).json({ erro: 'Erro ao listar produtos' });
+  }
+});
+
+app.post('/api/admin/produtos', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { nome, categoria, preco, estoque, estoqueMinimo, descricao, urlImagem } = req.body;
+    
+    const produto = await prisma.produto.create({
+      data: {
+        academiaId: req.usuario?.academiaId || '',
+        nome,
+        categoria,
+        preco: parseFloat(preco),
+        estoque: parseInt(estoque) || 0,
+        estoqueMinimo: parseInt(estoqueMinimo) || 10,
+        descricao,
+        urlImagem
+      }
+    });
+    
+    res.json(produto);
+  } catch (err) {
+    console.error('Erro ao criar produto:', err);
+    res.status(500).json({ erro: 'Erro ao criar produto' });
+  }
+});
+
+// ===== FUNCIONÁRIOS =====
+app.get('/api/admin/funcionarios', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const funcionarios = await prisma.funcionario.findMany({
+      where: {
+        academiaId: req.usuario?.academiaId || undefined
+      },
+      orderBy: {
+        dataAdmissao: 'desc'
+      }
+    });
+    res.json(funcionarios);
+  } catch (err) {
+    console.error('Erro ao listar funcionários:', err);
+    res.status(500).json({ erro: 'Erro ao listar funcionários' });
+  }
+});
+
+app.post('/api/admin/funcionarios', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { nome, cargo, salario, telefone, email } = req.body;
+    
+    const funcionario = await prisma.funcionario.create({
+      data: {
+        academiaId: req.usuario?.academiaId || '',
+        nome,
+        cargo,
+        salario: parseFloat(salario),
+        telefone,
+        email
+      }
+    });
+    
+    res.json(funcionario);
+  } catch (err) {
+    console.error('Erro ao criar funcionário:', err);
+    res.status(500).json({ erro: 'Erro ao criar funcionário' });
+  }
+});
+
+// ===== RELATÓRIOS FINANCEIROS =====
+app.get('/api/admin/financeiro', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { ano, mes } = req.query;
+    
+    let where: any = {
+      academiaId: req.usuario?.academiaId || undefined
+    };
+    
+    if (ano) where.ano = parseInt(ano as string);
+    if (mes) where.mes = parseInt(mes as string);
+    
+    const relatorios = await prisma.relatorioFinanceiro.findMany({
+      where,
+      orderBy: [
+        { ano: 'desc' },
+        { mes: 'desc' }
+      ]
+    });
+    
+    res.json(relatorios);
+  } catch (err) {
+    console.error('Erro ao listar relatórios financeiros:', err);
+    res.status(500).json({ erro: 'Erro ao listar relatórios financeiros' });
+  }
+});
+
+app.post('/api/admin/financeiro', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { mes, ano, receita, despesas, lucro, inadimplencia } = req.body;
+    
+    const relatorio = await prisma.relatorioFinanceiro.upsert({
+      where: {
+        academiaId_ano_mes: {
+          academiaId: req.usuario?.academiaId || '',
+          ano: parseInt(ano),
+          mes: parseInt(mes)
+        }
+      },
+      update: {
+        receita: parseFloat(receita),
+        despesas: parseFloat(despesas),
+        lucro: parseFloat(lucro),
+        inadimplencia: parseFloat(inadimplencia)
+      },
+      create: {
+        academiaId: req.usuario?.academiaId || '',
+        mes: parseInt(mes),
+        ano: parseInt(ano),
+        receita: parseFloat(receita),
+        despesas: parseFloat(despesas),
+        lucro: parseFloat(lucro),
+        inadimplencia: parseFloat(inadimplencia)
+      }
+    });
+    
+    res.json(relatorio);
+  } catch (err) {
+    console.error('Erro ao criar/atualizar relatório financeiro:', err);
+    res.status(500).json({ erro: 'Erro ao processar relatório financeiro' });
+  }
+});
+
+// ===== REGISTROS DE ACESSO =====
+app.get('/api/admin/acessos', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { data } = req.query;
+    
+    let where: any = {
+      academiaId: req.usuario?.academiaId || undefined
+    };
+    
+    if (data) {
+      const dataConsulta = new Date(data as string);
+      where.data = {
+        gte: new Date(dataConsulta.getFullYear(), dataConsulta.getMonth(), dataConsulta.getDate()),
+        lt: new Date(dataConsulta.getFullYear(), dataConsulta.getMonth(), dataConsulta.getDate() + 1)
+      };
+    } else {
+      // Se não especificar data, pegar dados de hoje
+      const hoje = new Date();
+      where.data = {
+        gte: new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()),
+        lt: new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1)
+      };
+    }
+    
+    const registros = await prisma.registroAcesso.findMany({
+      where,
+      orderBy: {
+        hora: 'asc'
+      }
+    });
+    
+    res.json(registros);
+  } catch (err) {
+    console.error('Erro ao listar registros de acesso:', err);
+    res.status(500).json({ erro: 'Erro ao listar registros de acesso' });
+  }
+});
+
 // ===== ROTA DE HEALTH CHECK =====
 
 app.get('/api/health', (req, res) => {
@@ -1246,6 +1558,344 @@ app.get('/api/health', (req, res) => {
     mensagem: 'API FitnessTech funcionando',
     timestamp: new Date().toISOString()
   });
+});
+
+// ===== MÓDULOS PROFESSOR/NUTRICIONISTA/ALUNO =====
+
+// ===== HISTÓRICO DE TREINOS =====
+app.get('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.query;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const historico = await prisma.historicoTreino.findMany({
+      where: {
+        usuarioId: targetUserId as string
+      },
+      orderBy: {
+        data: 'desc'
+      }
+    });
+    
+    res.json(historico);
+  } catch (err) {
+    console.error('Erro ao listar histórico de treinos:', err);
+    res.status(500).json({ erro: 'Erro ao listar histórico de treinos' });
+  }
+});
+
+app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, titulo, tipoTreino, duracao, exercicios, observacoes, origem } = req.body;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const historico = await prisma.historicoTreino.create({
+      data: {
+        usuarioId: targetUserId,
+        titulo,
+        tipoTreino: tipoTreino || 'Treino Personalizado',
+        duracao: parseInt(duracao) || 60,
+        exercicios,
+        observacoes,
+        origem: origem || 'Manual'
+      }
+    });
+    
+    res.json(historico);
+  } catch (err) {
+    console.error('Erro ao criar histórico de treino:', err);
+    res.status(500).json({ erro: 'Erro ao criar histórico de treino' });
+  }
+});
+
+// ===== HISTÓRICO DE DIETAS =====
+app.get('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.query;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    // Como não temos modelo de dietas no schema, vamos usar uma tabela de relatórios com tipo específico
+    const historico = await prisma.relatorio.findMany({
+      where: {
+        usuarioId: targetUserId as string,
+        tipo: 'dieta'
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+    
+    res.json(historico);
+  } catch (err) {
+    console.error('Erro ao listar histórico de dietas:', err);
+    res.status(500).json({ erro: 'Erro ao listar histórico de dietas' });
+  }
+});
+
+app.post('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, titulo, objetivo, refeicoes, observacoes, origem } = req.body;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const historico = await prisma.relatorio.create({
+      data: {
+        usuarioId: targetUserId,
+        tipo: 'dieta',
+        titulo,
+        conteudo: {
+          objetivo,
+          refeicoes,
+          observacoes,
+          origem: origem || 'Manual'
+        }
+      }
+    });
+    
+    res.json(historico);
+  } catch (err) {
+    console.error('Erro ao criar histórico de dieta:', err);
+    res.status(500).json({ erro: 'Erro ao criar histórico de dieta' });
+  }
+});
+
+// ===== MEDIÇÕES CORPORAIS =====
+app.get('/api/medicoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.query;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const medicoes = await prisma.medicaoCorporal.findMany({
+      where: {
+        usuarioId: targetUserId as string
+      },
+      orderBy: {
+        data: 'desc'
+      }
+    });
+    
+    res.json(medicoes);
+  } catch (err) {
+    console.error('Erro ao listar medições:', err);
+    res.status(500).json({ erro: 'Erro ao listar medições' });
+  }
+});
+
+app.post('/api/medicoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, peso, altura, gorduraCorporal, massaMuscular, observacoes } = req.body;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const medicao = await prisma.medicaoCorporal.create({
+      data: {
+        usuarioId: targetUserId,
+        peso: parseFloat(peso),
+        altura: parseFloat(altura),
+        gorduraCorporal: gorduraCorporal ? parseFloat(gorduraCorporal) : null,
+        massaMuscular: massaMuscular ? parseFloat(massaMuscular) : null,
+        observacoes
+      }
+    });
+    
+    res.json(medicao);
+  } catch (err) {
+    console.error('Erro ao criar medição:', err);
+    res.status(500).json({ erro: 'Erro ao criar medição' });
+  }
+});
+
+// ===== FOTOS DE PROGRESSO =====
+app.get('/api/fotos-progresso', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.query;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const fotos = await prisma.fotoProgresso.findMany({
+      where: {
+        usuarioId: targetUserId as string
+      },
+      orderBy: {
+        data: 'desc'
+      }
+    });
+    
+    res.json(fotos);
+  } catch (err) {
+    console.error('Erro ao listar fotos de progresso:', err);
+    res.status(500).json({ erro: 'Erro ao listar fotos de progresso' });
+  }
+});
+
+app.post('/api/fotos-progresso', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, url, categoria, observacoes } = req.body;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const foto = await prisma.fotoProgresso.create({
+      data: {
+        usuarioId: targetUserId,
+        url,
+        categoria: categoria || 'geral',
+        observacoes
+      }
+    });
+    
+    res.json(foto);
+  } catch (err) {
+    console.error('Erro ao criar foto de progresso:', err);
+    res.status(500).json({ erro: 'Erro ao criar foto de progresso' });
+  }
+});
+
+// ===== METAS =====
+app.get('/api/metas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.query;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const metas = await prisma.meta.findMany({
+      where: {
+        usuarioId: targetUserId as string
+      },
+      orderBy: {
+        criadaEm: 'desc'
+      }
+    });
+    
+    res.json(metas);
+  } catch (err) {
+    console.error('Erro ao listar metas:', err);
+    res.status(500).json({ erro: 'Erro ao listar metas' });
+  }
+});
+
+app.post('/api/metas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, titulo, descricao, categoria, valorAlvo, prazo } = req.body;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const meta = await prisma.meta.create({
+      data: {
+        usuarioId: targetUserId,
+        titulo,
+        descricao,
+        categoria,
+        valorAlvo: valorAlvo ? parseFloat(valorAlvo) : null,
+        prazo: prazo ? new Date(prazo) : null
+      }
+    });
+    
+    res.json(meta);
+  } catch (err) {
+    console.error('Erro ao criar meta:', err);
+    res.status(500).json({ erro: 'Erro ao criar meta' });
+  }
+});
+
+app.patch('/api/metas/:metaId', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { metaId } = req.params;
+    const { concluida, progresso } = req.body;
+    
+    const meta = await prisma.meta.update({
+      where: { id: metaId },
+      data: {
+        concluida: concluida !== undefined ? concluida : undefined,
+        progresso: progresso !== undefined ? parseFloat(progresso) : undefined,
+        concluidaEm: concluida ? new Date() : undefined
+      }
+    });
+    
+    res.json(meta);
+  } catch (err) {
+    console.error('Erro ao atualizar meta:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar meta' });
+  }
+});
+
+// ===== GRUPOS E COMUNIDADE =====
+app.get('/api/grupos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const grupos = await prisma.grupo.findMany({
+      include: {
+        _count: {
+          select: { membros: true }
+        },
+        membros: {
+          take: 1,
+          where: {
+            usuarioId: req.usuario?.id
+          }
+        }
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+    
+    const gruposFormatados = grupos.map(grupo => ({
+      ...grupo,
+      totalMembros: grupo._count.membros,
+      isMembro: grupo.membros.length > 0
+    }));
+    
+    res.json(gruposFormatados);
+  } catch (err) {
+    console.error('Erro ao listar grupos:', err);
+    res.status(500).json({ erro: 'Erro ao listar grupos' });
+  }
+});
+
+app.post('/api/grupos/:grupoId/entrar', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { grupoId } = req.params;
+    
+    const membro = await prisma.membroGrupo.create({
+      data: {
+        usuarioId: req.usuario!.id,
+        grupoId
+      }
+    });
+    
+    res.json(membro);
+  } catch (err) {
+    console.error('Erro ao entrar no grupo:', err);
+    res.status(500).json({ erro: 'Erro ao entrar no grupo' });
+  }
+});
+
+// ===== NOTIFICAÇÕES =====
+app.get('/api/notificacoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const notificacoes = await prisma.notificacao.findMany({
+      where: {
+        usuarioId: req.usuario?.id
+      },
+      orderBy: {
+        criadaEm: 'desc'
+      }
+    });
+    
+    res.json(notificacoes);
+  } catch (err) {
+    console.error('Erro ao listar notificações:', err);
+    res.status(500).json({ erro: 'Erro ao listar notificações' });
+  }
+});
+
+app.patch('/api/notificacoes/:notifId/marcar-lida', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { notifId } = req.params;
+    
+    const notificacao = await prisma.notificacao.update({
+      where: { id: notifId },
+      data: { lida: true }
+    });
+    
+    res.json(notificacao);
+  } catch (err) {
+    console.error('Erro ao marcar notificação como lida:', err);
+    res.status(500).json({ erro: 'Erro ao marcar notificação como lida' });
+  }
 });
 
 // ===== INICIAR SERVIDOR =====

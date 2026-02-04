@@ -9,7 +9,7 @@ import {
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, Shield, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
-  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin
+  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
@@ -361,22 +361,203 @@ const VISUAL_DIARY_MOCK = [
   { id: 2, meal: 'Almoço', img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400', time: '13:30', status: 'warning' },
 ];
 
-const CRM_DATA = [
-  { id: 1, name: 'Lucas Pereira', status: 'lead', contact: '11 9999-0000', origin: 'Instagram', value: 'R$ 150/mês', notes: 'Interessado em musculação' },
-  { id: 2, name: 'Fernanda Lima', status: 'contact', contact: '11 9888-1111', origin: 'Indicação', value: 'R$ 200/mês', notes: 'Agendou visita para amanhã' },
-  { id: 3, name: 'Ricardo Souza', status: 'proposal', contact: '11 9777-2222', origin: 'Google', value: 'R$ 180/mês', notes: 'Proposta enviada - aguardando retorno' },
-  { id: 4, name: 'Juliana Costa', status: 'negotiation', contact: '11 9666-3333', origin: 'Walk-in', value: 'R$ 220/mês', notes: 'Negociando desconto familiar' },
-  { id: 5, name: 'Marcos Vilela', status: 'won', contact: '11 9555-4444', origin: 'Site', value: 'R$ 150/mês', notes: 'Matriculado - plano anual' },
-  { id: 6, name: 'Ana Santos', status: 'lead', contact: '11 9444-5555', origin: 'Facebook', value: 'R$ 170/mês', notes: 'Primeira academia' },
-  { id: 7, name: 'Pedro Oliveira', status: 'contact', contact: '11 9333-6666', origin: 'Instagram', value: 'R$ 200/mês', notes: 'Quer treino de luta' },
-  { id: 8, name: 'Carla Mendes', status: 'lost', contact: '11 9222-7777', origin: 'Indicação', value: 'R$ 180/mês', notes: 'Optou por concorrente mais próximo' },
-];
+// Funções para carregar dados do módulo administrativo
+const carregarLeads = async (token: string) => {
+  try {
+    const response = await fetch('/api/admin/leads', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar leads:', error);
+    return [];
+  }
+};
 
-const MAINTENANCE_TICKETS = [
-  { id: 1, equipment: 'Esteira 04', issue: 'Lona travando', status: 'OPEN', date: 'Hoje', priority: 'HIGH' },
-  { id: 2, equipment: 'Cadeira Extensora', issue: 'Estofado rasgado', status: 'PENDING', date: 'Ontem', priority: 'LOW' },
-  { id: 3, equipment: 'Crossfit Rig', issue: 'Parafuso solto', status: 'FIXED', date: '01/10', priority: 'MEDIUM' },
-];
+const carregarTicketsManutencao = async (token: string) => {
+  try {
+    const response = await fetch('/api/admin/manutencao', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar tickets:', error);
+    return [];
+  }
+};
+
+const carregarProdutos = async (token: string) => {
+  try {
+    const response = await fetch('/api/admin/produtos', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar produtos:', error);
+    return [];
+  }
+};
+
+const carregarFuncionarios = async (token: string) => {
+  try {
+    const response = await fetch('/api/admin/funcionarios', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar funcionários:', error);
+    return [];
+  }
+};
+
+const carregarRelatoriosFinanceiros = async (token: string) => {
+  try {
+    const response = await fetch('/api/admin/financeiro', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar relatórios:', error);
+    return [];
+  }
+};
+
+const carregarRegistrosAcesso = async (token: string, data?: string) => {
+  try {
+    const url = data ? `/api/admin/acessos?data=${data}` : '/api/admin/acessos';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar registros de acesso:', error);
+    return [];
+  }
+};
+
+// Funções para os módulos aluno/professor/nutricionista
+const carregarHistoricoTreinos = async (token: string, usuarioId?: string) => {
+  try {
+    const url = usuarioId ? `/api/historico-treinos?usuarioId=${usuarioId}` : '/api/historico-treinos';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar histórico de treinos:', error);
+    return [];
+  }
+};
+
+const carregarHistoricoDietas = async (token: string, usuarioId?: string) => {
+  try {
+    const url = usuarioId ? `/api/historico-dietas?usuarioId=${usuarioId}` : '/api/historico-dietas';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar histórico de dietas:', error);
+    return [];
+  }
+};
+
+const carregarMedicoes = async (token: string, usuarioId?: string) => {
+  try {
+    const url = usuarioId ? `/api/medicoes?usuarioId=${usuarioId}` : '/api/medicoes';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar medições:', error);
+    return [];
+  }
+};
+
+const carregarFotosProgresso = async (token: string, usuarioId?: string) => {
+  try {
+    const url = usuarioId ? `/api/fotos-progresso?usuarioId=${usuarioId}` : '/api/fotos-progresso';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar fotos de progresso:', error);
+    return [];
+  }
+};
+
+const carregarMetas = async (token: string, usuarioId?: string) => {
+  try {
+    const url = usuarioId ? `/api/metas?usuarioId=${usuarioId}` : '/api/metas';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar metas:', error);
+    return [];
+  }
+};
+
+const carregarGrupos = async (token: string) => {
+  try {
+    const response = await fetch('/api/grupos', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar grupos:', error);
+    return [];
+  }
+};
+
+const carregarNotificacoes = async (token: string) => {
+  try {
+    const response = await fetch('/api/notificacoes', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.ok ? await response.json() : [];
+  } catch (error) {
+    console.error('Erro ao carregar notificações:', error);
+    return [];
+  }
+};
+
+const salvarTreino = async (token: string, dadosTreino: any) => {
+  try {
+    const response = await fetch('/api/historico-treinos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(dadosTreino)
+    });
+    return response.ok ? await response.json() : null;
+  } catch (error) {
+    console.error('Erro ao salvar treino:', error);
+    return null;
+  }
+};
+
+const salvarDieta = async (token: string, dadosDieta: any) => {
+  try {
+    const response = await fetch('/api/historico-dietas', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(dadosDieta)
+    });
+    return response.ok ? await response.json() : null;
+  } catch (error) {
+    console.error('Erro ao salvar dieta:', error);
+    return null;
+  }
+};
 
 const ASSESSMENT_RADAR_DATA = [
   { subject: 'Força', A: 120, B: 110, fullMark: 150 },
@@ -1434,6 +1615,17 @@ const FinishedSessionView = ({ totalTime, reset }: any) => (
 );
 
 const WorkoutDetailCard = ({ workout, onStart }: any) => {
+  if (!workout) return (
+    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-20 text-center shadow-2xl">
+      <div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
+        <Dumbbell size={48} className="text-zinc-700"/>
+      </div>
+      <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Treino Prescrito</h3>
+      <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+        Seu instrutor ainda não prescreveu treinos. Entre em contato com ele para receber seu plano de treinos personalizado!
+      </p>
+    </div>
+  );
   if (!workout.exercises || workout.exercises.length === 0) return (<div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-20 text-center shadow-2xl"><div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700"><RotateCcw size={48} /></div><h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3><p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Foque na recuperação.</p></div>);
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
@@ -1445,32 +1637,59 @@ const WorkoutDetailCard = ({ workout, onStart }: any) => {
   );
 };
 
-const EvolutionView = () => (
-  <div className="animate-in fade-in duration-700 space-y-12">
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
-        <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Peso Corporal (kg)</p><h4 className="text-3xl font-black italic text-white">-4.3kg este mês</h4></div><div className="size-12 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center"><Scale size={24} /></div></div>
-        <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={WEIGHT_HISTORY}><defs><linearGradient id="colorW" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={4} fill="url(#colorW)" /></AreaChart></ResponsiveContainer></div>
-      </div>
-      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
-        <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Progressão de Carga (kg)</p><h4 className="text-3xl font-black italic text-blue-400">+22kg total</h4></div><div className="size-12 bg-blue-400/10 text-blue-400 rounded-2xl flex items-center justify-center"><Zap size={24} /></div></div>
-        <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={LIFT_PROGRESS}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
-      </div>
-    </div>
-    <div className="bg-zinc-900 border border-zinc-800 p-10 rounded-[3rem] shadow-2xl">
-      <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Trophy size={20} className="text-orange-400"/> Recordes Pessoais</h4>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {PERSONAL_RECORDS.map((record, i) => (
-          <div key={i} className="bg-zinc-950 border border-zinc-800 p-6 rounded-[2rem] hover:border-zinc-700 transition-all group">
-            <div className="flex justify-between items-start mb-6"><div className={`p-3 rounded-xl bg-zinc-900 ${record.color}`}>{record.icon}</div><span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{record.date}</span></div>
-            <p className="text-[10px] font-black uppercase text-zinc-500 mb-1">{record.exercise}</p>
-            <p className="text-4xl font-black italic text-white tracking-tighter group-hover:scale-110 transition-transform origin-left">{record.weight}</p>
+const EvolutionView = () => {
+  // Simular dados vazios (sem histórico de evolução cadastrado)
+  const weightHistory: any[] = [];
+  const liftProgress: any[] = [];
+  const personalRecords: any[] = [];
+
+  return (
+    <div className="animate-in fade-in duration-700 space-y-12 min-h-screen text-white">
+      {/* Empty State */}
+      {weightHistory.length === 0 && liftProgress.length === 0 && personalRecords.length === 0 ? (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+          <div className="size-24 bg-lime-400/10 text-lime-400 rounded-3xl flex items-center justify-center mb-6">
+            <TrendingUp size={48} />
           </div>
-        ))}
-      </div>
+          <h2 className="text-3xl font-black italic text-white mb-3">
+            Nenhum Dado de Evolução
+          </h2>
+          <p className="text-zinc-400 max-w-md mb-8">
+            Comece a registrar pesos, medidas e treinos para acompanhar a evolução do aluno.
+          </p>
+          <button className="px-8 py-4 bg-lime-400 hover:bg-lime-500 text-black rounded-full font-black uppercase text-sm tracking-wider transition-all">
+            Registrar Dados
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
+              <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Peso Corporal (kg)</p><h4 className="text-3xl font-black italic text-white">-4.3kg este mês</h4></div><div className="size-12 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center"><Scale size={24} /></div></div>
+              <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={weightHistory}><defs><linearGradient id="colorW" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={4} fill="url(#colorW)" /></AreaChart></ResponsiveContainer></div>
+            </div>
+            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
+              <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Progressão de Carga (kg)</p><h4 className="text-3xl font-black italic text-blue-400">+22kg total</h4></div><div className="size-12 bg-blue-400/10 text-blue-400 rounded-2xl flex items-center justify-center"><Zap size={24} /></div></div>
+              <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={liftProgress}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
+            </div>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 p-10 rounded-[3rem] shadow-2xl">
+            <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Trophy size={20} className="text-orange-400"/> Recordes Pessoais</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {personalRecords.map((record, i) => (
+                <div key={i} className="bg-zinc-950 border border-zinc-800 p-6 rounded-[2rem] hover:border-zinc-700 transition-all group">
+                  <div className="flex justify-between items-start mb-6"><div className={`p-3 rounded-xl bg-zinc-900 ${record.color}`}>{record.icon}</div><span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">{record.date}</span></div>
+                  <p className="text-[10px] font-black uppercase text-zinc-500 mb-1">{record.exercise}</p>
+                  <p className="text-4xl font-black italic text-white tracking-tighter group-hover:scale-110 transition-transform origin-left">{record.weight}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 const GoalsView = () => {
   const [activeGoalTab, setActiveGoalTab] = useState('badges');
@@ -1497,7 +1716,12 @@ const GoalsView = () => {
   ];
 
   return (
-    <div className="animate-in fade-in duration-700 space-y-8">
+    <div className="animate-in fade-in duration-700 space-y-8 min-h-screen text-white">
+      <header className="mb-8">
+        <h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2 text-white">Metas & Conquistas</h1>
+        <p className="text-zinc-500 font-medium">Acompanhe seu progresso e desbloqueie conquistas</p>
+      </header>
+      
       <div className="flex gap-4">
         <button 
           onClick={() => setActiveGoalTab('badges')} 
@@ -1725,16 +1949,40 @@ const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
         </div>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {filtered.map((product: Product) => (
-          <div key={product.id} className="group bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden hover:border-lime-400/40 transition-all shadow-xl hover:translate-y-[-8px]">
-            <div className="aspect-square relative overflow-hidden bg-zinc-950"><img src={product.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"/><div className="absolute top-4 left-4 bg-zinc-900/80 border border-zinc-800 px-3 py-1 rounded-full"><span className="text-[10px] font-black text-lime-400 uppercase tracking-widest">{product.brand}</span></div></div>
-            <div className="p-8">
-              <h4 className="text-lg font-black italic uppercase tracking-tight mb-2 truncate">{product.name}</h4>
-              <div className="flex items-center justify-between mb-8"><p className="text-2xl font-black text-white italic">R$ {product.price.toFixed(2)}</p><span className="text-[10px] font-bold text-zinc-500 uppercase">{product.stock} un</span></div>
-              <button onClick={() => addToCart(product)} className="w-full bg-zinc-950 hover:bg-lime-400 text-zinc-400 hover:text-black border border-zinc-800 hover:border-lime-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all active:scale-95"><Plus size={16} /> Adicionar</button>
+        {filtered.length > 0 ? (
+          filtered.map((product: Product) => (
+            <div key={product.id} className="group bg-zinc-900 border border-zinc-800 rounded-[2.5rem] overflow-hidden hover:border-lime-400/40 transition-all shadow-xl hover:translate-y-[-8px]">
+              <div className="aspect-square relative overflow-hidden bg-zinc-950"><img src={product.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"/><div className="absolute top-4 left-4 bg-zinc-900/80 border border-zinc-800 px-3 py-1 rounded-full"><span className="text-[10px] font-black text-lime-400 uppercase tracking-widest">{product.brand}</span></div></div>
+              <div className="p-8">
+                <h4 className="text-lg font-black italic uppercase tracking-tight mb-2 truncate">{product.name}</h4>
+                <div className="flex items-center justify-between mb-8"><p className="text-2xl font-black text-white italic">R$ {product.price.toFixed(2)}</p><span className="text-[10px] font-bold text-zinc-500 uppercase">{product.stock} un</span></div>
+                <button onClick={() => addToCart(product)} className="w-full bg-zinc-950 hover:bg-lime-400 text-zinc-400 hover:text-black border border-zinc-800 hover:border-lime-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all active:scale-95"><Plus size={16} /> Adicionar</button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="col-span-full bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+            <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <ShoppingBag size={40} className="text-zinc-600"/>
+            </div>
+            <h3 className="text-3xl font-black italic uppercase mb-4">Loja em Breve!</h3>
+            <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+              Estamos preparando uma seleção incrível de produtos para você. 
+              Em breve teremos suplementos, equipamentos e muito mais!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="bg-zinc-800 border border-zinc-700 p-4 rounded-2xl">
+                <span className="text-lime-400 font-black text-sm uppercase">🏋️ Equipamentos Premium</span>
+              </div>
+              <div className="bg-zinc-800 border border-zinc-700 p-4 rounded-2xl">
+                <span className="text-lime-400 font-black text-sm uppercase">💊 Suplementos</span>
+              </div>
+              <div className="bg-zinc-800 border border-zinc-700 p-4 rounded-2xl">
+                <span className="text-lime-400 font-black text-sm uppercase">👕 Vestuário</span>
+              </div>
             </div>
           </div>
-        ))}
+        )}
       </div>
       <button onClick={openCart} className="fixed bottom-32 md:bottom-12 right-6 md:right-12 size-16 md:size-20 bg-lime-400 text-black rounded-[2rem] flex items-center justify-center shadow-2xl shadow-lime-400/30 hover:scale-110 active:scale-95 transition-all z-[60] cursor-pointer">
         <div className="relative"><ShoppingBag size={32} />{cartCount > 0 && <div className="absolute -top-3 -right-3 size-7 bg-black text-lime-400 text-xs font-black rounded-full flex items-center justify-center border-4 border-lime-400">{cartCount}</div>}</div>
@@ -1913,6 +2161,48 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime }: any) => {
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(new Date().getDay());
   const [selectedDayDiet, setSelectedDayDiet] = useState(new Date().getDay());
+  
+  // Estados para dados do banco
+  const [historicoTreinos, setHistoricoTreinos] = useState<any[]>([]);
+  const [historicoDietas, setHistoricoDietas] = useState<any[]>([]);
+  const [medicoes, setMedicoes] = useState<any[]>([]);
+  const [fotosProgresso, setFotosProgresso] = useState<any[]>([]);
+  const [metas, setMetas] = useState<any[]>([]);
+  const [grupos, setGrupos] = useState<any[]>([]);
+  const [notificacoes, setNotificacoes] = useState<any[]>([]);
+  
+  // Carregar dados do aluno quando componente montar
+  useEffect(() => {
+    const carregarDadosAluno = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      try {
+        const [treinos, dietas, medicoesData, fotos, metasData, gruposData, notifs] = await Promise.all([
+          carregarHistoricoTreinos(token),
+          carregarHistoricoDietas(token), 
+          carregarMedicoes(token),
+          carregarFotosProgresso(token),
+          carregarMetas(token),
+          carregarGrupos(token),
+          carregarNotificacoes(token)
+        ]);
+        
+        setHistoricoTreinos(treinos);
+        setHistoricoDietas(dietas);
+        setMedicoes(medicoesData);
+        setFotosProgresso(fotos);
+        setMetas(metasData);
+        setGrupos(gruposData);
+        setNotificacoes(notifs);
+        
+      } catch (error) {
+        console.error('Erro ao carregar dados do aluno:', error);
+      }
+    };
+    
+    carregarDadosAluno();
+  }, []);
 
   // Se estiver na view de treino ativo, mostrar a sessão
   if (view === 'active-workout' && activeSession) {
@@ -1948,11 +2238,23 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
         </div>
       )}
 
-      <div className="w-full">
+      <div className="w-full min-h-screen">
         {(() => {
           switch (view) {
     case 'dashboard':
-      const todayWorkout = INITIAL_WORKOUTS_WEEKLY[1][new Date().getDay()];
+      // Pegar treino de hoje do histórico real
+      const hoje = new Date();
+      const treinoHoje = historicoTreinos.find(t => {
+         const dataHistorico = new Date(t.data);
+         return dataHistorico.toDateString() === hoje.toDateString();
+      });
+      
+      const todayWorkout = treinoHoje ? treinoHoje.plano : {
+         name: 'Treino não definido',
+         duration: 45,
+         exercises: [],
+         difficulty: 'medium'
+      };
       return (
         <div className="space-y-12 animate-in fade-in duration-700">
            <header><h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, Atleta</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
@@ -1991,9 +2293,9 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
            )}
 
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-             <StatCard label="Treinos" value="12" trend="+2 essa semana" color="text-lime-400" icon={Dumbbell} />
-             <StatCard label="Calorias" value="2450" trend="Na meta" color="text-orange-400" icon={Flame} />
-             <StatCard label="Peso" value={biometrics.weight} trend="-1.2kg" color="text-blue-400" icon={Scale} />
+             <StatCard label="Treinos" value={historicoTreinos.length || "0"} trend={historicoTreinos.length > 0 ? `+${historicoTreinos.length} essa semana` : "Sem dados"} color="text-lime-400" icon={Dumbbell} />
+             <StatCard label="Calorias" value={historicoDietas.length > 0 ? "2450" : "0"} trend={historicoDietas.length > 0 ? "Na meta" : "Sem dados"} color="text-orange-400" icon={Flame} />
+             <StatCard label="Peso" value={medicoes.length > 0 ? biometrics.weight : "0"} trend={medicoes.length > 0 ? "-1.2kg" : "Sem dados"} color="text-blue-400" icon={Scale} />
            </div>
            <section>
               <div className="flex items-center justify-between mb-8">
@@ -2026,7 +2328,15 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
         </div>
       );
     case 'workouts':
-       const currentWorkout = INITIAL_WORKOUTS_WEEKLY[1][selectedDayWorkout];
+       // Pegar treino do dia selecionado do histórico real
+       const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+       const diaSelecionado = diasSemana[selectedDayWorkout];
+       
+       const treinoDodia = historicoTreinos.find(t => {
+          return t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0;
+       });
+       
+       const currentWorkout = treinoDodia ? treinoDodia.plano[diaSelecionado] : null;
        return (
          <>
            {/* Banner de treino ativo */}
@@ -2062,7 +2372,19 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
          </>
        );
     case 'diet':
-       const currentDiet = dietPlans[`${1}_${selectedDayDiet}`] || INITIAL_DIETS_WEEKLY[1][selectedDayDiet];
+       // Pegar dieta do dia selecionado do histórico real
+       const diasSemanaDieta = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+       const diaSelecionadoDieta = diasSemanaDieta[selectedDayDiet];
+       
+       const dietaDoDia = historicoDietas.find(d => {
+          return d.plano[diaSelecionadoDieta] && d.plano[diaSelecionadoDieta].length > 0;
+       });
+       
+       const currentDiet = dietaDoDia ? dietaDoDia.plano[diaSelecionadoDieta] : {
+          meals: [],
+          totalCalories: 0,
+          macros: { protein: 0, carbs: 0, fat: 0 }
+       };
        return (
          <CalendarBase 
            title="Nutrição" 
@@ -2204,7 +2526,23 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      <h3 className="text-2xl font-black italic uppercase mb-6">Treinos Prescritos</h3>
                      <div className="grid gap-4">
                         {DAYS_SHORT.map((day, idx) => {
-                           const workout = INITIAL_WORKOUTS_WEEKLY[1][idx];
+                           const diasSemanaTreino = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+                           const diaNome = diasSemanaTreino[idx];
+                           
+                           // Pegar treino mais recente para este dia
+                           const treinoMaisRecente = historicoTreinos.find(t => 
+                              t.plano[diaNome] && t.plano[diaNome].length > 0
+                           );
+                           
+                           const workout = treinoMaisRecente ? {
+                              title: treinoMaisRecente.plano[diaNome]?.[0]?.nome || 'Treino',
+                              exercises: treinoMaisRecente.plano[diaNome] || [],
+                              duration: '45-60min'
+                           } : {
+                              title: 'Sem treino',
+                              exercises: [],
+                              duration: '0min'
+                           };
                            return (
                               <div key={idx} className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl">
                                  <div className="flex justify-between items-start mb-4">
@@ -2724,23 +3062,41 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Modelos de Treino</h2><p className="text-zinc-500 font-medium">Templates reutilizáveis</p></div>
                   <button onClick={() => setShowNewTemplate(true)} className="bg-lime-400 text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase flex items-center gap-2"><Plus size={16}/> Novo Modelo</button>
                </header>
-               <div className="grid gap-4">
-                  {templates.map((t: WorkoutTemplate) => (
-                     <div key={t.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex justify-between items-center group hover:border-lime-400/30 transition-all">
-                        <div className="flex items-center gap-6">
-                           <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center"><Dumbbell size={24}/></div>
-                           <div>
-                              <h4 className="font-black italic uppercase text-lg">{t.title}</h4>
-                              <p className="text-[10px] text-zinc-500 font-bold">{t.exercises.length} Exercícios • Série {t.category}</p>
+               {templates.length > 0 ? (
+                  <div className="grid gap-4">
+                     {templates.map((t: WorkoutTemplate) => (
+                        <div key={t.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex justify-between items-center group hover:border-lime-400/30 transition-all">
+                           <div className="flex items-center gap-6">
+                              <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center"><Dumbbell size={24}/></div>
+                              <div>
+                                 <h4 className="font-black italic uppercase text-lg">{t.title}</h4>
+                                 <p className="text-[10px] text-zinc-500 font-bold">{t.exercises.length} Exercícios • Série {t.category}</p>
+                              </div>
+                           </div>
+                           <div className="flex gap-2">
+                              <button className="size-10 bg-zinc-950 rounded-xl flex items-center justify-center text-zinc-600 hover:text-lime-400 transition-colors"><Copy size={16}/></button>
+                              <button onClick={() => onRemoveTemplate(t.id)} className="size-10 bg-zinc-950 rounded-xl flex items-center justify-center text-zinc-600 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                            </div>
                         </div>
-                        <div className="flex gap-2">
-                           <button className="size-10 bg-zinc-950 rounded-xl flex items-center justify-center text-zinc-600 hover:text-lime-400 transition-colors"><Copy size={16}/></button>
-                           <button onClick={() => onRemoveTemplate(t.id)} className="size-10 bg-zinc-950 rounded-xl flex items-center justify-center text-zinc-600 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
-                        </div>
+                     ))}
+                  </div>
+               ) : (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Dumbbell size={40} className="text-zinc-600"/>
                      </div>
-                  ))}
-               </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Template</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Crie templates de treino para reutilizar com seus alunos e economizar tempo.
+                     </p>
+                     <button 
+                        onClick={() => setShowNewTemplate(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Criar Primeiro Template
+                     </button>
+                  </div>
+               )}
             </div>
             {renderProfessorModals()}
             </>
@@ -2753,23 +3109,24 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Agenda de Atendimentos</h2><p className="text-zinc-500 font-medium">Gerencie suas sessões</p></div>
                   <button onClick={() => setShowNewSchedule(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Agendamento</button>
                </header>
-               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {schedules.map(schedule => (
-                     <div key={schedule.id} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] hover:border-lime-400/30 transition-all">
-                        <div className="flex items-start gap-6 mb-6">
-                           <div className="size-20 bg-lime-400/10 text-lime-400 rounded-3xl flex items-center justify-center shrink-0">
-                              <Calendar size={32}/>
-                           </div>
-                           <div className="flex-1">
-                              <div className="flex items-start justify-between mb-3">
-                                 <div>
-                                    <h4 className="font-black text-2xl mb-1">{schedule.type}</h4>
-                                    <p className="text-sm text-zinc-500 font-bold">{schedule.date} às {schedule.time}</p>
-                                 </div>
-                                 <span className={`px-4 py-1.5 rounded-xl text-[11px] font-black uppercase shrink-0 ${schedule.status === 'confirmed' ? 'bg-green-500/20 text-green-500' : 'bg-orange-500/20 text-orange-500'}`}>
-                                    {schedule.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
-                                 </span>
+               {schedules.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                     {schedules.map(schedule => (
+                        <div key={schedule.id} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] hover:border-lime-400/30 transition-all">
+                           <div className="flex items-start gap-6 mb-6">
+                              <div className="size-20 bg-lime-400/10 text-lime-400 rounded-3xl flex items-center justify-center shrink-0">
+                                 <Calendar size={32}/>
                               </div>
+                              <div className="flex-1">
+                                 <div className="flex items-start justify-between mb-3">
+                                    <div>
+                                       <h4 className="font-black text-2xl mb-1">{schedule.type}</h4>
+                                       <p className="text-sm text-zinc-500 font-bold">{schedule.date} às {schedule.time}</p>
+                                    </div>
+                                    <span className={`px-4 py-1.5 rounded-xl text-[11px] font-black uppercase shrink-0 ${schedule.status === 'confirmed' ? 'bg-green-500/20 text-green-500' : 'bg-orange-500/20 text-orange-500'}`}>
+                                       {schedule.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
+                                    </span>
+                                 </div>
                               <div className="flex items-center gap-3 p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
                                  <img src={students.find(s => s.id === schedule.studentId)?.avatar} className="size-12 rounded-xl object-cover"/>
                                  <div>
@@ -2793,6 +3150,23 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      </div>
                   ))}
                </div>
+               ) : (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Calendar size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Agenda Vazia</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Nenhum atendimento agendado. Organize suas sessões com os alunos aqui.
+                     </p>
+                     <button 
+                        onClick={() => setShowNewSchedule(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Criar Primeiro Agendamento
+                     </button>
+                  </div>
+               )}
             </div>
             {renderProfessorModals()}
             </>
@@ -2939,7 +3313,23 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {subView === 'diet' && (
                <div className="space-y-6">
                   {DAYS_SHORT.map((day, idx) => {
-                     const diet = INITIAL_DIETS_WEEKLY[1][idx];
+                     const diasSemanaDieta = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+                     const diaNome = diasSemanaDieta[idx];
+                     
+                     // Pegar dieta mais recente para este dia
+                     const dietaMaisRecente = historicoDietas.find(d => 
+                        d.plano[diaNome] && d.plano[diaNome].length > 0
+                     );
+                     
+                     const diet = dietaMaisRecente ? {
+                        title: dietaMaisRecente.titulo || 'Plano Nutricional',
+                        kcal: dietaMaisRecente.plano.objetivoCalorico || '2000',
+                        meals: dietaMaisRecente.plano[diaNome] || []
+                     } : {
+                        title: 'Sem dieta',
+                        kcal: '0',
+                        meals: []
+                     };
                      return (
                         <div key={idx} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                            <div className="flex justify-between items-start mb-6">
@@ -2971,30 +3361,45 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {subView === 'diary' && (
                <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                   <h3 className="text-2xl font-black italic uppercase mb-6">Diário Alimentar Visual</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     {mealDiary.map(meal => (
-                        <div key={meal.id} className={`bg-zinc-950 border-2 rounded-2xl overflow-hidden transition-all ${meal.status === 'approved' ? 'border-green-500/30' : meal.status === 'warning' ? 'border-orange-500/30' : 'border-zinc-800'}`}>
-                           <img src={meal.img} className="w-full aspect-video object-cover"/>
-                           <div className="p-6">
-                              <div className="flex justify-between items-start mb-3">
-                                 <div>
-                                    <h4 className="font-black text-lg">{meal.meal}</h4>
-                                    <p className="text-[10px] text-zinc-500 font-bold">{meal.time}</p>
+                  {mealDiary.length > 0 ? (
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {mealDiary.map(meal => (
+                           <div key={meal.id} className={`bg-zinc-950 border-2 rounded-2xl overflow-hidden transition-all ${meal.status === 'approved' ? 'border-green-500/30' : meal.status === 'warning' ? 'border-orange-500/30' : 'border-zinc-800'}`}>
+                              <img src={meal.img} className="w-full aspect-video object-cover"/>
+                              <div className="p-6">
+                                 <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                       <h4 className="font-black text-lg">{meal.meal}</h4>
+                                       <p className="text-[10px] text-zinc-500 font-bold">{meal.time}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                       <button className="size-10 bg-green-500/20 text-green-500 rounded-xl hover:bg-green-500/30"><Check size={16}/></button>
+                                       <button className="size-10 bg-orange-500/20 text-orange-500 rounded-xl hover:bg-orange-500/30"><AlertTriangle size={16}/></button>
+                                    </div>
                                  </div>
-                                 <div className="flex gap-2">
-                                    <button className="size-10 bg-green-500/20 text-green-500 rounded-xl hover:bg-green-500/30"><Check size={16}/></button>
-                                    <button className="size-10 bg-orange-500/20 text-orange-500 rounded-xl hover:bg-orange-500/30"><AlertTriangle size={16}/></button>
-                                 </div>
+                                 {meal.feedback && (
+                                    <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl">
+                                       <p className="text-xs text-zinc-300 italic">{meal.feedback}</p>
+                                    </div>
+                                 )}
                               </div>
-                              {meal.feedback && (
-                                 <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl">
-                                    <p className="text-xs text-zinc-300 italic">{meal.feedback}</p>
-                                 </div>
-                              )}
                            </div>
+                        ))}
+                     </div>
+                  ) : (
+                     <div className="text-center py-16">
+                        <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                           <Camera size={40} className="text-zinc-600"/>
                         </div>
-                     ))}
-                  </div>
+                        <h4 className="text-2xl font-black italic uppercase mb-4">Diário Vazio</h4>
+                        <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                           Registre suas refeições com fotos para acompanhamento nutricional personalizado.
+                        </p>
+                        <button className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95">
+                           Adicionar Refeição
+                        </button>
+                     </div>
+                  )}
                </div>
             )}
 
@@ -3025,23 +3430,35 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {subView === 'education' && (
                <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                   <h3 className="text-2xl font-black italic uppercase mb-6">Conteúdos Educacionais</h3>
-                  <div className="grid gap-4">
-                     {educationalContent.map(content => (
-                        <div key={content.id} className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl flex items-center justify-between hover:border-lime-400/30 transition-all cursor-pointer group">
-                           <div className="flex items-center gap-6">
-                              <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">{content.icon}</div>
-                              <div>
-                                 <h4 className="font-black text-lg group-hover:text-lime-400 transition-colors">{content.title}</h4>
-                                 <div className="flex gap-3 mt-1">
-                                    <span className="text-[10px] bg-zinc-900 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.category}</span>
-                                    <span className="text-[10px] bg-zinc-900 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.duration}</span>
+                  {educationalContent.length > 0 ? (
+                     <div className="grid gap-4">
+                        {educationalContent.map(content => (
+                           <div key={content.id} className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl flex items-center justify-between hover:border-lime-400/30 transition-all cursor-pointer group">
+                              <div className="flex items-center gap-6">
+                                 <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">{content.icon}</div>
+                                 <div>
+                                    <h4 className="font-black text-lg group-hover:text-lime-400 transition-colors">{content.title}</h4>
+                                    <div className="flex gap-3 mt-1">
+                                       <span className="text-[10px] bg-zinc-900 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.category}</span>
+                                       <span className="text-[10px] bg-zinc-900 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.duration}</span>
+                                    </div>
                                  </div>
                               </div>
+                              <ChevronRight size={20} className="text-zinc-600 group-hover:text-lime-400 transition-colors"/>
                            </div>
-                           <ChevronRight size={20} className="text-zinc-600 group-hover:text-lime-400 transition-colors"/>
+                        ))}
+                     </div>
+                  ) : (
+                     <div className="text-center py-16">
+                        <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                           <BookOpen size={40} className="text-zinc-600"/>
                         </div>
-                     ))}
-                  </div>
+                        <h4 className="text-2xl font-black italic uppercase mb-4">Conteúdos em Breve</h4>
+                        <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                           Materiais educacionais sobre nutrição serão disponibilizados em breve pelo seu nutricionista.
+                        </p>
+                     </div>
+                  )}
                </div>
             )}
 
@@ -3385,7 +3802,6 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   </div>
                </div>
             )}
-            {null}
          </>
       );
    }
@@ -3397,7 +3813,12 @@ const AdminModule = ({ view, user, academia }: any) => {
    const [showAddTicket, setShowAddTicket] = useState(false);
    const [showAddEmployee, setShowAddEmployee] = useState(false);
    const [draggedLead, setDraggedLead] = useState<any>(null);
-   const [crmLeads, setCrmLeads] = useState(CRM_DATA);
+   const [crmLeads, setCrmLeads] = useState<any[]>([]);
+   const [maintenanceTickets, setMaintenanceTickets] = useState<any[]>([]);
+   const [adminProducts, setAdminProducts] = useState<any[]>([]);
+   const [funcionarios, setFuncionarios] = useState<any[]>([]);
+   const [relatoriosFinanceiros, setRelatoriosFinanceiros] = useState<any[]>([]);
+   const [registrosAcesso, setRegistrosAcesso] = useState<any[]>([]);
    const [leadForm, setLeadForm] = useState({ name: '', contact: '', origin: 'Instagram', value: '', notes: '' });
    const [ticketForm, setTicketForm] = useState({ equipment: '', issue: '', priority: 'Média' });
    const [employeeForm, setEmployeeForm] = useState({ name: '', role: 'Professor', salary: '' });
@@ -3457,6 +3878,80 @@ const AdminModule = ({ view, user, academia }: any) => {
       e.preventDefault();
    };
 
+   // Carregar dados das APIs quando o componente montar
+   useEffect(() => {
+      const carregarDadosAdmin = async () => {
+         const token = localStorage.getItem('token');
+         if (!token) return;
+
+         try {
+            // Carregar todos os dados em paralelo
+            const [
+               leads,
+               tickets,
+               produtos,
+               funcionariosData,
+               relatorios,
+               registros
+            ] = await Promise.all([
+               carregarLeads(token),
+               carregarTicketsManutencao(token),
+               carregarProdutos(token),
+               carregarFuncionarios(token),
+               carregarRelatoriosFinanceiros(token),
+               carregarRegistrosAcesso(token)
+            ]);
+
+            // Adaptar dados para o formato esperado pelo frontend
+            setCrmLeads(leads.map((lead: any) => ({
+               id: lead.id,
+               name: lead.nome,
+               status: lead.status,
+               contact: lead.telefone,
+               origin: lead.origem,
+               value: lead.valorEstimado,
+               notes: lead.observacoes || ''
+            })));
+
+            setMaintenanceTickets(tickets.map((ticket: any) => ({
+               id: ticket.id,
+               equipment: ticket.equipamento,
+               issue: ticket.descricao,
+               status: ticket.status,
+               date: new Date(ticket.criadoEm).toLocaleDateString(),
+               priority: ticket.prioridade
+            })));
+
+            setAdminProducts(produtos.map((produto: any) => ({
+               id: produto.id,
+               name: produto.nome,
+               quantity: produto.estoque,
+               minStock: produto.estoqueMinimo,
+               status: produto.estoque <= produto.estoqueMinimo ? 
+                  (produto.estoque <= produto.estoqueMinimo * 0.5 ? 'critical' : 'low') : 'ok',
+               price: produto.preco,
+               category: produto.categoria
+            })));
+
+            setFuncionarios(funcionariosData.map((func: any) => ({
+               id: func.id,
+               name: func.nome,
+               role: func.cargo,
+               salary: func.salario,
+               performance: Math.floor(Math.random() * 20) + 80 // Dados mockados temporários
+            })));
+
+            setRelatoriosFinanceiros(relatorios);
+            setRegistrosAcesso(registros);
+
+         } catch (error) {
+            console.error('Erro ao carregar dados do admin:', error);
+         }
+      };
+
+      carregarDadosAdmin();
+   }, []);
+
    const handleDrop = (newStatus: string) => {
       if (draggedLead) {
          setCrmLeads(prev => prev.map(lead => 
@@ -3466,40 +3961,58 @@ const AdminModule = ({ view, user, academia }: any) => {
       }
    };
    
-   const [financialData] = useState({
-      revenue: 145800,
-      expenses: 42300,
-      profit: 103500,
-      pendingPayments: 12400,
-   });
-
-   const [stockData] = useState([
-      { id: 1, name: 'Whey Protein', quantity: 45, minStock: 20, status: 'ok' },
-      { id: 2, name: 'Creatina', quantity: 8, minStock: 15, status: 'low' },
-      { id: 3, name: 'BCAA', quantity: 3, minStock: 10, status: 'critical' },
-   ]);
-
-   const [employeesData] = useState([
-      { id: 1, name: 'Carlos Silva', role: 'Professor', salary: 4500, performance: 95 },
-      { id: 2, name: 'Ana Costa', role: 'Nutricionista', salary: 5000, performance: 88 },
-      { id: 3, name: 'João Pereira', role: 'Recepção', salary: 2800, performance: 92 },
-   ]);
-
-   const [accessData] = useState([
-      { hour: '06h', count: 12 },
-      { hour: '07h', count: 45 },
-      { hour: '08h', count: 78 },
-      { hour: '09h', count: 92 },
-      { hour: '18h', count: 105 },
-      { hour: '19h', count: 88 },
-      { hour: '20h', count: 54 },
-   ]);
-
    useEffect(() => {
       if (tab === 'alunos') {
          carregarAlunos();
       }
    }, [tab]);
+
+   // Carregar históricos quando selecionar aluno
+   useEffect(() => {
+      if (selectedStudent && selectedStudent.id) {
+         carregarHistoricos();
+      }
+   }, [selectedStudent]);
+
+   const carregarHistoricos = async () => {
+      const token = localStorage.getItem('token');
+      if (!token || !selectedStudent) return;
+
+      try {
+         const [treinos, dietas] = await Promise.all([
+            carregarHistoricoTreinos(token, selectedStudent.id),
+            carregarHistoricoDietas(token, selectedStudent.id)
+         ]);
+
+         // Adaptar treinos para o formato esperado
+         const treinosFormatados = treinos.map((treino: any) => ({
+            id: treino.id,
+            titulo: treino.titulo,
+            alunoId: selectedStudent.id,
+            alunoNome: selectedStudent.nome,
+            data: new Date(treino.data).toLocaleDateString('pt-BR'),
+            plano: typeof treino.exercicios === 'object' ? treino.exercicios : JSON.parse(treino.exercicios || '{}'),
+            tipo: treino.origem === 'IA' ? 'ia' : 'manual'
+         }));
+
+         // Adaptar dietas para o formato esperado  
+         const dietasFormatadas = dietas.map((dieta: any) => ({
+            id: dieta.id,
+            titulo: dieta.titulo,
+            alunoId: selectedStudent.id,
+            alunoNome: selectedStudent.nome,
+            data: new Date(dieta.criadoEm).toLocaleDateString('pt-BR'),
+            plano: typeof dieta.conteudo === 'object' ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || '{}'),
+            tipo: dieta.conteudo?.origem === 'IA' ? 'ia' : 'manual'
+         }));
+
+         setHistoricoTreinos(treinosFormatados);
+         setHistoricoDietas(dietasFormatadas);
+
+      } catch (error) {
+         console.error('Erro ao carregar históricos:', error);
+      }
+   };
 
    const carregarAlunos = async () => {
       try {
@@ -3627,17 +4140,35 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
             const planoGerado = JSON.parse(jsonMatch[0]);
             setPlanoTreino(planoGerado);
             
-            // Salvar no histórico automaticamente quando gerado pela IA
-            const novoTreino = {
-               id: Date.now(),
-               titulo: planoGerado.titulo,
-               alunoId: selectedStudent.id,
-               alunoNome: selectedStudent.nome,
-               data: new Date().toLocaleDateString('pt-BR'),
-               plano: { ...planoGerado },
-               tipo: 'ia'
-            };
-            setHistoricoTreinos(prev => [novoTreino, ...prev]);
+            // Salvar no banco de dados usando a API
+            const token = localStorage.getItem('token');
+            if (token) {
+               const dadosTreino = {
+                  usuarioId: selectedStudent.id,
+                  titulo: planoGerado.titulo,
+                  tipoTreino: 'Treino Personalizado IA',
+                  duracao: 60,
+                  exercicios: planoGerado,
+                  observacoes: `Gerado pela IA - Objetivo: ${iaConfig.objetivo}, Nível: ${iaConfig.nivel}`,
+                  origem: 'IA'
+               };
+               
+               const treinoSalvo = await salvarTreino(token, dadosTreino);
+               
+               if (treinoSalvo) {
+                  // Atualizar estado local com o treino salvo
+                  const novoTreino = {
+                     id: treinoSalvo.id,
+                     titulo: treinoSalvo.titulo,
+                     alunoId: selectedStudent.id,
+                     alunoNome: selectedStudent.nome,
+                     data: new Date(treinoSalvo.data).toLocaleDateString('pt-BR'),
+                     plano: treinoSalvo.exercicios,
+                     tipo: 'ia'
+                  };
+                  setHistoricoTreinos(prev => [novoTreino, ...prev]);
+               }
+            }
             
             setShowIAConfigModal(false);
             setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
@@ -3694,17 +4225,34 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             const planoGerado = JSON.parse(jsonMatch[0]);
             setPlanoDieta(planoGerado);
             
-            // Salvar no histórico automaticamente quando gerado pela IA
-            const novaDieta = {
-               id: Date.now(),
-               titulo: planoGerado.titulo,
-               alunoId: selectedStudent.id,
-               alunoNome: selectedStudent.nome,
-               data: new Date().toLocaleDateString('pt-BR'),
-               plano: { ...planoGerado },
-               tipo: 'ia'
-            };
-            setHistoricoDietas(prev => [novaDieta, ...prev]);
+            // Salvar no banco de dados usando a API
+            const token = localStorage.getItem('token');
+            if (token) {
+               const dadosDieta = {
+                  usuarioId: selectedStudent.id,
+                  titulo: planoGerado.titulo,
+                  objetivo: planoGerado.objetivoCalorico,
+                  refeicoes: planoGerado,
+                  observacoes: `Gerada pela IA - Objetivo: ${iaConfig.objetivo}, Nível: ${iaConfig.nivel}`,
+                  origem: 'IA'
+               };
+               
+               const dietaSalva = await salvarDieta(token, dadosDieta);
+               
+               if (dietaSalva) {
+                  // Atualizar estado local com a dieta salva
+                  const novaDieta = {
+                     id: dietaSalva.id,
+                     titulo: dietaSalva.titulo,
+                     alunoId: selectedStudent.id,
+                     alunoNome: selectedStudent.nome,
+                     data: new Date(dietaSalva.criadoEm).toLocaleDateString('pt-BR'),
+                     plano: dietaSalva.conteudo.refeicoes,
+                     tipo: 'ia'
+                  };
+                  setHistoricoDietas(prev => [novaDieta, ...prev]);
+               }
+            }
             
             setShowIAConfigModal(false);
             setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
@@ -4574,20 +5122,30 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
          {tab === 'dashboard' && (
             <div className="space-y-6">
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <StatCard label="Receita Mensal" value={`R$ ${(financialData.revenue / 1000).toFixed(1)}k`} color="text-lime-400" icon={DollarSign} trend="+12%" />
-                  <StatCard label="Lucro Líquido" value={`R$ ${(financialData.profit / 1000).toFixed(1)}k`} color="text-green-500" icon={TrendingUp} trend="+8%" />
+                  <StatCard label="Receita Mensal" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].receita / 1000).toFixed(1) : '0'}k`} color="text-lime-400" icon={DollarSign} trend="+12%" />
+                  <StatCard label="Lucro Líquido" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].lucro / 1000).toFixed(1) : '0'}k`} color="text-green-500" icon={TrendingUp} trend="+8%" />
                   <StatCard label="Alunos Ativos" value="342" color="text-blue-400" icon={Users} trend="+23" />
                   <StatCard label="Taxa Retenção" value="94%" color="text-purple-400" icon={Target} trend="+2%" />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
-                     <h3 className="text-xl font-black italic uppercase mb-6">Horários de Pico</h3>
-                     <div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={accessData}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="hour" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Bar dataKey="count" fill="#D9FF00" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
+                     <h3 className="text-xl font-black italic uppercase mb-6">Acessos de Hoje</h3>
+                     <div className="space-y-3">
+                        {registrosAcesso.map((registro, index) => (
+                           <div key={index} className="flex justify-between items-center p-3 bg-zinc-800 rounded-2xl">
+                              <span className="font-bold text-sm">{registro.nomeAluno}</span>
+                              <span className="text-lime-400 font-black text-xs">{registro.hora}</span>
+                           </div>
+                        ))}
+                        {registrosAcesso.length === 0 && (
+                           <p className="text-zinc-500 text-center py-8">Nenhum acesso registrado hoje</p>
+                        )}
+                     </div>
                   </div>
                   <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Estoque Crítico</h3>
                      <div className="space-y-3">
-                        {stockData.filter(s => s.status !== 'ok').map(item => (
+                        {adminProducts.filter(s => s.status !== 'ok').map(item => (
                            <div key={item.id} className={`p-4 rounded-2xl border-2 ${item.status === 'critical' ? 'bg-red-500/10 border-red-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
                               <div className="flex justify-between items-center">
                                  <div>
@@ -4614,7 +5172,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                   <h3 className="text-2xl font-black italic uppercase mb-6">Pagamentos Pendentes</h3>
                   <div className="space-y-3">
-                     {INITIAL_STUDENTS.filter(s => s.financialStatus === 'LATE').map(student => (
+                     {alunos.filter(s => s.financialStatus === 'LATE').map(student => (
                         <div key={student.id} className="bg-zinc-950 border-2 border-red-500/30 p-6 rounded-2xl flex justify-between items-center">
                            <div className="flex items-center gap-4">
                               <img src={student.avatar} className="size-12 rounded-xl"/>
@@ -4645,10 +5203,11 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                </div>
 
                {/* Kanban Board */}
-               <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
-                  {kanbanColumns.map(column => {
-                     const columnLeads = crmLeads.filter(lead => lead.status === column.id);
-                     const Icon = column.icon;
+               {crmLeads.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+                     {kanbanColumns.map(column => {
+                        const columnLeads = crmLeads.filter(lead => lead.status === column.id);
+                        const Icon = column.icon;
                      
                      return (
                         <div 
@@ -4717,6 +5276,24 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      );
                   })}
                </div>
+               ) : (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Users size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Pipeline Vazio</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Comece a capturar leads e transformá-los em alunos. 
+                        Organize seu funil de vendas e aumente suas conversões!
+                     </p>
+                     <button 
+                        onClick={() => setShowAddLead(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Adicionar Primeiro Lead
+                     </button>
+                  </div>
+               )}
 
                {/* Modal Novo Lead */}
                {showAddLead && (
@@ -4729,22 +5306,48 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                            </div>
                            <button onClick={() => setShowAddLead(false)} className="text-zinc-500 hover:text-white transition-colors"><X size={24}/></button>
                         </div>
-                        <form onSubmit={(e) => {
+                        <form onSubmit={async (e) => {
                            e.preventDefault();
                            if (leadForm.name && leadForm.contact) {
-                              const newLead = {
-                                 id: crmLeads.length + 1,
-                                 name: leadForm.name,
-                                 contact: leadForm.contact,
-                                 origin: leadForm.origin,
-                                 value: leadForm.value || 'R$ 150/mês',
-                                 notes: leadForm.notes,
-                                 status: 'lead'
-                              };
-                              setCrmLeads([...crmLeads, newLead]);
-                              setLeadForm({ name: '', contact: '', origin: 'Instagram', value: '', notes: '' });
-                              setShowAddLead(false);
-                              alert(`Lead "${newLead.name}" adicionado com sucesso!`);
+                              try {
+                                 const token = localStorage.getItem('token');
+                                 const response = await fetch('/api/admin/leads', {
+                                    method: 'POST',
+                                    headers: {
+                                       'Content-Type': 'application/json',
+                                       'Authorization': `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({
+                                       nome: leadForm.name,
+                                       telefone: leadForm.contact,
+                                       origem: leadForm.origin,
+                                       valorEstimado: leadForm.value || 'R$ 150/mês',
+                                       observacoes: leadForm.notes
+                                    })
+                                 });
+
+                                 if (response.ok) {
+                                    const novoLead = await response.json();
+                                    const leadFormatado = {
+                                       id: novoLead.id,
+                                       name: novoLead.nome,
+                                       status: novoLead.status,
+                                       contact: novoLead.telefone,
+                                       origin: novoLead.origem,
+                                       value: novoLead.valorEstimado,
+                                       notes: novoLead.observacoes || ''
+                                    };
+                                    setCrmLeads([...crmLeads, leadFormatado]);
+                                    setLeadForm({ name: '', contact: '', origin: 'Instagram', value: '', notes: '' });
+                                    setShowAddLead(false);
+                                    alert(`Lead "${novoLead.nome}" adicionado com sucesso!`);
+                                 } else {
+                                    alert('Erro ao criar lead. Tente novamente.');
+                                 }
+                              } catch (error) {
+                                 console.error('Erro ao criar lead:', error);
+                                 alert('Erro ao criar lead. Tente novamente.');
+                              }
                            }
                         }} className="space-y-4">
                            <div className="grid grid-cols-2 gap-4">
@@ -4796,18 +5399,29 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   <button onClick={() => alert('Adicionar Novo Produto\n\nFuncionalidade em desenvolvimento.\nEm breve você poderá cadastrar novos produtos no estoque.')} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Produto</button>
                </div>
                <div className="grid gap-4">
-                  {stockData.map(item => (
-                     <div key={item.id} className={`bg-zinc-900 border-2 p-6 rounded-3xl flex justify-between items-center ${item.status === 'critical' ? 'border-red-500/30' : item.status === 'low' ? 'border-orange-500/30' : 'border-zinc-800'}`}>
-                        <div className="flex items-center gap-6">
-                           <div className={`size-16 rounded-2xl flex items-center justify-center ${item.status === 'critical' ? 'bg-red-500/20 text-red-500' : item.status === 'low' ? 'bg-orange-500/20 text-orange-500' : 'bg-lime-400/20 text-lime-400'}`}><Package size={24}/></div>
-                           <div>
-                              <h4 className="font-black text-lg">{item.name}</h4>
-                              <p className="text-[10px] text-zinc-500 font-bold">Quantidade: {item.quantity} un • Mínimo: {item.minStock} un</p>
+                  {adminProducts.length > 0 ? (
+                     adminProducts.map(item => (
+                        <div key={item.id} className={`bg-zinc-900 border-2 p-6 rounded-3xl flex justify-between items-center ${item.status === 'critical' ? 'border-red-500/30' : item.status === 'low' ? 'border-orange-500/30' : 'border-zinc-800'}`}>
+                           <div className="flex items-center gap-6">
+                              <div className={`size-16 rounded-2xl flex items-center justify-center ${item.status === 'critical' ? 'bg-red-500/20 text-red-500' : item.status === 'low' ? 'bg-orange-500/20 text-orange-500' : 'bg-lime-400/20 text-lime-400'}`}><Package size={24}/></div>
+                              <div>
+                                 <h4 className="font-black text-lg">{item.name}</h4>
+                                 <p className="text-[10px] text-zinc-500 font-bold">Quantidade: {item.quantity} un • Mínimo: {item.minStock} un</p>
+                              </div>
                            </div>
+                           <button onClick={() => alert('Reposição de estoque solicitada para: ' + item.name)} className="px-6 py-3 bg-lime-400 text-black rounded-xl font-black uppercase text-[10px]">Repor</button>
                         </div>
-                        <button onClick={() => alert('Reposição de estoque solicitada para: ' + item.name)} className="px-6 py-3 bg-lime-400 text-black rounded-xl font-black uppercase text-[10px]">Repor</button>
+                     ))
+                  ) : (
+                     <div className="bg-zinc-900 border border-zinc-800 p-12 rounded-3xl text-center">
+                        <div className="size-20 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                           <Package size={32} className="text-zinc-600"/>
+                        </div>
+                        <h3 className="text-xl font-black italic uppercase mb-2">Nenhum Produto Cadastrado</h3>
+                        <p className="text-zinc-500 font-medium mb-6">Adicione produtos ao estoque para começar o controle</p>
+                        <button onClick={() => alert('Adicionar Novo Produto\n\nFuncionalidade em desenvolvimento.\nEm breve você poderá cadastrar novos produtos no estoque.')} className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-[10px]">Cadastrar Primeiro Produto</button>
                      </div>
-                  ))}
+                  )}
                </div>
             </div>
          )}
@@ -4819,24 +5433,35 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   <button onClick={() => setShowAddEmployee(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Funcionário</button>
                </div>
                <div className="grid gap-4">
-                  {employeesData.map(emp => (
-                     <div key={emp.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex justify-between items-center hover:border-lime-400/30 transition-all">
-                        <div className="flex items-center gap-6">
-                           <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center font-black text-2xl">{emp.name.charAt(0)}</div>
-                           <div>
-                              <h4 className="font-black text-lg">{emp.name}</h4>
-                              <p className="text-[10px] text-zinc-500 font-bold">{emp.role} • R$ {emp.salary.toLocaleString('pt-BR')}/mês</p>
+                  {funcionarios.length > 0 ? (
+                     funcionarios.map(emp => (
+                        <div key={emp.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex justify-between items-center hover:border-lime-400/30 transition-all">
+                           <div className="flex items-center gap-6">
+                              <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center font-black text-2xl">{emp.name.charAt(0)}</div>
+                              <div>
+                                 <h4 className="font-black text-lg">{emp.name}</h4>
+                                 <p className="text-[10px] text-zinc-500 font-bold">{emp.role} • R$ {emp.salary.toLocaleString('pt-BR')}/mês</p>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                 <p className="text-[10px] text-zinc-600 font-black uppercase">Performance</p>
+                                 <p className="text-2xl font-black italic text-lime-400">{emp.performance}%</p>
+                              </div>
+                              <button className="size-10 bg-zinc-950 rounded-xl flex items-center justify-center text-zinc-600 hover:text-white"><MoreVertical size={16}/></button>
                            </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                           <div className="text-right">
-                              <p className="text-[10px] text-zinc-600 font-black uppercase">Performance</p>
-                              <p className="text-2xl font-black italic text-lime-400">{emp.performance}%</p>
-                           </div>
-                           <button className="size-10 bg-zinc-950 rounded-xl flex items-center justify-center text-zinc-600 hover:text-white"><MoreVertical size={16}/></button>
+                     ))
+                  ) : (
+                     <div className="bg-zinc-900 border border-zinc-800 p-12 rounded-3xl text-center">
+                        <div className="size-20 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                           <Users size={32} className="text-zinc-600"/>
                         </div>
+                        <h3 className="text-xl font-black italic uppercase mb-2">Nenhum Funcionário Cadastrado</h3>
+                        <p className="text-zinc-500 font-medium mb-6">Adicione funcionários para gerenciar sua equipe</p>
+                        <button onClick={() => setShowAddEmployee(true)} className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-[10px]">Cadastrar Primeiro Funcionário</button>
                      </div>
-                  ))}
+                  )}
                </div>
             </div>
          )}
@@ -4848,21 +5473,32 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   <button onClick={() => setShowAddTicket(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Chamado</button>
                </div>
                <div className="grid gap-4">
-                  {MAINTENANCE_TICKETS.map((ticket: any) => (
-                     <div key={ticket.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-lime-400/30 transition-all">
-                        <div className="flex items-center gap-6">
-                           <div className={`size-16 rounded-2xl flex items-center justify-center ${ticket.status === 'FIXED' ? 'bg-green-500/20 text-green-500' : ticket.status === 'PENDING' ? 'bg-orange-500/20 text-orange-500' : 'bg-red-500/20 text-red-500'}`}><Wrench size={24}/></div>
-                           <div>
-                              <h4 className="font-black text-lg">{ticket.equipment}</h4>
-                              <p className="text-[10px] text-zinc-500 font-bold">{ticket.issue} • {ticket.date}</p>
+                  {maintenanceTickets.length > 0 ? (
+                     maintenanceTickets.map((ticket: any) => (
+                        <div key={ticket.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-lime-400/30 transition-all">
+                           <div className="flex items-center gap-6">
+                              <div className={`size-16 rounded-2xl flex items-center justify-center ${ticket.status === 'FIXED' ? 'bg-green-500/20 text-green-500' : ticket.status === 'PENDING' ? 'bg-orange-500/20 text-orange-500' : 'bg-red-500/20 text-red-500'}`}><Wrench size={24}/></div>
+                              <div>
+                                 <h4 className="font-black text-lg">{ticket.equipment}</h4>
+                                 <p className="text-[10px] text-zinc-500 font-bold">{ticket.issue} • {ticket.date}</p>
+                              </div>
+                           </div>
+                           <div className="flex gap-2">
+                              <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.priority === 'HIGH' ? 'bg-red-500 text-white' : ticket.priority === 'MEDIUM' ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400'}`}>{ticket.priority}</span>
+                              <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.status === 'FIXED' ? 'bg-green-500/20 text-green-500' : 'bg-zinc-800 text-zinc-400'}`}>{ticket.status}</span>
                            </div>
                         </div>
-                        <div className="flex gap-2">
-                           <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.priority === 'HIGH' ? 'bg-red-500 text-white' : ticket.priority === 'MEDIUM' ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400'}`}>{ticket.priority}</span>
-                           <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.status === 'FIXED' ? 'bg-green-500/20 text-green-500' : 'bg-zinc-800 text-zinc-400'}`}>{ticket.status}</span>
+                     ))
+                  ) : (
+                     <div className="bg-zinc-900 border border-zinc-800 p-12 rounded-3xl text-center">
+                        <div className="size-20 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                           <Wrench size={32} className="text-zinc-600"/>
                         </div>
+                        <h3 className="text-xl font-black italic uppercase mb-2">Nenhum Chamado Aberto</h3>
+                        <p className="text-zinc-500 font-medium mb-6">Todos os equipamentos estão funcionando perfeitamente!</p>
+                        <button onClick={() => setShowAddTicket(true)} className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-[10px]">Abrir Novo Chamado</button>
                      </div>
-                  ))}
+                  )}
                </div>
             </div>
          )}
@@ -5091,8 +5727,36 @@ const AppContent: React.FC = () => {
   const { user, academia, logout } = useAuth();
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [products] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  
+  // Carregar produtos quando entrar na loja
+  useEffect(() => {
+    if (activeView === 'store' && products.length === 0) {
+      const carregarProdutosLoja = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        try {
+          const produtosCarregados = await carregarProdutos(token);
+          const produtosFormatados = produtosCarregados.map((p: any) => ({
+            id: p.id,
+            name: p.nome,
+            price: p.preco,
+            category: p.categoria,
+            image: p.urlImagem || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b',
+            rating: 4.5,
+            reviews: Math.floor(Math.random() * 100) + 10
+          }));
+          setProducts(produtosFormatados);
+        } catch (error) {
+          console.error('Erro ao carregar produtos:', error);
+        }
+      };
+      
+      carregarProdutosLoja();
+    }
+  }, [activeView, products.length]);
   
   // Carrinho com persistência
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -5121,8 +5785,8 @@ const AppContent: React.FC = () => {
     }
   });
   
-  const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>(INITIAL_TEMPLATES);
-  const [dietPlans, setDietPlans] = useState<Record<number, any>>(INITIAL_DIETS);
+  const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>([]);
+  const [dietPlans, setDietPlans] = useState<Record<number, any>>({});
   
   // State for active workout session
   const [activeSession, setActiveSession] = useState<any>(null);
