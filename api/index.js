@@ -35,21 +35,29 @@ export default async function handler(req, res) {
     if (url?.includes('/auth/login') && method === 'POST') {
       const { email, senha } = req.body || {};
       console.log('🔐 Tentativa de login:', email);
+      console.log('📧 Email recebido:', JSON.stringify(email));
+      console.log('🔑 Senha recebida (length):', senha?.length);
+      
+      if (!email || !senha) {
+        console.log('❌ Email ou senha vazios');
+        return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
+      }
       
       const usuario = await prisma.usuario.findUnique({
-        where: { email },
+        where: { email: email.trim().toLowerCase() },
         include: { academia: true }
       });
       
-      console.log('👤 Usuário encontrado:', usuario ? 'SIM' : 'NÃO');
+      console.log('👤 Usuário encontrado:', usuario ? `SIM (${usuario.email})` : 'NÃO');
       
       if (!usuario) {
-        console.log('❌ Usuário não existe');
+        console.log('❌ Usuário não existe no banco');
         return res.status(401).json({ erro: 'Credenciais inválidas' });
       }
       
+      console.log('🔐 Hash armazenado:', usuario.senha.substring(0, 30) + '...');
       const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
-      console.log('🔑 Senha correta:', senhaCorreta ? 'SIM' : 'NÃO');
+      console.log('🔑 Senha correta:', senhaCorreta ? 'SIM ✅' : 'NÃO ❌');
       
       if (!senhaCorreta) {
         console.log('❌ Senha incorreta');
@@ -62,7 +70,7 @@ export default async function handler(req, res) {
         { expiresIn: '7d' }
       );
       
-      console.log('✅ Login bem-sucedido');
+      console.log('✅ Login bem-sucedido para', usuario.email);
       return res.status(200).json({
         token,
         usuario: { ...usuario, senha: undefined },
