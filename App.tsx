@@ -2469,11 +2469,16 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
        const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
        const diaSelecionado = diasSemana[selectedDayWorkout];
        
+       console.log('🔍 Buscando treino para:', diaSelecionado);
+       console.log('📋 Histórico de treinos disponível:', historicoTreinos);
+       
        const treinoDodia = historicoTreinos.find(t => {
-          return t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0;
+          return t && t.plano && t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0;
        });
        
-       const currentWorkout = treinoDodia ? treinoDodia.plano[diaSelecionado] : null;
+       console.log('✅ Treino encontrado:', treinoDodia);
+       
+       const currentWorkout = (treinoDodia && treinoDodia.plano && treinoDodia.plano[diaSelecionado]) ? treinoDodia.plano[diaSelecionado] : null;
        return (
          <>
            {/* Banner de treino ativo */}
@@ -2514,10 +2519,10 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
        const diaSelecionadoDieta = diasSemanaDieta[selectedDayDiet];
        
        const dietaDoDia = historicoDietas.find(d => {
-          return d.plano[diaSelecionadoDieta] && d.plano[diaSelecionadoDieta].length > 0;
+          return d && d.plano && d.plano[diaSelecionadoDieta] && d.plano[diaSelecionadoDieta].length > 0;
        });
        
-       const currentDiet = dietaDoDia ? dietaDoDia.plano[diaSelecionadoDieta] : {
+       const currentDiet = (dietaDoDia && dietaDoDia.plano && dietaDoDia.plano[diaSelecionadoDieta]) ? dietaDoDia.plano[diaSelecionadoDieta] : {
           meals: [],
           totalCalories: 0,
           macros: { protein: 0, carbs: 0, fat: 0 }
@@ -2736,10 +2741,10 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                            
                            // Pegar treino mais recente para este dia
                            const treinoMaisRecente = historicoTreinos.find(t => 
-                              t.plano[diaNome] && t.plano[diaNome].length > 0
+                              t && t.plano && t.plano[diaNome] && t.plano[diaNome].length > 0
                            );
                            
-                           const workout = treinoMaisRecente ? {
+                           const workout = (treinoMaisRecente && treinoMaisRecente.plano && treinoMaisRecente.plano[diaNome]) ? {
                               title: treinoMaisRecente.plano[diaNome]?.[0]?.nome || 'Treino',
                               exercises: treinoMaisRecente.plano[diaNome] || [],
                               duration: '45-60min'
@@ -3813,10 +3818,10 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      
                      // Pegar dieta mais recente para este dia
                      const dietaMaisRecente = historicoDietas.find(d => 
-                        d.plano[diaNome] && d.plano[diaNome].length > 0
+                        d && d.plano && d.plano[diaNome] && d.plano[diaNome].length > 0
                      );
                      
-                     const diet = dietaMaisRecente ? {
+                     const diet = (dietaMaisRecente && dietaMaisRecente.plano) ? {
                         title: dietaMaisRecente.titulo || 'Plano Nutricional',
                         kcal: dietaMaisRecente.plano.objetivoCalorico || '2000',
                         meals: dietaMaisRecente.plano[diaNome] || []
