@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react`;
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Dumbbell, LayoutDashboard, Apple, TrendingUp, Trophy,
   ArrowLeft, ArrowRight, Flame, DollarSign, Search, ShoppingCart, 
@@ -10,16 +10,16 @@ import {
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, Shield, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
   Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu
-} from 'lucide-react`;
+} from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
   XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar, Legend, LineChart, Line,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
-} from 'recharts`;
+} from 'recharts';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // URL base da API
-const API_URL = import.meta.env.PROD ? '' : 'http://localhost:3002`;
+const API_URL = import.meta.env.PROD ? '' : 'http://localhost:3002';
 
 // --- AI CONFIG ---
 // Initialize Gemini AI. Assumes API_KEY is available in import.meta.env
@@ -147,7 +147,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 // ... (Types and Interfaces remain the same)
-type Role = 'ALUNO' | 'PROFESSOR' | 'NUTRI' | 'ADMIN`;
+type Role = 'ALUNO' | 'PROFESSOR' | 'NUTRI' | 'ADMIN';
 
 interface AuthUser {
   id: string;
@@ -163,7 +163,7 @@ interface Academia {
   id: string;
   name: string;
   logo?: string;
-  subscription: 'BASIC' | 'PRO' | 'ENTERPRISE`;
+  subscription: 'BASIC' | 'PRO' | 'ENTERPRISE';
   maxUsers: number;
   features: string[];
 }
@@ -210,7 +210,7 @@ interface Student {
   daysAbsent: number; // For Retention Radar
   progress: number;
   avatar: string;
-  financialStatus: 'OK' | 'LATE`; // For Admin
+  financialStatus: 'OK' | 'LATE'; // For Admin
   risk: boolean; // For Retention Radar
 }
 
@@ -244,7 +244,7 @@ const FOOD_SUBSTITUTIONS: Record<string, string[]> = {
 // Funções para carregar dados do módulo administrativo
 const carregarLeads = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/leads`, {
+    const response = await fetch('/api/admin/leads', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
@@ -256,7 +256,7 @@ const carregarLeads = async (token: string) => {
 
 const carregarTicketsManutencao = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/manutencao`, {
+    const response = await fetch('/api/admin/manutencao', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
@@ -268,7 +268,7 @@ const carregarTicketsManutencao = async (token: string) => {
 
 const carregarProdutos = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/produtos`, {
+    const response = await fetch('/api/admin/produtos', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
@@ -280,7 +280,7 @@ const carregarProdutos = async (token: string) => {
 
 const carregarFuncionarios = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/funcionarios`, {
+    const response = await fetch('/api/admin/funcionarios', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
@@ -292,7 +292,7 @@ const carregarFuncionarios = async (token: string) => {
 
 const carregarRelatoriosFinanceiros = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/financeiro`, {
+    const response = await fetch('/api/admin/financeiro', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
@@ -304,7 +304,7 @@ const carregarRelatoriosFinanceiros = async (token: string) => {
 
 const carregarRegistrosAcesso = async (token: string, data?: string) => {
   try {
-    const url = data ? `/api/admin/acessos?data=${data}` : '/api/admin/acessos`;
+    const url = data ? `/api/admin/acessos?data=${data}` : '/api/admin/acessos';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -318,7 +318,7 @@ const carregarRegistrosAcesso = async (token: string, data?: string) => {
 // Funções para os módulos aluno/professor/nutricionista
 const carregarHistoricoTreinos = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/historico-treinos?usuarioId=${usuarioId}` : '/api/historico-treinos`;
+    const url = usuarioId ? `/api/historico-treinos?usuarioId=${usuarioId}` : '/api/historico-treinos';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -331,7 +331,7 @@ const carregarHistoricoTreinos = async (token: string, usuarioId?: string) => {
 
 const carregarHistoricoDietas = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/historico-dietas?usuarioId=${usuarioId}` : '/api/historico-dietas`;
+    const url = usuarioId ? `/api/historico-dietas?usuarioId=${usuarioId}` : '/api/historico-dietas';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -344,7 +344,7 @@ const carregarHistoricoDietas = async (token: string, usuarioId?: string) => {
 
 const carregarMedicoes = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/medicoes?usuarioId=${usuarioId}` : '/api/medicoes`;
+    const url = usuarioId ? `/api/medicoes?usuarioId=${usuarioId}` : '/api/medicoes';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -357,7 +357,7 @@ const carregarMedicoes = async (token: string, usuarioId?: string) => {
 
 const carregarFotosProgresso = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/fotos-progresso?usuarioId=${usuarioId}` : '/api/fotos-progresso`;
+    const url = usuarioId ? `/api/fotos-progresso?usuarioId=${usuarioId}` : '/api/fotos-progresso';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -370,7 +370,7 @@ const carregarFotosProgresso = async (token: string, usuarioId?: string) => {
 
 const carregarMetas = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/metas?usuarioId=${usuarioId}` : '/api/metas`;
+    const url = usuarioId ? `/api/metas?usuarioId=${usuarioId}` : '/api/metas';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -383,7 +383,7 @@ const carregarMetas = async (token: string, usuarioId?: string) => {
 
 const carregarGrupos = async (token: string) => {
   try {
-    const response = await fetch('/api/grupos`, {
+    const response = await fetch('/api/grupos', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
@@ -395,7 +395,7 @@ const carregarGrupos = async (token: string) => {
 
 const carregarNotificacoes = async (token: string) => {
   try {
-    const response = await fetch('/api/notificacoes`, {
+    const response = await fetch('/api/notificacoes', {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
@@ -407,7 +407,7 @@ const carregarNotificacoes = async (token: string) => {
 
 const salvarTreino = async (token: string, dadosTreino: any) => {
   try {
-    const response = await fetch('/api/historico-treinos`, {
+    const response = await fetch('/api/historico-treinos', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -424,7 +424,7 @@ const salvarTreino = async (token: string, dadosTreino: any) => {
 
 const salvarDieta = async (token: string, dadosDieta: any) => {
   try {
-    const response = await fetch('/api/historico-dietas`, {
+    const response = await fetch('/api/historico-dietas', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -442,7 +442,7 @@ const salvarDieta = async (token: string, dadosDieta: any) => {
 // Funções para módulo de nutricionista
 const carregarRefeicoesDisario = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `${API_URL}/api/refeicoes-diario?usuarioId=${usuarioId}` : `${API_URL}/api/refeicoes-diario`;
+    const url = usuarioId ? `http://localhost:3002/api/refeicoes-diario?usuarioId=${usuarioId}` : `${API_URL}/api/refeicoes-diario`;
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -476,7 +476,7 @@ const salvarRefeicaoDiario = async (token: string, dadosRefeicao: any) => {
 
 const atualizarFeedbackRefeicao = async (token: string, id: string, status: string, feedback: string) => {
   try {
-    const response = await fetch(`${API_URL}/api/refeicoes-diario/${id}/feedback`, {
+    const response = await fetch(`http://localhost:3002/api/refeicoes-diario/${id}/feedback`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -495,7 +495,7 @@ const atualizarFeedbackRefeicao = async (token: string, id: string, status: stri
 
 const carregarAnalisesComposicao = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `${API_URL}/api/analises-composicao?usuarioId=${usuarioId}` : `${API_URL}/api/analises-composicao`;
+    const url = usuarioId ? `http://localhost:3002/api/analises-composicao?usuarioId=${usuarioId}` : `${API_URL}/api/analises-composicao`;
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -641,7 +641,7 @@ const getBase64FromUrl = async (url: string): Promise<string> => {
 const extractFramesFromVideo = async (videoFile: File, numFrames: number = 3): Promise<string[]> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
-    video.preload = 'metadata`;
+    video.preload = 'metadata';
     video.src = URL.createObjectURL(videoFile);
     video.muted = true;
     video.playsInline = true;
@@ -916,7 +916,7 @@ const UserManagement: React.FC = () => {
   const alternarStatus = async (usuarioId: string, ativo: boolean) => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_URL}/api/admin/usuarios/${usuarioId}/status`, {
+      const response = await fetch(`http://localhost:3002/api/admin/usuarios/${usuarioId}/status`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1332,7 +1332,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 
   const handleVoiceGuidance = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR`;
+    utterance.lang = 'pt-BR';
     utterance.rate = 1.1;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -2833,11 +2833,11 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Evolução de Peso</h3>
-                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR`, {day: '2-digit', month: '2-digit'}), peso: a.weight }))}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="peso" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
+                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}), peso: a.weight }))}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="peso" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
                      </div>
                      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Composição Corporal</h3>
-                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR`, {day: '2-digit', month: '2-digit'}), gordura: a.bodyFat, musculo: a.muscle }))}><defs><linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient><linearGradient id="colorMuscle" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="gordura" stroke="#f97316" strokeWidth={2} fill="url(#colorFat)" /><Area type="monotone" dataKey="musculo" stroke="#D9FF00" strokeWidth={2} fill="url(#colorMuscle)" /></AreaChart></ResponsiveContainer></div>
+                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}), gordura: a.bodyFat, musculo: a.muscle }))}><defs><linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient><linearGradient id="colorMuscle" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="gordura" stroke="#f97316" strokeWidth={2} fill="url(#colorFat)" /><Area type="monotone" dataKey="musculo" stroke="#D9FF00" strokeWidth={2} fill="url(#colorMuscle)" /></AreaChart></ResponsiveContainer></div>
                      </div>
                   </div>
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
@@ -3497,7 +3497,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             
             // Formatar histórico de composição
             setCompositionHistory(analises.map((a: any) => ({
-               date: new Date(a.data).toLocaleDateString('pt-BR`, { day: '2-digit', month: '2-digit' }),
+               date: new Date(a.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
                weight: a.peso,
                bodyFat: a.percentualGordura || 0,
                muscleMass: a.massaMuscular || 0,
@@ -3556,7 +3556,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       if (resultado) {
          // Adicionar ao histórico
          const novaAnalise = {
-            date: new Date().toLocaleDateString('pt-BR`, { day: '2-digit', month: '2-digit' }),
+            date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
             weight: parseFloat(compositionForm.weight),
             bodyFat: compositionForm.bodyFat ? parseFloat(compositionForm.bodyFat) : 0,
             muscleMass: compositionForm.muscle ? parseFloat(compositionForm.muscle) : 0,
@@ -4344,7 +4344,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 };
 
 const AdminModule = ({ view, user, academia }: any) => {
-   const tab = view || 'dashboard`;
+   const tab = view || 'dashboard';
    const [showAddLead, setShowAddLead] = useState(false);
    const [showAddTicket, setShowAddTicket] = useState(false);
    const [showAddEmployee, setShowAddEmployee] = useState(false);
@@ -4657,7 +4657,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const aprovarFuncionario = async (funcionarioId: string, aprovar: boolean) => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_URL}/api/admin/usuarios/${funcionarioId}/status`, {
+         const response = await fetch(`http://localhost:3002/api/admin/usuarios/${funcionarioId}/status`, {
             method: 'PATCH',
             headers: {
                'Authorization': `Bearer ${token}`,
@@ -6215,7 +6215,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                            if (leadForm.name && leadForm.contact) {
                               try {
                                  const token = localStorage.getItem('token');
-                                 const response = await fetch('/api/admin/leads`, {
+                                 const response = await fetch('/api/admin/leads', {
                                     method: 'POST',
                                     headers: {
                                        'Content-Type': 'application/json',
