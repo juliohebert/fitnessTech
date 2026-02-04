@@ -18,11 +18,6 @@ import {
 } from 'recharts';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// URL base da API - usa window.location.origin em produção
-const API_URL = import.meta.env.PROD 
-  ? window.location.origin 
-  : 'http://localhost:3002';
-
 // --- AI CONFIG ---
 // Initialize Gemini AI. Assumes API_KEY is available in import.meta.env
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY || '');
@@ -54,7 +49,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const loadUserData = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/me`, {
+      const response = await fetch('http://localhost:3002/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -76,7 +71,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const login = async (email: string, senha: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const response = await fetch('http://localhost:3002/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -101,7 +96,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const register = async (userData: any): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_URL}/api/auth/registrar`, {
+      const response = await fetch('http://localhost:3002/api/auth/registrar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -444,7 +439,7 @@ const salvarDieta = async (token: string, dadosDieta: any) => {
 // Funções para módulo de nutricionista
 const carregarRefeicoesDisario = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `http://localhost:3002/api/refeicoes-diario?usuarioId=${usuarioId}` : `${API_URL}/api/refeicoes-diario`;
+    const url = usuarioId ? `http://localhost:3002/api/refeicoes-diario?usuarioId=${usuarioId}` : 'http://localhost:3002/api/refeicoes-diario';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -459,7 +454,7 @@ const carregarRefeicoesDisario = async (token: string, usuarioId?: string) => {
 
 const salvarRefeicaoDiario = async (token: string, dadosRefeicao: any) => {
   try {
-    const response = await fetch(`${API_URL}/api/refeicoes-diario`, {
+    const response = await fetch('http://localhost:3002/api/refeicoes-diario', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -497,7 +492,7 @@ const atualizarFeedbackRefeicao = async (token: string, id: string, status: stri
 
 const carregarAnalisesComposicao = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `http://localhost:3002/api/analises-composicao?usuarioId=${usuarioId}` : `${API_URL}/api/analises-composicao`;
+    const url = usuarioId ? `http://localhost:3002/api/analises-composicao?usuarioId=${usuarioId}` : 'http://localhost:3002/api/analises-composicao';
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -512,7 +507,7 @@ const carregarAnalisesComposicao = async (token: string, usuarioId?: string) => 
 
 const salvarAnaliseComposicao = async (token: string, dadosAnalise: any) => {
   try {
-    const response = await fetch(`${API_URL}/api/analises-composicao`, {
+    const response = await fetch('http://localhost:3002/api/analises-composicao', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -531,7 +526,7 @@ const salvarAnaliseComposicao = async (token: string, dadosAnalise: any) => {
 
 const carregarConteudosEducacionais = async (token: string, categoria?: string, tipo?: string) => {
   try {
-    let url = `${API_URL}/api/conteudos-educacionais`;
+    let url = 'http://localhost:3002/api/conteudos-educacionais';
     const params = new URLSearchParams();
     if (categoria) params.append('categoria', categoria);
     if (tipo) params.append('tipo', tipo);
@@ -551,7 +546,7 @@ const carregarConteudosEducacionais = async (token: string, categoria?: string, 
 
 const salvarConteudoEducacional = async (token: string, dadosConteudo: any) => {
   try {
-    const response = await fetch(`${API_URL}/api/conteudos-educacionais`, {
+    const response = await fetch('http://localhost:3002/api/conteudos-educacionais', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -886,7 +881,7 @@ const UserManagement: React.FC = () => {
   const carregarUsuarios = async () => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_URL}/api/admin/usuarios`, {
+      const response = await fetch('http://localhost:3002/api/admin/usuarios', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -903,7 +898,7 @@ const UserManagement: React.FC = () => {
   const carregarInstrutores = async () => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_URL}/api/admin/instrutores`, {
+      const response = await fetch('http://localhost:3002/api/admin/instrutores', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -938,7 +933,7 @@ const UserManagement: React.FC = () => {
   const vincularInstrutor = async (alunoId: string, instrutorId: string, tipoInstrutor: string) => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_URL}/api/admin/vinculos`, {
+      const response = await fetch('http://localhost:3002/api/admin/vinculos', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -2199,8 +2194,6 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 // --- MODULES ---
 
 const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime }: any) => {
-  console.log('✅ StudentModule renderizado - view:', view);
-  
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(new Date().getDay());
   const [selectedDayDiet, setSelectedDayDiet] = useState(new Date().getDay());
   
@@ -2452,8 +2445,6 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
 };
 
 const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, onRemoveTemplate, user, academia }: any) => {
-   console.log('✅ ProfessorModule renderizado - view:', view);
-   
    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
    const [subView, setSubView] = useState<string>('overview'); // overview, workouts, assessments, performance, schedule, chat
    const [showCreateWorkout, setShowCreateWorkout] = useState(false);
@@ -3406,8 +3397,6 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
 }
 
 const NutriModule = ({ view, students, setView, user, academia }: any) => {
-   console.log('✅ NutriModule renderizado - view:', view);
-   
    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
    const [subView, setSubView] = useState<string>('overview');
    const [showCreateDiet, setShowCreateDiet] = useState(false);
@@ -4352,8 +4341,6 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 };
 
 const AdminModule = ({ view, user, academia }: any) => {
-   console.log('✅ AdminModule renderizado - view:', view);
-   
    const tab = view || 'dashboard';
    const [showAddLead, setShowAddLead] = useState(false);
    const [showAddTicket, setShowAddTicket] = useState(false);
@@ -4574,7 +4561,7 @@ const AdminModule = ({ view, user, academia }: any) => {
          const token = localStorage.getItem('fitness_token');
          console.log('🔑 Token sendo usado:', token ? 'Token presente' : 'Token ausente');
          
-         const response = await fetch(`${API_URL}/api/admin/usuarios`, {
+         const response = await fetch('http://localhost:3002/api/admin/usuarios', {
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4604,7 +4591,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const carregarEstatisticas = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_URL}/api/admin/estatisticas`, {
+         const response = await fetch('http://localhost:3002/api/admin/estatisticas', {
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4620,7 +4607,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const carregarFuncionarios = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_URL}/api/admin/usuarios`, {
+         const response = await fetch('http://localhost:3002/api/admin/usuarios', {
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4637,7 +4624,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const carregarDadosFinanceiros = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const alunosResponse = await fetch(`${API_URL}/api/admin/usuarios`, {
+         const alunosResponse = await fetch('http://localhost:3002/api/admin/usuarios', {
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4687,7 +4674,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const cadastrarFuncionario = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_URL}/api/auth/registrar`, {
+         const response = await fetch('http://localhost:3002/api/auth/registrar', {
             method: 'POST',
             headers: {
                'Authorization': `Bearer ${token}`,
@@ -4723,7 +4710,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const cadastrarAluno = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_URL}/api/auth/registrar`, {
+         const response = await fetch('http://localhost:3002/api/auth/registrar', {
             method: 'POST',
             headers: {
                'Authorization': `Bearer ${token}`,
@@ -6645,13 +6632,6 @@ const AppContent: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   
-  // Debug logs
-  useEffect(() => {
-    console.log('🔍 DEBUG - Usuário:', user);
-    console.log('🔍 DEBUG - activeView:', activeView);
-    console.log('🔍 DEBUG - API_URL:', API_URL);
-  }, [user, activeView]);
-  
   // Carregar produtos quando entrar na loja
   useEffect(() => {
     if (activeView === 'store' && products.length === 0) {
@@ -6776,14 +6756,6 @@ const AppContent: React.FC = () => {
   if (!user || !academia) {
     return <LoginForm setActiveView={setActiveView} />;
   }
-
-  // Debug: verificar dados do usuário
-  console.log('=== DEBUG APPCONENT ===');
-  console.log('User:', user);
-  console.log('User Role:', user?.role);
-  console.log('Academia:', academia);
-  console.log('Active View:', activeView);
-  console.log('======================');
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans">
