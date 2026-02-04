@@ -2308,6 +2308,20 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
         console.log('📥 Treinos recebidos para o aluno:', treinos);
         console.log('📥 Quantidade de treinos:', Array.isArray(treinos) ? treinos.length : 'N/A');
         
+        // Log detalhado de cada treino
+        if (Array.isArray(treinos) && treinos.length > 0) {
+          treinos.forEach((t, index) => {
+            console.log(`📋 Treino ${index + 1}:`, {
+              id: t.id,
+              titulo: t.tituloTreino || t.titulo,
+              data: t.data,
+              exercicios: t.exercicios,
+              tipoExercicios: typeof t.exercicios,
+              diasComExercicios: t.exercicios ? Object.keys(t.exercicios) : []
+            });
+          });
+        }
+        
         setHistoricoTreinos(treinos);
         setHistoricoDietas(dietas);
         setMedicoes(medicoesData);
