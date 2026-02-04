@@ -342,19 +342,38 @@ export default async function handler(req, res) {
     
     // POST /api/historico-treinos
     if (method === 'POST' && url?.includes('/historico-treinos')) {
+      console.log('📥 POST /historico-treinos - Body completo:', JSON.stringify(req.body, null, 2));
+      
       const decoded = verificarToken();
-      const { tituloTreino, exercicios, duracao, calorias, observacoes } = req.body || {};
+      const { titulo, tituloTreino, exercicios, duracao, calorias, observacoes, usuarioId } = req.body || {};
+      
+      // Aceitar tanto 'titulo' quanto 'tituloTreino'
+      const tituloFinal = titulo || tituloTreino;
+      const targetUserId = usuarioId || decoded.usuarioId;
+      
+      console.log('👤 Usuario alvo:', targetUserId);
+      console.log('📋 Titulo final:', tituloFinal);
+      
+      if (!tituloFinal || tituloFinal.trim() === '') {
+        console.error('❌ Titulo está vazio');
+        return res.status(400).json({ 
+          erro: 'Título do treino é obrigatório',
+          recebido: req.body 
+        });
+      }
       
       const historico = await prisma.historicoTreino.create({
         data: {
-          usuarioId: decoded.usuarioId,
-          tituloTreino,
+          usuarioId: targetUserId,
+          tituloTreino: tituloFinal.trim(),
           exercicios,
           duracao: duracao || 0,
           calorias: calorias || 0,
-          observacoes
+          observacoes: observacoes || ''
         }
       });
+      
+      console.log('✅ Treino salvo com ID:', historico.id);
       return res.status(201).json(historico);
     }
     
