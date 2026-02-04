@@ -374,11 +374,14 @@ const carregarRegistrosAcesso = async (token: string, data?: string) => {
 // Funções para os módulos aluno/professor/nutricionista
 const carregarHistoricoTreinos = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/historico-treinos?usuarioId=${usuarioId}` : '/api/historico-treinos';
+    const url = usuarioId ? `${API_URL}/api/historico-treinos?usuarioId=${usuarioId}` : `${API_URL}/api/historico-treinos`;
+    console.log('🔍 Carregando treinos para usuarioId:', usuarioId);
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    return response.ok ? await response.json() : [];
+    const data = response.ok ? await response.json() : [];
+    console.log('📋 Treinos carregados:', data.length);
+    return data;
   } catch (error) {
     console.error('Erro ao carregar histórico de treinos:', error);
     return [];
@@ -387,7 +390,7 @@ const carregarHistoricoTreinos = async (token: string, usuarioId?: string) => {
 
 const carregarHistoricoDietas = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/historico-dietas?usuarioId=${usuarioId}` : '/api/historico-dietas';
+    const url = usuarioId ? `${API_URL}/api/historico-dietas?usuarioId=${usuarioId}` : `${API_URL}/api/historico-dietas`;
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });

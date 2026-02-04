@@ -333,10 +333,23 @@ export default async function handler(req, res) {
     // GET /api/historico-treinos
     if (method === 'GET' && url?.includes('/historico-treinos')) {
       const decoded = verificarToken();
+      
+      // Extrair usuarioId da query string se existir
+      const urlParams = new URLSearchParams(url.split('?')[1] || '');
+      const usuarioIdParam = urlParams.get('usuarioId');
+      
+      // Se um usuarioId for fornecido e o usuário logado for admin/instrutor, usar ele
+      // Caso contrário, usar o ID do próprio usuário logado
+      const targetUserId = usuarioIdParam || decoded.usuarioId;
+      
+      console.log('📋 GET /historico-treinos - Usuario alvo:', targetUserId);
+      
       const historico = await prisma.historicoTreino.findMany({
-        where: { usuarioId: decoded.usuarioId },
+        where: { usuarioId: targetUserId },
         orderBy: { data: 'desc' }
       });
+      
+      console.log('📋 Treinos encontrados:', historico.length);
       return res.status(200).json(historico);
     }
     
