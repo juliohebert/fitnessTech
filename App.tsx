@@ -61,18 +61,31 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       
       if (response.ok) {
         const userData = await response.json();
-        // Mapear funcao para role
+        console.log('📥 User data loaded:', userData);
+        
+        // Mapear funcao para role de forma segura
+        const user = userData.user || userData.usuario;
+        if (!user) {
+          console.error('❌ Usuário não encontrado na resposta');
+          logout();
+          return;
+        }
+        
         const userWithRole = {
-          ...userData.user,
-          role: userData.user.funcao || userData.user.role
+          ...user,
+          role: user.funcao || user.role
         };
+        
+        console.log('👤 User com role mapeado:', userWithRole);
+        
         setUser(userWithRole);
         setAcademia(userData.academia);
       } else {
+        console.error('❌ Falha ao carregar dados do usuário:', response.status);
         logout();
       }
     } catch (error) {
-      console.error('Erro ao carregar dados do usuário:', error);
+      console.error('❌ Erro ao carregar dados do usuário:', error);
       logout();
     }
   };
@@ -89,20 +102,34 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       
       if (response.ok) {
         const data = await response.json();
-        // Mapear funcao para role
+        console.log('📥 Login response data:', data);
+        
+        // Mapear funcao para role de forma segura
+        const user = data.user || data.usuario;
+        if (!user) {
+          console.error('❌ Usuário não encontrado na resposta');
+          return false;
+        }
+        
         const userWithRole = {
-          ...data.user,
-          role: data.user.funcao || data.user.role
+          ...user,
+          role: user.funcao || user.role
         };
+        
+        console.log('👤 User com role mapeado:', userWithRole);
+        
         setToken(data.token);
         setUser(userWithRole);
         setAcademia(data.academia);
         localStorage.setItem('fitness_token', data.token);
         return true;
       }
+      
+      const errorData = await response.text();
+      console.error('❌ Login falhou:', response.status, errorData);
       return false;
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('❌ Erro no login:', error);
       return false;
     }
   };
@@ -119,20 +146,34 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       
       if (response.ok) {
         const data = await response.json();
-        // Mapear funcao para role
+        console.log('📥 Register response data:', data);
+        
+        // Mapear funcao para role de forma segura
+        const user = data.user || data.usuario;
+        if (!user) {
+          console.error('❌ Usuário não encontrado na resposta');
+          return false;
+        }
+        
         const userWithRole = {
-          ...data.user,
-          role: data.user.funcao || data.user.role
+          ...user,
+          role: user.funcao || user.role
         };
+        
+        console.log('👤 User registrado com role mapeado:', userWithRole);
+        
         setToken(data.token);
         setUser(userWithRole);
         setAcademia(data.academia);
         localStorage.setItem('fitness_token', data.token);
         return true;
       }
+      
+      const errorData = await response.text();
+      console.error('❌ Registro falhou:', response.status, errorData);
       return false;
     } catch (error) {
-      console.error('Erro no registro:', error);
+      console.error('❌ Erro no registro:', error);
       return false;
     }
   };
