@@ -2352,7 +2352,7 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
       };
       return (
         <div className="space-y-12 animate-in fade-in duration-700">
-           <header><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, Atleta</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
+           <header><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, {user?.nome?.split(' ')[0] || 'Atleta'}</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
            
            {/* Banner de treino ativo */}
            {activeSession && (
