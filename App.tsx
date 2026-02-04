@@ -2309,15 +2309,38 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
         console.log('📥 Quantidade de treinos:', Array.isArray(treinos) ? treinos.length : 'N/A');
         
         // Formatar treinos para o formato esperado pelo frontend
-        const treinosFormatados = Array.isArray(treinos) ? treinos.map((treino: any) => ({
-          id: treino.id,
-          titulo: treino.tituloTreino || treino.titulo || 'Treino',
-          alunoId: treino.usuarioId,
-          alunoNome: 'Aluno',
-          data: new Date(treino.data).toLocaleDateString('pt-BR'),
-          plano: typeof treino.exercicios === 'object' ? treino.exercicios : JSON.parse(treino.exercicios || '{}'),
-          tipo: treino.origem === 'IA' ? 'ia' : 'manual'
-        })) : [];
+        const treinosFormatados = Array.isArray(treinos) ? treinos.map((treino: any) => {
+          console.log('🔧 Processando treino:', {
+            id: treino.id,
+            titulo: treino.tituloTreino,
+            exercicios_raw: treino.exercicios,
+            tipo_exercicios: typeof treino.exercicios
+          });
+          
+          // Garantir que exercicios seja um objeto
+          let planoExercicios = {};
+          if (typeof treino.exercicios === 'string') {
+            try {
+              planoExercicios = JSON.parse(treino.exercicios);
+              console.log('✅ Parsed de string para objeto:', planoExercicios);
+            } catch (e) {
+              console.error('❌ Erro ao fazer parse:', e);
+            }
+          } else if (typeof treino.exercicios === 'object' && treino.exercicios !== null) {
+            planoExercicios = treino.exercicios;
+            console.log('✅ Já é objeto:', planoExercicios);
+          }
+          
+          return {
+            id: treino.id,
+            titulo: treino.tituloTreino || treino.titulo || 'Treino',
+            alunoId: treino.usuarioId,
+            alunoNome: 'Aluno',
+            data: new Date(treino.data).toLocaleDateString('pt-BR'),
+            plano: planoExercicios,
+            tipo: treino.origem === 'IA' ? 'ia' : 'manual'
+          };
+        }) : [];
         
         // Log detalhado de cada treino formatado
         if (treinosFormatados.length > 0) {
