@@ -4541,8 +4541,15 @@ const AdminModule = ({ view, user, academia }: any) => {
                carregarRegistrosAcesso(token)
             ]);
 
-            // Adaptar dados para o formato esperado pelo frontend
-            setCrmLeads(leads.map((lead: any) => ({
+            console.log('📊 Dados carregados:', { 
+               leads: Array.isArray(leads) ? leads.length : 'não é array',
+               tickets: Array.isArray(tickets) ? tickets.length : 'não é array',
+               produtos: Array.isArray(produtos) ? produtos.length : 'não é array',
+               funcionariosData: Array.isArray(funcionariosData) ? funcionariosData.length : 'não é array'
+            });
+
+            // Adaptar dados para o formato esperado pelo frontend - COM VALIDAÇÃO
+            setCrmLeads(Array.isArray(leads) ? leads.map((lead: any) => ({
                id: lead.id,
                name: lead.nome,
                status: lead.status,
@@ -4550,18 +4557,18 @@ const AdminModule = ({ view, user, academia }: any) => {
                origin: lead.origem,
                value: lead.valorEstimado,
                notes: lead.observacoes || ''
-            })));
+            })) : []);
 
-            setMaintenanceTickets(tickets.map((ticket: any) => ({
+            setMaintenanceTickets(Array.isArray(tickets) ? tickets.map((ticket: any) => ({
                id: ticket.id,
                equipment: ticket.equipamento,
                issue: ticket.descricao,
                status: ticket.status,
                date: new Date(ticket.criadoEm).toLocaleDateString(),
                priority: ticket.prioridade
-            })));
+            })) : []);
 
-            setAdminProducts(produtos.map((produto: any) => ({
+            setAdminProducts(Array.isArray(produtos) ? produtos.map((produto: any) => ({
                id: produto.id,
                name: produto.nome,
                quantity: produto.estoque,
@@ -4570,21 +4577,28 @@ const AdminModule = ({ view, user, academia }: any) => {
                   (produto.estoque <= produto.estoqueMinimo * 0.5 ? 'critical' : 'low') : 'ok',
                price: produto.preco,
                category: produto.categoria
-            })));
+            })) : []);
 
-            setFuncionarios(funcionariosData.map((func: any) => ({
+            setFuncionarios(Array.isArray(funcionariosData) ? funcionariosData.map((func: any) => ({
                id: func.id,
                name: func.nome,
                role: func.cargo,
                salary: func.salario,
                performance: Math.floor(Math.random() * 20) + 80 // Dados mockados temporários
-            })));
+            })) : []);
 
-            setRelatoriosFinanceiros(relatorios);
-            setRegistrosAcesso(registros);
+            setRelatoriosFinanceiros(Array.isArray(relatorios) ? relatorios : []);
+            setRegistrosAcesso(Array.isArray(registros) ? registros : []);
 
          } catch (error) {
-            console.error('Erro ao carregar dados do admin:', error);
+            console.error('❌ Erro ao carregar dados do admin:', error);
+            // Garantir que todos os estados sejam arrays vazios em caso de erro
+            setCrmLeads([]);
+            setMaintenanceTickets([]);
+            setAdminProducts([]);
+            setFuncionarios([]);
+            setRelatoriosFinanceiros([]);
+            setRegistrosAcesso([]);
          }
       };
 
@@ -4618,10 +4632,16 @@ const AdminModule = ({ view, user, academia }: any) => {
       if (!token || !selectedStudent) return;
 
       try {
+         console.log('🔄 Iniciando carregamento de históricos para:', selectedStudent.nome, selectedStudent.id);
+         
          const [treinos, dietas] = await Promise.all([
             carregarHistoricoTreinos(token, selectedStudent.id),
             carregarHistoricoDietas(token, selectedStudent.id)
          ]);
+
+         console.log('📥 Treinos recebidos:', treinos);
+         console.log('📥 Tipo de treinos:', Array.isArray(treinos) ? 'Array' : typeof treinos);
+         console.log('📥 Quantidade de treinos:', Array.isArray(treinos) ? treinos.length : 'N/A');
 
          // Adaptar treinos para o formato esperado - com verificação
          const treinosFormatados = Array.isArray(treinos) ? treinos.map((treino: any) => ({
@@ -4633,6 +4653,8 @@ const AdminModule = ({ view, user, academia }: any) => {
             plano: typeof treino.exercicios === 'object' ? treino.exercicios : JSON.parse(treino.exercicios || '{}'),
             tipo: treino.origem === 'IA' ? 'ia' : 'manual'
          })) : [];
+
+         console.log('✅ Treinos formatados:', treinosFormatados);
 
          // Adaptar dietas para o formato esperado - com verificação
          const dietasFormatadas = Array.isArray(dietas) ? dietas.map((dieta: any) => ({
@@ -4647,10 +4669,15 @@ const AdminModule = ({ view, user, academia }: any) => {
 
          setHistoricoTreinos(treinosFormatados);
          setHistoricoDietas(dietasFormatadas);
+         
+         console.log('✅ Estados atualizados - Treinos:', treinosFormatados.length, 'Dietas:', dietasFormatadas.length);
 
       } catch (error) {
-         console.error('Erro ao carregar históricos:', error);
+         console.error('❌ Erro ao carregar históricos:', error);
          setHistoricoTreinos([]);
+         setHistoricoDietas([]);
+      }
+   };
          setHistoricoDietas([]);
       }
    };
