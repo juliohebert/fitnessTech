@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
   
   // GET /api/auth/me
-  if (url?.includes('/auth/me') && method === 'GET') {
+  if (method === 'GET' && url?.includes('/auth/me')) {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ erro: 'Não autorizado' });
     
