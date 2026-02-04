@@ -1,0 +1,385 @@
+// Schema Prisma - FitnessTech (em Português)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ===== AUTENTICAÇÃO E USUÁRIOS =====
+model Usuario {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  senha         String
+  nome          String
+  funcao        String   @default("ALUNO") // ALUNO, PROFESSOR, NUTRI, ADMIN
+  plano         String   @default("free") // free, pro, enterprise
+  academiaId    String?
+  telefone      String?
+  cpf           String?
+  imagemPerfil  String?
+  ativo         Boolean  @default(true) // Se o usuário está ativo/aprovado
+  aprovadoPor   String?  // ID do admin que aprovou
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+  
+  // Relações
+  academia              Academia?              @relation(fields: [academiaId], references: [id])
+  historicoTreinos      HistoricoTreino[]
+  fotosProgresso        FotoProgresso[]
+  medicoesCorporais     MedicaoCorporal[]
+  metas                 Meta[]
+  conquistas            Conquista[]
+  desafios              Desafio[]
+  postagens             Postagem[]
+  membrosGrupo          MembroGrupo[]
+  rankings              Ranking[]
+  anotacoesTreino       AnotacaoTreino[]
+  previsoesIA           PrevisaoIA[]
+  analisesRecuperacao   AnaliseRecuperacao[]
+  relatorios            Relatorio[]
+  notificacoes          Notificacao[]
+  carrinho              ItemCarrinho[]
+  videosExercicio       VideoExercicio[]
+  
+  // Relacionamento Professor/Nutri -> Alunos
+  alunosComoProfessor   VinculoAlunoInstrutor[] @relation("Professor")
+  professores           VinculoAlunoInstrutor[] @relation("Aluno")
+  
+  @@map("usuarios")
+  @@index([email])
+  @@index([academiaId])
+  @@index([funcao])
+}
+
+// Tabela de vínculo entre Alunos e seus Professores/Nutricionistas
+model VinculoAlunoInstrutor {
+  id              String   @id @default(cuid())
+  alunoId         String
+  instrutorId     String
+  tipoInstrutor   String   // "PROFESSOR" ou "NUTRI"
+  ativo           Boolean  @default(true)
+  criadoEm        DateTime @default(now())
+  
+  aluno           Usuario  @relation("Aluno", fields: [alunoId], references: [id], onDelete: Cascade)
+  instrutor       Usuario  @relation(name: "Professor", fields: [instrutorId], references: [id], onDelete: Cascade)
+  
+  @@map("vinculos_aluno_instrutor")
+  @@unique([alunoId, instrutorId, tipoInstrutor])
+  @@index([alunoId])
+  @@index([instrutorId])
+}
+
+model Academia {
+  id              String   @id @default(cuid())
+  nome            String
+  plano           String   @default("free") // free, pro, enterprise
+  maxUsuarios     Int      @default(10)
+  usuariosAtuais  Int      @default(0)
+  logo            String?
+  ativa           Boolean  @default(true)
+  criadoEm        DateTime @default(now())
+  
+  usuarios        Usuario[]
+  
+  @@map("academias")
+}
+
+// ===== TREINOS =====
+model HistoricoTreino {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  tituloTreino  String
+  exercicios    Json     // Array de exercícios com séries, reps, peso
+  duracao       Int      // minutos
+  calorias      Int
+  data          DateTime @default(now())
+  observacoes   String?
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("historico_treinos")
+  @@index([usuarioId])
+  @@index([data])
+}
+
+model AnotacaoTreino {
+  id                String   @id @default(cuid())
+  usuarioId         String
+  tituloTreino      String
+  tituloExercicio   String
+  anotacao          String
+  dataHora          DateTime @default(now())
+  
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("anotacoes_treino")
+  @@index([usuarioId])
+}
+
+model VideoExercicio {
+  id                String   @id @default(cuid())
+  usuarioId         String
+  historicoTreinoId String?
+  tituloExercicio   String
+  urlVideo          String   // URL do vídeo (Cloudinary, S3, etc)
+  urlThumbnail      String?  // Miniatura do vídeo
+  duracao           Int?     // Duração em segundos
+  tamanhoArquivo    Int?     // Tamanho em bytes
+  status            String   @default("pendente") // pendente, aprovado, rejeitado
+  feedbackInstrutor String?  // Feedback do instrutor
+  avaliadoEm        DateTime?
+  avaliadoPor       String?  // ID do instrutor
+  criadoEm          DateTime @default(now())
+  
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("videos_exercicio")
+  @@index([usuarioId])
+  @@index([status])
+  @@index([criadoEm])
+}
+
+// ===== PROGRESSO FÍSICO =====
+model FotoProgresso {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  urlImagem     String
+  data          DateTime @default(now())
+  peso          Float?
+  observacoes   String?
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("fotos_progresso")
+  @@index([usuarioId])
+  @@index([data])
+}
+
+model MedicaoCorporal {
+  id              String   @id @default(cuid())
+  usuarioId       String
+  peso            Float
+  altura          Float?
+  imc             Float?
+  gorduraCorporal Float?
+  massaMuscular   Float?
+  peito           Float?
+  cintura         Float?
+  quadril         Float?
+  biceps          Float?
+  coxa            Float?
+  panturrilha     Float?
+  data            DateTime @default(now())
+  
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("medicoes_corporais")
+  @@index([usuarioId])
+  @@index([data])
+}
+
+// ===== METAS E CONQUISTAS =====
+model Meta {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  titulo        String
+  descricao     String?
+  valorAlvo     Float
+  valorAtual    Float    @default(0)
+  unidade       String   // kg, cm, %, treinos
+  prazo         DateTime?
+  completada    Boolean  @default(false)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("metas")
+  @@index([usuarioId])
+}
+
+model Conquista {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  titulo        String
+  descricao     String
+  icone         String
+  categoria     String   // treino, progresso, social, desafio
+  desbloqueadoEm DateTime @default(now())
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("conquistas")
+  @@index([usuarioId])
+}
+
+// ===== GAMIFICAÇÃO =====
+model Desafio {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  titulo        String
+  descricao     String
+  tipo          String   // diario, semanal, mensal
+  alvo          Int
+  progresso     Int      @default(0)
+  completado    Boolean  @default(false)
+  dataInicio    DateTime @default(now())
+  dataFim       DateTime
+  recompensa    String?  // pontos, conquista, etc
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("desafios")
+  @@index([usuarioId])
+  @@index([dataFim])
+}
+
+model Ranking {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  pontos        Int      @default(0)
+  nivel         Int      @default(1)
+  sequencia     Int      @default(0) // dias consecutivos
+  posicao       Int?
+  atualizadoEm  DateTime @updatedAt
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@unique([usuarioId])
+  @@map("rankings")
+  @@index([pontos])
+  @@index([nivel])
+}
+
+// ===== SOCIAL =====
+model Postagem {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  conteudo      String
+  urlImagem     String?
+  curtidas      Int      @default(0)
+  comentarios   Int      @default(0)
+  criadoEm      DateTime @default(now())
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("postagens")
+  @@index([usuarioId])
+  @@index([criadoEm])
+}
+
+model Grupo {
+  id            String   @id @default(cuid())
+  nome          String
+  descricao     String
+  categoria     String
+  totalMembros  Int      @default(0)
+  imagem        String?
+  criadoEm      DateTime @default(now())
+  
+  membros       MembroGrupo[]
+  
+  @@map("grupos")
+}
+
+model MembroGrupo {
+  id            String   @id @default(cuid())
+  grupoId       String
+  usuarioId     String
+  funcao        String   @default("membro") // membro, admin
+  entradoEm     DateTime @default(now())
+  
+  grupo         Grupo    @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@unique([grupoId, usuarioId])
+  @@map("membros_grupo")
+  @@index([usuarioId])
+  @@index([grupoId])
+}
+
+// ===== IA E ANÁLISES =====
+model PrevisaoIA {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  tipo          String   // desempenho, peso, forca
+  previsao      Json     // Dados da previsão
+  confianca     Float    // 0-1
+  criadoEm      DateTime @default(now())
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("previsoes_ia")
+  @@index([usuarioId])
+  @@index([tipo])
+}
+
+model AnaliseRecuperacao {
+  id              String   @id @default(cuid())
+  usuarioId       String
+  horasSono       Float?
+  nivelEstresse   Int?     // 1-10
+  doresMuscular   Int?     // 1-10
+  prontidao       String   // otima, boa, regular, ruim
+  recomendacoes   Json
+  data            DateTime @default(now())
+  
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("analises_recuperacao")
+  @@index([usuarioId])
+  @@index([data])
+}
+
+model Relatorio {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  tipo          String   // mensal, trimestral, anual
+  periodo       String   // "Jan 2024"
+  dados         Json     // Estatísticas e gráficos
+  criadoEm      DateTime @default(now())
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("relatorios")
+  @@index([usuarioId])
+  @@index([tipo])
+}
+
+// ===== NOTIFICAÇÕES =====
+model Notificacao {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  titulo        String
+  mensagem      String
+  tipo          String   // info, sucesso, aviso, conquista
+  lida          Boolean  @default(false)
+  criadoEm      DateTime @default(now())
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("notificacoes")
+  @@index([usuarioId])
+  @@index([lida])
+}
+
+// ===== E-COMMERCE =====
+model ItemCarrinho {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  produtoId     String
+  nomeProduto   String
+  preco         Float
+  quantidade    Int      @default(1)
+  urlImagem     String?
+  adicionadoEm  DateTime @default(now())
+  
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("itens_carrinho")
+  @@index([usuarioId])
+}

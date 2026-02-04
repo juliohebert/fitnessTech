@@ -1,72 +1,1258 @@
-
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { 
+  verificarAdmin, 
+  verificarAcessoAluno, 
+  obterAlunosAcessiveis,
+  obterInstrutoresAcessiveis 
+} from './middleware/autorizacao.js';
 
 const app = express();
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'fitness_tech_super_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'fitness_tech_super_secret_key_2025';
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
-// --- MIDDLEWARE DE AUTH ---
-const authenticate = (req: any, res: any, next: any) => {
+// ===== MIDDLEWARE DE AUTENTICAÇÃO =====
+interface AuthRequest extends express.Request {
+  usuario?: any;
+}
+
+const autenticar = (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Não autorizado' });
+  if (!token) return res.status(401).json({ erro: 'Não autorizado' });
+  
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    const decoded: any = jwt.verify(token, JWT_SECRET);
+    console.log('Token decodificado:', decoded);
+    req.usuario = {
+      id: decoded.usuarioId || decoded.id,
+      email: decoded.email,
+      funcao: decoded.funcao || decoded.role || 'ALUNO',
+      academiaId: decoded.academiaId || null
+    };
+    console.log('req.usuario:', req.usuario);
     next();
   } catch (err) {
-    res.status(401).json({ error: 'Token inválido' });
+    res.status(401).json({ erro: 'Token inválido' });
   }
 };
 
-// --- ROTAS DE AUTENTICAÇÃO ---
+// ===== ROTAS DE AUTENTICAÇÃO =====
 
-app.post('/auth/register', async (req, res) => {
-  const { email, password, name, role } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+app.post('/api/auth/registrar', async (req, res) => {
+  const { email, senha, nome, role, nomeAcademia, telefone, cpf } = req.body;
   
   try {
-    const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name, role: role || 'ALUNO' }
+    const senhaHash = await bcrypt.hash(senha, 10);
+    
+    // Determinar ou criar a academia
+    let academiaId;
+    if (role === 'ADMIN' && nomeAcademia) {
+      // ADMIN cria sua própria academia
+      const novaAcademia = await prisma.academia.create({
+        data: {
+          nome: nomeAcademia,
+          plano: 'PRO',
+          maxUsuarios: 100,
+          ativa: true
+        }
+      });
+      academiaId = novaAcademia.id;
+    } else if (req.body.academiaId) {
+      // Usar academia fornecida
+      academiaId = req.body.academiaId;
+    } else {
+      // Buscar ou criar academia padrão para desenvolvimento
+      let academiaDefault = await prisma.academia.findFirst({
+        where: { nome: 'FitnessTech Demo' }
+      });
+      
+      if (!academiaDefault) {
+        academiaDefault = await prisma.academia.create({
+          data: {
+            nome: 'FitnessTech Demo',
+            plano: 'PRO',
+            maxUsuarios: 1000,
+            ativa: true
+          }
+        });
+      }
+      
+      academiaId = academiaDefault.id;
+    }
+    
+    const usuario = await prisma.usuario.create({
+      data: { 
+        email, 
+        senha: senhaHash, 
+        nome, 
+        funcao: role || 'ALUNO',
+        plano: 'free',
+        telefone,
+        cpf,
+        academiaId
+      }
     });
-    res.json({ message: 'Usuário criado com sucesso', id: user.id });
-  } catch (err) {
-    res.status(400).json({ error: 'Email já cadastrado' });
+    
+    // Buscar a academia para incluir na resposta
+    const academia = await prisma.academia.findUnique({
+      where: { id: academiaId }
+    });
+    
+    const token = jwt.sign({ 
+      usuarioId: usuario.id, 
+      email: usuario.email,
+      funcao: usuario.funcao,
+      academiaId: usuario.academiaId
+    }, JWT_SECRET, { expiresIn: '30d' });
+    
+    res.json({ 
+      mensagem: 'Usuário criado com sucesso', 
+      token,
+      user: {
+        id: usuario.id,
+        email: usuario.email,
+        name: usuario.nome,
+        role: usuario.funcao,
+        academiaId: usuario.academiaId,
+        avatar: usuario.imagemPerfil,
+        createdAt: usuario.criadoEm
+      },
+      academia: academia ? {
+        id: academia.id,
+        name: academia.nome,
+        logo: academia.logo,
+        subscription: 'PRO',
+        maxUsers: academia.maxUsuarios || 100,
+        features: ['all']
+      } : null
+    });
+  } catch (err: any) {
+    console.error('Erro ao registrar:', err);
+    res.status(400).json({ erro: 'Email já cadastrado ou dados inválidos' });
   }
 });
 
-app.post('/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await prisma.user.findUnique({ where: { email } });
+app.post('/api/auth/login', async (req, res) => {
+  const { email, senha } = req.body;
   
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: 'Credenciais inválidas' });
+  try {
+    const usuario = await prisma.usuario.findUnique({ 
+      where: { email },
+      include: {
+        academia: true
+      }
+    });
+    
+    if (!usuario || !(await bcrypt.compare(senha, usuario.senha))) {
+      return res.status(401).json({ erro: 'Credenciais inválidas' });
+    }
+    
+    const token = jwt.sign({ 
+      usuarioId: usuario.id, 
+      email: usuario.email,
+      funcao: usuario.funcao,
+      academiaId: usuario.academiaId
+    }, JWT_SECRET, { expiresIn: '30d' });
+    
+    res.json({ 
+      token,
+      user: {
+        id: usuario.id,
+        email: usuario.email,
+        name: usuario.nome,
+        role: usuario.funcao,
+        academiaId: usuario.academiaId,
+        avatar: usuario.imagemPerfil,
+        createdAt: usuario.criadoEm
+      },
+      academia: usuario.academia ? {
+        id: usuario.academia.id,
+        name: usuario.academia.nome,
+        logo: usuario.academia.logo,
+        subscription: 'PRO',
+        maxUsers: usuario.academia.maxUsuarios || 100,
+        features: ['all']
+      } : null
+    });
+  } catch (err) {
+    console.error('Erro ao fazer login:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
   }
-
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
-  res.json({ token, user: { name: user.name, role: user.role, id: user.id } });
 });
 
-// --- ROTA DE LISTAGEM DE TREINOS (ALUNO) ---
+// Rota para verificar usuário logado
+app.get('/api/auth/me', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: req.usuario?.id },
+      include: {
+        academia: true
+      }
+    });
+    
+    if (!usuario) {
+      return res.status(404).json({ erro: 'Usuário não encontrado' });
+    }
 
-app.get('/workouts/student', authenticate, async (req: any, res) => {
-  const workouts = await prisma.workout.findMany({
-    where: { studentId: req.user.id },
-    include: {
-      coach: { select: { name: true } },
-      exercises: {
-        include: { exercise: true }
+    res.json({
+      user: {
+        id: usuario.id,
+        email: usuario.email,
+        nome: usuario.nome,
+        role: usuario.funcao,
+        academiaId: usuario.academiaId,
+        avatar: usuario.imagemPerfil,
+        createdAt: usuario.criadoEm
+      },
+      academia: usuario.academia ? {
+        id: usuario.academia.id,
+        name: usuario.academia.nome,
+        logo: usuario.academia.logo,
+        subscription: 'PRO', // Padrão por agora
+        maxUsers: 100,
+        features: ['all']
+      } : null
+    });
+  } catch (err) {
+    console.error('Erro ao buscar usuário:', err);
+    res.status(500).json({ erro: 'Erro interno do servidor' });
+  }
+});
+
+// ===== ROTAS DE GERENCIAMENTO (ADMIN) =====
+
+// Listar todos os usuários da academia (apenas ADMIN)
+app.get('/api/admin/usuarios', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    console.log('🔍 [DEBUG] Usuário logado:', {
+      id: req.usuario?.id,
+      email: req.usuario?.email,
+      funcao: req.usuario?.funcao,
+      academiaId: req.usuario?.academiaId
+    });
+
+    const usuarios = await prisma.usuario.findMany({
+      where: {
+        academiaId: req.usuario?.academiaId || undefined
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        funcao: true,
+        telefone: true,
+        cpf: true,
+        imagemPerfil: true,
+        ativo: true,
+        criadoEm: true
+      },
+      orderBy: {
+        criadoEm: 'desc'
+      }
+    });
+
+    console.log('👥 [DEBUG] Usuários encontrados:', usuarios.length);
+    console.log('👥 [DEBUG] Academia ID usado na consulta:', req.usuario?.academiaId);
+    console.log('👥 [DEBUG] Primeiros 3 usuários:', usuarios.slice(0, 3));
+
+    res.json(usuarios);
+  } catch (err) {
+    console.error('Erro ao listar usuários:', err);
+    res.status(500).json({ erro: 'Erro ao listar usuários' });
+  }
+});
+
+// Aprovar/desativar usuário (apenas ADMIN)
+app.patch('/api/admin/usuarios/:usuarioId/status', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.params;
+    const { ativo } = req.body;
+
+    const usuario = await prisma.usuario.update({
+      where: { id: usuarioId },
+      data: {
+        ativo,
+        aprovadoPor: ativo ? req.usuario?.id : null
+      }
+    });
+
+    res.json({ mensagem: 'Status atualizado com sucesso', usuario });
+  } catch (err) {
+    console.error('Erro ao atualizar status:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar status do usuário' });
+  }
+});
+
+// Vincular professor/nutricionista a aluno (apenas ADMIN)
+app.post('/api/admin/vinculos', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { alunoId, instrutorId, tipoInstrutor } = req.body;
+
+    // Validar tipos
+    if (!['PROFESSOR', 'NUTRI'].includes(tipoInstrutor)) {
+      return res.status(400).json({ erro: 'Tipo de instrutor inválido' });
+    }
+
+    // Verificar se aluno e instrutor pertencem à mesma academia
+    const [aluno, instrutor] = await Promise.all([
+      prisma.usuario.findUnique({ where: { id: alunoId } }),
+      prisma.usuario.findUnique({ where: { id: instrutorId } })
+    ]);
+
+    if (!aluno || !instrutor) {
+      return res.status(404).json({ erro: 'Aluno ou instrutor não encontrado' });
+    }
+
+    if (aluno.academiaId !== req.usuario?.academiaId || instrutor.academiaId !== req.usuario?.academiaId) {
+      return res.status(403).json({ erro: 'Usuários não pertencem à sua academia' });
+    }
+
+    if (aluno.funcao !== 'ALUNO') {
+      return res.status(400).json({ erro: 'O usuário não é um aluno' });
+    }
+
+    if (instrutor.funcao !== tipoInstrutor) {
+      return res.status(400).json({ erro: 'O instrutor não tem a função especificada' });
+    }
+
+    const vinculo = await prisma.vinculoAlunoInstrutor.create({
+      data: {
+        alunoId,
+        instrutorId,
+        tipoInstrutor,
+        ativo: true
+      }
+    });
+
+    res.json({ mensagem: 'Vínculo criado com sucesso', vinculo });
+  } catch (err: any) {
+    console.error('Erro ao criar vínculo:', err);
+    if (err.code === 'P2002') {
+      return res.status(400).json({ erro: 'Este vínculo já existe' });
+    }
+    res.status(500).json({ erro: 'Erro ao criar vínculo' });
+  }
+});
+
+// Remover vínculo (apenas ADMIN)
+app.delete('/api/admin/vinculos/:vinculoId', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { vinculoId } = req.params;
+
+    await prisma.vinculoAlunoInstrutor.delete({
+      where: { id: vinculoId }
+    });
+
+    res.json({ mensagem: 'Vínculo removido com sucesso' });
+  } catch (err) {
+    console.error('Erro ao remover vínculo:', err);
+    res.status(500).json({ erro: 'Erro ao remover vínculo' });
+  }
+});
+
+// Listar vínculos de um aluno (apenas ADMIN)
+app.get('/api/admin/alunos/:alunoId/vinculos', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { alunoId } = req.params;
+
+    const vinculos = await prisma.vinculoAlunoInstrutor.findMany({
+      where: {
+        alunoId,
+        ativo: true
+      },
+      include: {
+        instrutor: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            funcao: true,
+            imagemPerfil: true
+          }
+        }
+      }
+    });
+
+    res.json(vinculos);
+  } catch (err) {
+    console.error('Erro ao listar vínculos:', err);
+    res.status(500).json({ erro: 'Erro ao listar vínculos' });
+  }
+});
+
+// ===== ROTAS PARA PROFESSORES/NUTRICIONISTAS =====
+
+// Listar meus alunos (PROFESSOR/NUTRI)
+app.get('/api/instrutor/alunos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id, funcao, academiaId } = req.usuario || {};
+
+    if (!id || !funcao) {
+      return res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+
+    const alunos = await obterAlunosAcessiveis(id, funcao, academiaId);
+    res.json(alunos);
+  } catch (err) {
+    console.error('Erro ao listar alunos:', err);
+    res.status(500).json({ erro: 'Erro ao listar alunos' });
+  }
+});
+
+// Listar professores e nutricionistas (apenas ADMIN)
+app.get('/api/admin/instrutores', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id, funcao, academiaId } = req.usuario || {};
+
+    if (!id || !funcao) {
+      return res.status(401).json({ erro: 'Usuário não autenticado' });
+    }
+
+    const instrutores = await obterInstrutoresAcessiveis(id, funcao, academiaId);
+    res.json(instrutores);
+  } catch (err) {
+    console.error('Erro ao listar instrutores:', err);
+    res.status(500).json({ erro: 'Erro ao listar instrutores' });
+  }
+});
+
+// ===== ROTAS DE USUÁRIO =====
+
+app.get('/api/usuario/perfil', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: req.usuario?.id },
+      include: {
+        academia: true
+      }
+    });
+    res.json(usuario);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar perfil' });
+  }
+});
+
+app.put('/api/usuario/perfil', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const usuario = await prisma.usuario.update({
+      where: { id: req.usuario?.id },
+      data: req.body
+    });
+    res.json(usuario);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao atualizar perfil' });
+  }
+});
+
+// ===== ROTAS DE TREINOS =====
+
+app.post('/api/treinos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    // Apenas alunos podem criar treinos para si mesmos
+    // Professores podem criar para seus alunos
+    const { alunoId } = req.body;
+    const usuarioIdFinal = alunoId || req.usuario?.id;
+
+    // Se for professor tentando criar para aluno, verificar vínculo
+    if (alunoId && req.usuario?.funcao === 'PROFESSOR') {
+      const vinculo = await prisma.vinculoAlunoInstrutor.findFirst({
+        where: {
+          alunoId,
+          instrutorId: req.usuario.id,
+          tipoInstrutor: 'PROFESSOR',
+          ativo: true
+        }
+      });
+
+      if (!vinculo) {
+        return res.status(403).json({ erro: 'Você não tem acesso a este aluno' });
+      }
+    } else if (alunoId && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(403).json({ erro: 'Apenas professores e administradores podem criar treinos para outros usuários' });
+    }
+
+    const treino = await prisma.historicoTreino.create({
+      data: {
+        usuarioId: usuarioIdFinal,
+        tituloTreino: req.body.tituloTreino,
+        exercicios: req.body.exercicios,
+        duracao: req.body.duracao,
+        calorias: req.body.calorias,
+        observacoes: req.body.observacoes
+      }
+    });
+    res.json(treino);
+  } catch (err) {
+    console.error('Erro ao criar treino:', err);
+    res.status(500).json({ erro: 'Erro ao criar treino' });
+  }
+});
+
+app.get('/api/treinos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { alunoId } = req.query;
+    
+    let usuarioIdParaBuscar = req.usuario?.id;
+
+    // Se está buscando treinos de um aluno específico
+    if (alunoId && typeof alunoId === 'string') {
+      const { id, funcao } = req.usuario || {};
+
+      // ADMIN pode ver qualquer treino da academia
+      if (funcao === 'ADMIN') {
+        const aluno = await prisma.usuario.findUnique({
+          where: { id: alunoId }
+        });
+        if (!aluno || aluno.academiaId !== req.usuario?.academiaId) {
+          return res.status(403).json({ erro: 'Acesso negado' });
+        }
+        usuarioIdParaBuscar = alunoId;
+      }
+      // PROFESSOR pode ver treinos de seus alunos
+      else if (funcao === 'PROFESSOR') {
+        const vinculo = await prisma.vinculoAlunoInstrutor.findFirst({
+          where: {
+            alunoId,
+            instrutorId: id,
+            tipoInstrutor: 'PROFESSOR',
+            ativo: true
+          }
+        });
+        if (!vinculo) {
+          return res.status(403).json({ erro: 'Você não tem acesso a este aluno' });
+        }
+        usuarioIdParaBuscar = alunoId;
+      }
+      // ALUNO só pode ver seus próprios treinos
+      else if (alunoId !== id) {
+        return res.status(403).json({ erro: 'Você só pode ver seus próprios treinos' });
       }
     }
-  });
-  res.json(workouts);
+
+    const treinos = await prisma.historicoTreino.findMany({
+      where: { usuarioId: usuarioIdParaBuscar },
+      orderBy: { data: 'desc' }
+    });
+    res.json(treinos);
+  } catch (err) {
+    console.error('Erro ao buscar treinos:', err);
+    res.status(500).json({ erro: 'Erro ao buscar treinos' });
+  }
 });
 
-const PORT = process.env.PORT || 3333;
-app.listen(PORT, () => console.log(`🚀 Fitness Tech API running on port ${PORT}`));
+app.get('/api/treinos/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const treino = await prisma.historicoTreino.findUnique({
+      where: { id: req.params.id },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            academiaId: true
+          }
+        }
+      }
+    });
+
+    if (!treino) {
+      return res.status(404).json({ erro: 'Treino não encontrado' });
+    }
+
+    const { id, funcao, academiaId } = req.usuario || {};
+
+    // Verificar permissões
+    if (treino.usuarioId === id) {
+      // É o próprio usuário
+      return res.json(treino);
+    }
+
+    if (funcao === 'ADMIN' && treino.usuario.academiaId === academiaId) {
+      // Admin da mesma academia
+      return res.json(treino);
+    }
+
+    if (funcao === 'PROFESSOR') {
+      // Verificar se é professor do aluno
+      const vinculo = await prisma.vinculoAlunoInstrutor.findFirst({
+        where: {
+          alunoId: treino.usuarioId,
+          instrutorId: id,
+          tipoInstrutor: 'PROFESSOR',
+          ativo: true
+        }
+      });
+      if (vinculo) {
+        return res.json(treino);
+      }
+    }
+
+    res.status(403).json({ erro: 'Acesso negado' });
+  } catch (err) {
+    console.error('Erro ao buscar treino:', err);
+    res.status(500).json({ erro: 'Erro ao buscar treino' });
+  }
+});
+
+app.delete('/api/treinos/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    await prisma.historicoTreino.delete({
+      where: { id: req.params.id }
+    });
+    res.json({ mensagem: 'Treino excluído' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao excluir treino' });
+  }
+});
+
+// ===== ROTAS DE VÍDEOS DE EXERCÍCIOS =====
+
+app.post('/api/videos-exercicio', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const video = await prisma.videoExercicio.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true
+          }
+        }
+      }
+    });
+    res.json(video);
+  } catch (err) {
+    console.error('Erro ao salvar vídeo:', err);
+    res.status(500).json({ erro: 'Erro ao salvar vídeo' });
+  }
+});
+
+app.get('/api/videos-exercicio', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { status } = req.query;
+    const videos = await prisma.videoExercicio.findMany({
+      where: { 
+        usuarioId: req.usuario?.id,
+        ...(status && { status: status as string })
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true
+          }
+        }
+      },
+      orderBy: { criadoEm: 'desc' }
+    });
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar vídeos' });
+  }
+});
+
+app.get('/api/videos-exercicio/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const video = await prisma.videoExercicio.findFirst({
+      where: { 
+        id: req.params.id,
+        usuarioId: req.usuario?.id
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true,
+            funcao: true
+          }
+        }
+      }
+    });
+    
+    if (!video) {
+      return res.status(404).json({ erro: 'Vídeo não encontrado' });
+    }
+    
+    res.json(video);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar vídeo' });
+  }
+});
+
+app.delete('/api/videos-exercicio/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    await prisma.videoExercicio.delete({
+      where: { id: req.params.id }
+    });
+    res.json({ mensagem: 'Vídeo excluído' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao excluir vídeo' });
+  }
+});
+
+// Rota para instrutores avaliarem vídeos
+app.put('/api/videos-exercicio/:id/avaliar', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { status, feedbackInstrutor } = req.body;
+    
+    const video = await prisma.videoExercicio.update({
+      where: { id: req.params.id },
+      data: {
+        status,
+        feedbackInstrutor,
+        avaliadoEm: new Date(),
+        avaliadoPor: req.usuario?.id
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            email: true
+          }
+        }
+      }
+    });
+    
+    // Criar notificação para o aluno
+    await prisma.notificacao.create({
+      data: {
+        usuarioId: video.usuarioId,
+        titulo: 'Vídeo Avaliado!',
+        mensagem: `Seu vídeo do exercício "${video.tituloExercicio}" foi ${status === 'aprovado' ? 'aprovado' : 'avaliado'}`,
+        tipo: status === 'aprovado' ? 'sucesso' : 'info'
+      }
+    });
+    
+    res.json(video);
+  } catch (err) {
+    console.error('Erro ao avaliar vídeo:', err);
+    res.status(500).json({ erro: 'Erro ao avaliar vídeo' });
+  }
+});
+
+// Rota para instrutores listarem todos os vídeos pendentes
+app.get('/api/videos-exercicio/pendentes/todos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const videos = await prisma.videoExercicio.findMany({
+      where: { status: 'pendente' },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true,
+            email: true
+          }
+        }
+      },
+      orderBy: { criadoEm: 'asc' }
+    });
+    res.json(videos);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar vídeos pendentes' });
+  }
+});
+
+// ===== ROTAS DE PROGRESSO =====
+
+app.post('/api/progresso/fotos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const foto = await prisma.fotoProgresso.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(foto);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao salvar foto' });
+  }
+});
+
+app.get('/api/progresso/fotos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const fotos = await prisma.fotoProgresso.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { data: 'desc' }
+    });
+    res.json(fotos);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar fotos' });
+  }
+});
+
+app.post('/api/progresso/medicoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const medicao = await prisma.medicaoCorporal.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(medicao);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao salvar medição' });
+  }
+});
+
+app.get('/api/progresso/medicoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const medicoes = await prisma.medicaoCorporal.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { data: 'desc' }
+    });
+    res.json(medicoes);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar medições' });
+  }
+});
+
+// ===== ROTAS DE METAS =====
+
+app.post('/api/metas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const meta = await prisma.meta.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(meta);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar meta' });
+  }
+});
+
+app.get('/api/metas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const metas = await prisma.meta.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { criadoEm: 'desc' }
+    });
+    res.json(metas);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar metas' });
+  }
+});
+
+app.put('/api/metas/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const meta = await prisma.meta.update({
+      where: { id: req.params.id },
+      data: req.body
+    });
+    res.json(meta);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao atualizar meta' });
+  }
+});
+
+app.delete('/api/metas/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    await prisma.meta.delete({
+      where: { id: req.params.id }
+    });
+    res.json({ mensagem: 'Meta excluída' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao excluir meta' });
+  }
+});
+
+// ===== ROTAS DE CONQUISTAS =====
+
+app.get('/api/conquistas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const conquistas = await prisma.conquista.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { desbloqueadoEm: 'desc' }
+    });
+    res.json(conquistas);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar conquistas' });
+  }
+});
+
+app.post('/api/conquistas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const conquista = await prisma.conquista.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(conquista);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar conquista' });
+  }
+});
+
+// ===== ROTAS DE DESAFIOS =====
+
+app.get('/api/desafios', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const desafios = await prisma.desafio.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { dataFim: 'asc' }
+    });
+    res.json(desafios);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar desafios' });
+  }
+});
+
+app.post('/api/desafios', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const desafio = await prisma.desafio.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(desafio);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar desafio' });
+  }
+});
+
+app.put('/api/desafios/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const desafio = await prisma.desafio.update({
+      where: { id: req.params.id },
+      data: req.body
+    });
+    res.json(desafio);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao atualizar desafio' });
+  }
+});
+
+// ===== ROTAS SOCIAIS =====
+
+app.get('/api/social/postagens', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const postagens = await prisma.postagem.findMany({
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true
+          }
+        }
+      },
+      orderBy: { criadoEm: 'desc' },
+      take: 50
+    });
+    res.json(postagens);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar postagens' });
+  }
+});
+
+app.post('/api/social/postagens', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const postagem = await prisma.postagem.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true
+          }
+        }
+      }
+    });
+    res.json(postagem);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar postagem' });
+  }
+});
+
+app.post('/api/social/postagens/:id/curtir', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const postagem = await prisma.postagem.update({
+      where: { id: req.params.id },
+      data: {
+        curtidas: { increment: 1 }
+      }
+    });
+    res.json(postagem);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao curtir postagem' });
+  }
+});
+
+app.get('/api/social/grupos', async (req, res) => {
+  try {
+    const grupos = await prisma.grupo.findMany({
+      orderBy: { totalMembros: 'desc' }
+    });
+    res.json(grupos);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar grupos' });
+  }
+});
+
+app.post('/api/social/grupos/:id/entrar', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const membro = await prisma.membroGrupo.create({
+      data: {
+        grupoId: req.params.id,
+        usuarioId: req.usuario?.id
+      }
+    });
+    
+    await prisma.grupo.update({
+      where: { id: req.params.id },
+      data: { totalMembros: { increment: 1 } }
+    });
+    
+    res.json(membro);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao entrar no grupo' });
+  }
+});
+
+// ===== ROTAS DE RANKING =====
+
+app.get('/api/ranking', async (req, res) => {
+  try {
+    const rankings = await prisma.ranking.findMany({
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true
+          }
+        }
+      },
+      orderBy: { pontos: 'desc' },
+      take: 100
+    });
+    res.json(rankings);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar ranking' });
+  }
+});
+
+app.get('/api/ranking/meu', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const ranking = await prisma.ranking.findUnique({
+      where: { usuarioId: req.usuario?.id },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true
+          }
+        }
+      }
+    });
+    res.json(ranking);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar ranking pessoal' });
+  }
+});
+
+// ===== ROTAS DE IA =====
+
+app.get('/api/ia/previsoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const previsoes = await prisma.previsaoIA.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { criadoEm: 'desc' },
+      take: 10
+    });
+    res.json(previsoes);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar previsões' });
+  }
+});
+
+app.post('/api/ia/previsoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const previsao = await prisma.previsaoIA.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(previsao);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar previsão' });
+  }
+});
+
+app.get('/api/ia/recuperacao', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const analises = await prisma.analiseRecuperacao.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { data: 'desc' },
+      take: 30
+    });
+    res.json(analises);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar análises de recuperação' });
+  }
+});
+
+app.post('/api/ia/recuperacao', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const analise = await prisma.analiseRecuperacao.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(analise);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar análise de recuperação' });
+  }
+});
+
+// ===== ROTAS DE RELATÓRIOS =====
+
+app.get('/api/relatorios', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const relatorios = await prisma.relatorio.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { criadoEm: 'desc' }
+    });
+    res.json(relatorios);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar relatórios' });
+  }
+});
+
+app.post('/api/relatorios', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const relatorio = await prisma.relatorio.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(relatorio);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao criar relatório' });
+  }
+});
+
+// ===== ROTAS DE NOTIFICAÇÕES =====
+
+app.get('/api/notificacoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const notificacoes = await prisma.notificacao.findMany({
+      where: { usuarioId: req.usuario?.id },
+      orderBy: { criadoEm: 'desc' },
+      take: 50
+    });
+    res.json(notificacoes);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar notificações' });
+  }
+});
+
+app.put('/api/notificacoes/:id/ler', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const notificacao = await prisma.notificacao.update({
+      where: { id: req.params.id },
+      data: { lida: true }
+    });
+    res.json(notificacao);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao marcar como lida' });
+  }
+});
+
+app.put('/api/notificacoes/ler-todas', autenticar, async (req: AuthRequest, res) => {
+  try {
+    await prisma.notificacao.updateMany({
+      where: { 
+        usuarioId: req.usuario?.id,
+        lida: false
+      },
+      data: { lida: true }
+    });
+    res.json({ mensagem: 'Todas notificações marcadas como lidas' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao marcar notificações' });
+  }
+});
+
+// ===== ROTAS DE CARRINHO =====
+
+app.get('/api/carrinho', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const itens = await prisma.itemCarrinho.findMany({
+      where: { usuarioId: req.usuario?.id }
+    });
+    res.json(itens);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao buscar carrinho' });
+  }
+});
+
+app.post('/api/carrinho', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const item = await prisma.itemCarrinho.create({
+      data: {
+        usuarioId: req.usuario?.id,
+        ...req.body
+      }
+    });
+    res.json(item);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao adicionar ao carrinho' });
+  }
+});
+
+app.delete('/api/carrinho/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    await prisma.itemCarrinho.delete({
+      where: { id: req.params.id }
+    });
+    res.json({ mensagem: 'Item removido do carrinho' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao remover do carrinho' });
+  }
+});
+
+// ===== ROTA DE HEALTH CHECK =====
+
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    mensagem: 'API FitnessTech funcionando',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ===== INICIAR SERVIDOR =====
+
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`📡 API: http://localhost:${PORT}/api`);
+  console.log(`🗄️  Banco: Neon PostgreSQL`);
+  console.log(`✅ Modelos em Português`);
+});
