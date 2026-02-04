@@ -2403,9 +2403,15 @@ app.delete('/api/conteudos-educacionais/:id', autenticar, async (req: AuthReques
 
 // ===== INICIAR SERVIDOR =====
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📡 API: http://localhost:${PORT}/api`);
-  console.log(`🗄️  Banco: Neon PostgreSQL`);
-  console.log(`✅ Modelos em Português`);
-});
+// Exportar app para Vercel serverless functions
+export { app };
+
+// Iniciar servidor apenas em desenvolvimento
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`📡 API: http://localhost:${PORT}/api`);
+    console.log(`🗄️  Banco: Neon PostgreSQL`);
+    console.log(`✅ Modelos em Português`);
+  });
+}
