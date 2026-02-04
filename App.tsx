@@ -5807,9 +5807,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     return;
                                  }
                                  
+                                 if (!planoTreino.titulo || planoTreino.titulo.trim() === '') {
+                                    alert('Erro: Preencha o nome do plano de treino.');
+                                    return;
+                                 }
+                                 
                                  const dadosTreino = {
                                     usuarioId: selectedStudent.id,
-                                    titulo: planoTreino.titulo,
+                                    titulo: planoTreino.titulo.trim(),
                                     tipoTreino: 'Treino Personalizado Manual',
                                     duracao: 60,
                                     exercicios: planoAtualizado,
@@ -5817,7 +5822,11 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     origem: 'Manual'
                                  };
                                  
-                                 console.log('📤 Enviando dados do treino:', dadosTreino);
+                                 console.log('📤 Enviando dados do treino:', {
+                                    ...dadosTreino,
+                                    exercicios: 'Ver abaixo'
+                                 });
+                                 console.log('📤 Exercícios:', dadosTreino.exercicios);
                                  
                                  const treinoSalvo = await salvarTreino(token, dadosTreino);
                                  
@@ -6087,16 +6096,25 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     return;
                                  }
                                  
+                                 if (!planoDieta.titulo || planoDieta.titulo.trim() === '') {
+                                    alert('Erro: Preencha o nome do plano de dieta.');
+                                    return;
+                                 }
+                                 
                                  const dadosDieta = {
                                     usuarioId: selectedStudent.id,
-                                    titulo: planoDieta.titulo,
+                                    titulo: planoDieta.titulo.trim(),
                                     objetivo: planoDieta.objetivoCalorico,
                                     refeicoes: planoAtualizado,
                                     observacoes: `Dieta prescrita manualmente pelo nutricionista`,
                                     origem: 'Manual'
                                  };
                                  
-                                 console.log('📤 Enviando dados da dieta:', dadosDieta);
+                                 console.log('📤 Enviando dados da dieta:', {
+                                    ...dadosDieta,
+                                    refeicoes: 'Ver abaixo'
+                                 });
+                                 console.log('📤 Refeições:', dadosDieta.refeicoes);
                                  
                                  const dietaSalva = await salvarDieta(token, dadosDieta);
                                  
