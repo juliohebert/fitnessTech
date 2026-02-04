@@ -61,7 +61,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       
       if (response.ok) {
         const userData = await response.json();
-        setUser(userData.user);
+        // Mapear funcao para role
+        const userWithRole = {
+          ...userData.user,
+          role: userData.user.funcao || userData.user.role
+        };
+        setUser(userWithRole);
         setAcademia(userData.academia);
       } else {
         logout();
@@ -84,8 +89,13 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       
       if (response.ok) {
         const data = await response.json();
+        // Mapear funcao para role
+        const userWithRole = {
+          ...data.user,
+          role: data.user.funcao || data.user.role
+        };
         setToken(data.token);
-        setUser(data.user);
+        setUser(userWithRole);
         setAcademia(data.academia);
         localStorage.setItem('fitness_token', data.token);
         return true;
@@ -109,8 +119,13 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
       
       if (response.ok) {
         const data = await response.json();
+        // Mapear funcao para role
+        const userWithRole = {
+          ...data.user,
+          role: data.user.funcao || data.user.role
+        };
         setToken(data.token);
-        setUser(data.user);
+        setUser(userWithRole);
         setAcademia(data.academia);
         localStorage.setItem('fitness_token', data.token);
         return true;
