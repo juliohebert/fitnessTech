@@ -1,54 +1,49 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import express from 'express';
-import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
-const app = express();
-
-// Prisma singleton
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-const prisma = globalForPrisma.prisma || new PrismaClient();
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-
-const JWT_SECRET = process.env.JWT_SECRET || 'fitness_tech_super_secret_key_2025';
-
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-
-// Rota de teste
-app.get('/api', (req, res) => {
-  res.json({ message: 'API FitnessTech funcionando!' });
-});
-
-// Rota de login
-app.post('/api/auth/login', async (req, res) => {
+// Handler simplificado para debug
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Configurar CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
   try {
-    const { email, senha } = req.body;
-    console.log('Tentando login:', email);
+    // Rota raiz
+    if (req.url === '/api' || req.url === '/api/') {
+      return res.status(200).json({ 
+        message: 'API FitnessTech funcionando!',
+        env: {
+          hasDatabase: !!process.env.DATABASE_URL,
+          hasJWT: !!process.env.JWT_SECRET,
+          nodeVersion: process.version
+        }
+      });
+    }
     
-    const usuario = await prisma.usuario.findUnique({
-      where: { email },
-      include: { academia: true }
-    });
-    
-    if (!usuario || !await bcrypt.compare(senha, usuario.senha)) {
+    // Rota de login - por enquanto mockada para testar
+    if (req.url?.includes('/api/auth/login') && req.method === 'POST') {
+      const { email, senha } = req.body || {};
+      
+      console.log('Login attempt:', email);
+      
+      // Mock temporário
+      if (email === 'admin@fitness.com' && senha === '123456') {
+        return res.status(200).json({
+          token: 'mock_token_123',
+          usuario: { id: 1, email, nome: 'Admin', funcao: 'ADMIN' }
+        });
+      }
+      
       return res.status(401).json({ erro: 'Credenciais inválidas' });
     }
     
-    const token = jwt.sign(
-      { usuarioId: usuario.id, email: usuario.email, funcao: usuario.funcao, academiaId: usuario.academiaId },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-    
-    res.json({ token, usuario: { ...usuario, senha: undefined }, academia: usuario.academia });
-  } catch (error) {
-    console.error('Erro no login:', error);
-    res.status(500).json({ erro: 'Erro ao fazer login' });
+    return res.status(404).json({ erro: 'Rota não encontrada' });
+  } catch (error: any) {
+    console.error('Erro na API:', error);
+    return res.status(500).json({ erro: error.message || 'Erro interno' });
   }
-});
-
-// Export para Vercel
-export default app;
+}
