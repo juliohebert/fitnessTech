@@ -5779,8 +5779,13 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
                         <button
                            onClick={async () => {
-                              console.log('🎯 Iniciando salvamento do treino...');
+                              console.log('🎯 ===== INICIANDO SALVAMENTO DO TREINO =====');
                               console.log('👤 Aluno selecionado:', selectedStudent);
+                              console.log('📋 Estado COMPLETO do planoTreino:', JSON.stringify(planoTreino, null, 2));
+                              console.log('📋 planoTreino.titulo:', planoTreino.titulo);
+                              console.log('📋 Tipo do titulo:', typeof planoTreino.titulo);
+                              console.log('📋 Titulo está vazio?', planoTreino.titulo === '');
+                              console.log('📋 Titulo após trim:', planoTreino.titulo?.trim());
                               
                               // Copiar exercícios do dia atual para todos os dias selecionados
                               const planoAtualizado = { ...planoTreino };
