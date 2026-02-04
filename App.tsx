@@ -4613,19 +4613,19 @@ const AdminModule = ({ view, user, academia }: any) => {
             carregarHistoricoDietas(token, selectedStudent.id)
          ]);
 
-         // Adaptar treinos para o formato esperado
-         const treinosFormatados = treinos.map((treino: any) => ({
+         // Adaptar treinos para o formato esperado - com verificação
+         const treinosFormatados = Array.isArray(treinos) ? treinos.map((treino: any) => ({
             id: treino.id,
-            titulo: treino.titulo,
+            titulo: treino.tituloTreino || treino.titulo || 'Treino',
             alunoId: selectedStudent.id,
             alunoNome: selectedStudent.nome,
             data: new Date(treino.data).toLocaleDateString('pt-BR'),
             plano: typeof treino.exercicios === 'object' ? treino.exercicios : JSON.parse(treino.exercicios || '{}'),
             tipo: treino.origem === 'IA' ? 'ia' : 'manual'
-         }));
+         })) : [];
 
-         // Adaptar dietas para o formato esperado  
-         const dietasFormatadas = dietas.map((dieta: any) => ({
+         // Adaptar dietas para o formato esperado - com verificação
+         const dietasFormatadas = Array.isArray(dietas) ? dietas.map((dieta: any) => ({
             id: dieta.id,
             titulo: dieta.titulo,
             alunoId: selectedStudent.id,
@@ -4633,13 +4633,15 @@ const AdminModule = ({ view, user, academia }: any) => {
             data: new Date(dieta.criadoEm).toLocaleDateString('pt-BR'),
             plano: typeof dieta.conteudo === 'object' ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || '{}'),
             tipo: dieta.conteudo?.origem === 'IA' ? 'ia' : 'manual'
-         }));
+         })) : [];
 
          setHistoricoTreinos(treinosFormatados);
          setHistoricoDietas(dietasFormatadas);
 
       } catch (error) {
          console.error('Erro ao carregar históricos:', error);
+         setHistoricoTreinos([]);
+         setHistoricoDietas([]);
       }
    };
 

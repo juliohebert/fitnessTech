@@ -1638,13 +1638,22 @@ app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => 
     const targetUserId = usuarioId || req.usuario?.id;
     
     console.log('👤 Usuario alvo:', targetUserId);
-    console.log('📋 Titulo:', titulo);
+    console.log('📋 Titulo recebido:', titulo);
     console.log('💪 Exercicios:', JSON.stringify(exercicios).substring(0, 100) + '...');
+    
+    // Validações
+    if (!titulo || titulo.trim() === '') {
+      return res.status(400).json({ erro: 'Título do treino é obrigatório' });
+    }
+    
+    if (!targetUserId) {
+      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+    }
     
     const historico = await prisma.historicoTreino.create({
       data: {
         usuarioId: targetUserId,
-        tituloTreino: titulo || 'Treino Personalizado',
+        tituloTreino: titulo.trim(),
         duracao: parseInt(duracao) || 60,
         exercicios,
         observacoes: observacoes || '',
@@ -1654,9 +1663,12 @@ app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => 
     
     console.log('✅ Treino salvo no banco com ID:', historico.id);
     res.json(historico);
-  } catch (err) {
-    console.error('Erro ao criar histórico de treino:', err);
-    res.status(500).json({ erro: 'Erro ao criar histórico de treino' });
+  } catch (err: any) {
+    console.error('❌ Erro ao criar histórico de treino:', err);
+    res.status(500).json({ 
+      erro: 'Erro interno do servidor',
+      detalhes: err.message 
+    });
   }
 });
 
