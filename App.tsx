@@ -2294,6 +2294,7 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
       if (!token) return;
       
       try {
+        console.log('🔄 Carregando dados do aluno...');
         const [treinos, dietas, medicoesData, fotos, metasData, gruposData, notifs] = await Promise.all([
           carregarHistoricoTreinos(token),
           carregarHistoricoDietas(token), 
@@ -2304,6 +2305,9 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
           carregarNotificacoes(token)
         ]);
         
+        console.log('📥 Treinos recebidos para o aluno:', treinos);
+        console.log('📥 Quantidade de treinos:', Array.isArray(treinos) ? treinos.length : 'N/A');
+        
         setHistoricoTreinos(treinos);
         setHistoricoDietas(dietas);
         setMedicoes(medicoesData);
@@ -2312,8 +2316,10 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
         setGrupos(gruposData);
         setNotificacoes(notifs);
         
+        console.log('✅ Dados do aluno carregados com sucesso');
+        
       } catch (error) {
-        console.error('Erro ao carregar dados do aluno:', error);
+        console.error('❌ Erro ao carregar dados do aluno:', error);
       }
     };
     
