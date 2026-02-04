@@ -56,5 +56,44 @@ export default async function handler(req, res) {
     });
   }
   
+  // GET /api/usuarios
+  if (method === 'GET' && url?.includes('/usuarios')) {
+    return res.status(200).json([
+      { id: 1, nome: 'Admin', email: 'admin@fitness.com', funcao: 'ADMIN' }
+    ]);
+  }
+  
+  // GET /api/estatisticas
+  if (method === 'GET' && url?.includes('/estatisticas')) {
+    return res.status(200).json({
+      totalUsuarios: 50,
+      totalTreinos: 120,
+      totalAlunos: 45,
+      novosMembros: 5
+    });
+  }
+  
+  // GET /api/instrutores
+  if (method === 'GET' && url?.includes('/instrutores')) {
+    return res.status(200).json([
+      { id: 1, nome: 'Professor Teste', email: 'professor@fitness.com', especialidade: 'Musculação' }
+    ]);
+  }
+  
+  // GET /api/vinculos
+  if (method === 'GET' && url?.includes('/vinculos')) {
+    return res.status(200).json([]);
+  }
+  
+  // Outras rotas GET retornam array vazio
+  if (method === 'GET') {
+    return res.status(200).json([]);
+  }
+  
+  // Outras rotas POST retornam sucesso
+  if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+    return res.status(200).json({ success: true, message: 'Operação mockada com sucesso' });
+  }
+  
   return res.status(404).json({ erro: 'Rota não encontrada', url, method });
 }
