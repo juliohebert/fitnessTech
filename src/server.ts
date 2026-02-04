@@ -11,7 +11,12 @@ import {
 } from './middleware/autorizacao.js';
 
 const app = express();
-const prisma = new PrismaClient();
+
+// Prisma Client otimizado para serverless
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+const prisma = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
 const JWT_SECRET = process.env.JWT_SECRET || 'fitness_tech_super_secret_key_2025';
 const PORT = process.env.PORT || 3001;
 
