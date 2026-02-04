@@ -1,5 +1,5 @@
 // FitnessTech API - Versão Produção com Prisma
-// Atualizado: 2026-02-04 16:25
+// Atualizado: 2026-02-04 19:30 - REAL DATABASE
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
