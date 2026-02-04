@@ -6076,8 +6076,8 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <StatCard label="Receita Mensal" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].receita / 1000).toFixed(1) : '0'}k`} color="text-lime-400" icon={DollarSign} trend="+12%" />
                   <StatCard label="Lucro Líquido" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].lucro / 1000).toFixed(1) : '0'}k`} color="text-green-500" icon={TrendingUp} trend="+8%" />
-                  <StatCard label="Alunos Ativos" value={estatisticas.alunosAtivos.toString()} color="text-blue-400" icon={Users} trend={estatisticas.alunosAtivos > 0 ? `${estatisticas.alunosAtivos}` : '0'} />
-                  <StatCard label="Taxa Retenção" value={`${estatisticas.taxaRetencao}%`} color="text-purple-400" icon={Target} trend={`${estatisticas.taxaRetencao}%`} />
+                  <StatCard label="Alunos Ativos" value={(estatisticas?.alunosAtivos || 0).toString()} color="text-blue-400" icon={Users} trend={estatisticas?.alunosAtivos > 0 ? `${estatisticas.alunosAtivos}` : '0'} />
+                  <StatCard label="Taxa Retenção" value={`${estatisticas?.taxaRetencao || 0}%`} color="text-purple-400" icon={Target} trend={`${estatisticas?.taxaRetencao || 0}%`} />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
