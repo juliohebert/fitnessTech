@@ -18,8 +18,10 @@ import {
 } from 'recharts';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// URL base da API
-const API_URL = import.meta.env.PROD ? '' : 'http://localhost:3002';
+// URL base da API - usa window.location.origin em produção
+const API_URL = import.meta.env.PROD 
+  ? window.location.origin 
+  : 'http://localhost:3002';
 
 // --- AI CONFIG ---
 // Initialize Gemini AI. Assumes API_KEY is available in import.meta.env
@@ -6759,6 +6761,14 @@ const AppContent: React.FC = () => {
   if (!user || !academia) {
     return <LoginForm setActiveView={setActiveView} />;
   }
+
+  // Debug: verificar dados do usuário
+  console.log('=== DEBUG APPCONENT ===');
+  console.log('User:', user);
+  console.log('User Role:', user?.role);
+  console.log('Academia:', academia);
+  console.log('Active View:', activeView);
+  console.log('======================');
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans">
