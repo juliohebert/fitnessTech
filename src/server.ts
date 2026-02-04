@@ -8,7 +8,7 @@ import {
   verificarAcessoAluno, 
   obterAlunosAcessiveis,
   obterInstrutoresAcessiveis 
-} from './middleware/autorizacao.js';
+} from './middleware/autorizacao';
 
 const app = express();
 
