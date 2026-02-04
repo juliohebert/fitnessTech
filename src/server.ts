@@ -403,7 +403,7 @@ app.get('/api/admin/alunos/:alunoId/vinculos', autenticar, verificarAdmin, async
 
     const vinculos = await prisma.vinculoAlunoInstrutor.findMany({
       where: {
-        alunoId,
+        alunoId: alunoId as string,
         ativo: true
       },
       include: {
@@ -589,7 +589,7 @@ app.get('/api/treinos', autenticar, async (req: AuthRequest, res) => {
 app.get('/api/treinos/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     const treino = await prisma.historicoTreino.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       include: {
         usuario: {
           select: {
@@ -613,9 +613,12 @@ app.get('/api/treinos/:id', autenticar, async (req: AuthRequest, res) => {
       return res.json(treino);
     }
 
-    if (funcao === 'ADMIN' && treino.usuario.academiaId === academiaId) {
-      // Admin da mesma academia
-      return res.json(treino);
+    if (funcao === 'ADMIN' && treino.usuarioId) {
+      // Admin da mesma academia - verificar se o usuário pertence à academia
+      const usuario = await prisma.usuario.findUnique({ where: { id: treino.usuarioId }, select: { academiaId: true } });
+      if (usuario?.academiaId === academiaId) {
+        return res.json(treino);
+      }
     }
 
     if (funcao === 'PROFESSOR') {
@@ -643,7 +646,7 @@ app.get('/api/treinos/:id', autenticar, async (req: AuthRequest, res) => {
 app.delete('/api/treinos/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     await prisma.historicoTreino.delete({
-      where: { id: req.params.id }
+      where: { id: req.params.id as string }
     });
     res.json({ mensagem: 'Treino excluído' });
   } catch (err) {
@@ -706,7 +709,7 @@ app.get('/api/videos-exercicio/:id', autenticar, async (req: AuthRequest, res) =
   try {
     const video = await prisma.videoExercicio.findFirst({
       where: { 
-        id: req.params.id,
+        id: req.params.id as string,
         usuarioId: req.usuario?.id
       },
       include: {
@@ -734,7 +737,7 @@ app.get('/api/videos-exercicio/:id', autenticar, async (req: AuthRequest, res) =
 app.delete('/api/videos-exercicio/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     await prisma.videoExercicio.delete({
-      where: { id: req.params.id }
+      where: { id: req.params.id as string }
     });
     res.json({ mensagem: 'Vídeo excluído' });
   } catch (err) {
@@ -748,7 +751,7 @@ app.put('/api/videos-exercicio/:id/avaliar', autenticar, async (req: AuthRequest
     const { status, feedbackInstrutor } = req.body;
     
     const video = await prisma.videoExercicio.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         status,
         feedbackInstrutor,
@@ -891,7 +894,7 @@ app.get('/api/metas', autenticar, async (req: AuthRequest, res) => {
 app.put('/api/metas/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     const meta = await prisma.meta.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: req.body
     });
     res.json(meta);
@@ -903,7 +906,7 @@ app.put('/api/metas/:id', autenticar, async (req: AuthRequest, res) => {
 app.delete('/api/metas/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     await prisma.meta.delete({
-      where: { id: req.params.id }
+      where: { id: req.params.id as string }
     });
     res.json({ mensagem: 'Meta excluída' });
   } catch (err) {
@@ -970,7 +973,7 @@ app.post('/api/desafios', autenticar, async (req: AuthRequest, res) => {
 app.put('/api/desafios/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     const desafio = await prisma.desafio.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: req.body
     });
     res.json(desafio);
@@ -1028,7 +1031,7 @@ app.post('/api/social/postagens', autenticar, async (req: AuthRequest, res) => {
 app.post('/api/social/postagens/:id/curtir', autenticar, async (req: AuthRequest, res) => {
   try {
     const postagem = await prisma.postagem.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: {
         curtidas: { increment: 1 }
       }
@@ -1054,13 +1057,13 @@ app.post('/api/social/grupos/:id/entrar', autenticar, async (req: AuthRequest, r
   try {
     const membro = await prisma.membroGrupo.create({
       data: {
-        grupoId: req.params.id,
+        grupoId: req.params.id as string,
         usuarioId: req.usuario?.id
       }
     });
     
     await prisma.grupo.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { totalMembros: { increment: 1 } }
     });
     
@@ -1215,7 +1218,7 @@ app.get('/api/notificacoes', autenticar, async (req: AuthRequest, res) => {
 app.put('/api/notificacoes/:id/ler', autenticar, async (req: AuthRequest, res) => {
   try {
     const notificacao = await prisma.notificacao.update({
-      where: { id: req.params.id },
+      where: { id: req.params.id as string },
       data: { lida: true }
     });
     res.json(notificacao);
@@ -1269,7 +1272,7 @@ app.post('/api/carrinho', autenticar, async (req: AuthRequest, res) => {
 app.delete('/api/carrinho/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     await prisma.itemCarrinho.delete({
-      where: { id: req.params.id }
+      where: { id: req.params.id as string }
     });
     res.json({ mensagem: 'Item removido do carrinho' });
   } catch (err) {
@@ -1327,7 +1330,7 @@ app.patch('/api/admin/leads/:leadId/status', autenticar, verificarAdmin, async (
     const { status } = req.body;
     
     const lead = await prisma.lead.update({
-      where: { id: leadId },
+      where: { id: leadId as string },
       data: { status }
     });
     
@@ -1389,7 +1392,7 @@ app.patch('/api/admin/manutencao/:ticketId/status', autenticar, verificarAdmin, 
     }
     
     const ticket = await prisma.ticketManutencao.update({
-      where: { id: ticketId },
+      where: { id: ticketId as string },
       data: updateData
     });
     
@@ -1631,12 +1634,11 @@ app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => 
     const historico = await prisma.historicoTreino.create({
       data: {
         usuarioId: targetUserId,
-        titulo,
-        tipoTreino: tipoTreino || 'Treino Personalizado',
+        tituloTreino: titulo || 'Treino Personalizado',
         duracao: parseInt(duracao) || 60,
         exercicios,
-        observacoes,
-        origem: origem || 'Manual'
+        observacoes: observacoes || '',
+        calorias: 0
       }
     });
     
@@ -1680,8 +1682,8 @@ app.post('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
       data: {
         usuarioId: targetUserId,
         tipo: 'dieta',
-        titulo,
         conteudo: {
+          titulo,
           objetivo,
           refeicoes,
           observacoes,
@@ -1730,8 +1732,7 @@ app.post('/api/medicoes', autenticar, async (req: AuthRequest, res) => {
         peso: parseFloat(peso),
         altura: parseFloat(altura),
         gorduraCorporal: gorduraCorporal ? parseFloat(gorduraCorporal) : null,
-        massaMuscular: massaMuscular ? parseFloat(massaMuscular) : null,
-        observacoes
+        massaMuscular: massaMuscular ? parseFloat(massaMuscular) : null
       }
     });
     
@@ -1772,9 +1773,9 @@ app.post('/api/fotos-progresso', autenticar, async (req: AuthRequest, res) => {
     const foto = await prisma.fotoProgresso.create({
       data: {
         usuarioId: targetUserId,
-        url,
+        imagemUrl: url,
         categoria: categoria || 'geral',
-        observacoes
+        descricao: observacoes || ''
       }
     });
     
@@ -1796,7 +1797,7 @@ app.get('/api/metas', autenticar, async (req: AuthRequest, res) => {
         usuarioId: targetUserId as string
       },
       orderBy: {
-        criadaEm: 'desc'
+        createdAt: 'desc'
       }
     });
     
@@ -1817,7 +1818,7 @@ app.post('/api/metas', autenticar, async (req: AuthRequest, res) => {
         usuarioId: targetUserId,
         titulo,
         descricao,
-        categoria,
+        tipo: categoria || 'geral',
         valorAlvo: valorAlvo ? parseFloat(valorAlvo) : null,
         prazo: prazo ? new Date(prazo) : null
       }
@@ -1836,11 +1837,11 @@ app.patch('/api/metas/:metaId', autenticar, async (req: AuthRequest, res) => {
     const { concluida, progresso } = req.body;
     
     const meta = await prisma.meta.update({
-      where: { id: metaId },
+      where: { id: metaId as string },
       data: {
-        concluida: concluida !== undefined ? concluida : undefined,
+        status: concluida ? 'completa' : 'em_progresso',
         progresso: progresso !== undefined ? parseFloat(progresso) : undefined,
-        concluidaEm: concluida ? new Date() : undefined
+        dataCompleta: concluida ? new Date() : undefined
       }
     });
     
@@ -1891,7 +1892,7 @@ app.post('/api/grupos/:grupoId/entrar', autenticar, async (req: AuthRequest, res
     const membro = await prisma.membroGrupo.create({
       data: {
         usuarioId: req.usuario!.id,
-        grupoId
+        grupoId: grupoId as string
       }
     });
     
@@ -1910,7 +1911,7 @@ app.get('/api/notificacoes', autenticar, async (req: AuthRequest, res) => {
         usuarioId: req.usuario?.id
       },
       orderBy: {
-        criadaEm: 'desc'
+        createdAt: 'desc'
       }
     });
     
@@ -1926,7 +1927,7 @@ app.patch('/api/notificacoes/:notifId/marcar-lida', autenticar, async (req: Auth
     const { notifId } = req.params;
     
     const notificacao = await prisma.notificacao.update({
-      where: { id: notifId },
+      where: { id: notifId as string },
       data: { lida: true }
     });
     
@@ -1968,7 +1969,7 @@ app.get('/api/schedules/student/:studentId', autenticar, async (req: AuthRequest
     const agendamentos = await prisma.agendamento.findMany({
       where: { 
         instrutorId,
-        alunoId: studentId 
+        alunoId: studentId as string 
       },
       orderBy: [
         { data: 'desc' },
@@ -2022,7 +2023,7 @@ app.put('/api/schedules/:id', autenticar, async (req: AuthRequest, res) => {
     
     // Verificar se o agendamento pertence ao instrutor
     const agendamentoExistente = await prisma.agendamento.findFirst({
-      where: { id, instrutorId }
+      where: { id: id as string, instrutorId }
     });
     
     if (!agendamentoExistente) {
@@ -2037,7 +2038,7 @@ app.put('/api/schedules/:id', autenticar, async (req: AuthRequest, res) => {
     if (observacoes !== undefined) updateData.observacoes = observacoes;
     
     const agendamento = await prisma.agendamento.update({
-      where: { id },
+      where: { id: id as string },
       data: updateData
     });
     
@@ -2056,7 +2057,7 @@ app.delete('/api/schedules/:id', autenticar, async (req: AuthRequest, res) => {
     
     // Verificar se o agendamento pertence ao instrutor
     const agendamentoExistente = await prisma.agendamento.findFirst({
-      where: { id, instrutorId }
+      where: { id: id as string, instrutorId }
     });
     
     if (!agendamentoExistente) {
@@ -2064,7 +2065,7 @@ app.delete('/api/schedules/:id', autenticar, async (req: AuthRequest, res) => {
     }
     
     await prisma.agendamento.delete({
-      where: { id }
+      where: { id: id as string }
     });
     
     res.json({ mensagem: 'Agendamento deletado com sucesso' });
@@ -2130,7 +2131,7 @@ app.put('/api/refeicoes-diario/:id/feedback', autenticar, async (req: AuthReques
     const nutricionistaId = req.usuario?.id;
     
     const refeicao = await prisma.refeicaoDiario.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         status,
         feedback,
@@ -2154,7 +2155,7 @@ app.delete('/api/refeicoes-diario/:id', autenticar, async (req: AuthRequest, res
     
     // Verificar se a refeição pertence ao usuário
     const refeicaoExistente = await prisma.refeicaoDiario.findFirst({
-      where: { id, usuarioId }
+      where: { id: id as string, usuarioId }
     });
     
     if (!refeicaoExistente) {
@@ -2162,7 +2163,7 @@ app.delete('/api/refeicoes-diario/:id', autenticar, async (req: AuthRequest, res
     }
     
     await prisma.refeicaoDiario.delete({
-      where: { id }
+      where: { id: id as string }
     });
     
     res.json({ mensagem: 'Refeição deletada com sucesso' });
@@ -2281,7 +2282,7 @@ app.get('/api/conteudos-educacionais/:id', autenticar, async (req: AuthRequest, 
     const { id } = req.params;
     
     const conteudo = await prisma.conteudoEducacional.findUnique({
-      where: { id }
+      where: { id: id as string }
     });
     
     if (!conteudo) {
@@ -2290,7 +2291,7 @@ app.get('/api/conteudos-educacionais/:id', autenticar, async (req: AuthRequest, 
     
     // Incrementar visualizações
     await prisma.conteudoEducacional.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         visualizacoes: {
           increment: 1
@@ -2356,7 +2357,7 @@ app.put('/api/conteudos-educacionais/:id', autenticar, async (req: AuthRequest, 
     
     // Verificar se o conteúdo pertence ao nutricionista
     const conteudoExistente = await prisma.conteudoEducacional.findFirst({
-      where: { id, publicadoPor: nutricionistaId }
+      where: { id: id as string, publicadoPor: nutricionistaId }
     });
     
     if (!conteudoExistente && req.usuario?.funcao !== 'ADMIN') {
@@ -2364,7 +2365,7 @@ app.put('/api/conteudos-educacionais/:id', autenticar, async (req: AuthRequest, 
     }
     
     const conteudo = await prisma.conteudoEducacional.update({
-      where: { id },
+      where: { id: id as string },
       data: req.body
     });
     
@@ -2383,7 +2384,7 @@ app.delete('/api/conteudos-educacionais/:id', autenticar, async (req: AuthReques
     
     // Verificar se o conteúdo pertence ao nutricionista
     const conteudoExistente = await prisma.conteudoEducacional.findFirst({
-      where: { id, publicadoPor: nutricionistaId }
+      where: { id: id as string, publicadoPor: nutricionistaId }
     });
     
     if (!conteudoExistente && req.usuario?.funcao !== 'ADMIN') {
@@ -2391,7 +2392,7 @@ app.delete('/api/conteudos-educacionais/:id', autenticar, async (req: AuthReques
     }
     
     await prisma.conteudoEducacional.delete({
-      where: { id }
+      where: { id: id as string }
     });
     
     res.json({ mensagem: 'Conteúdo deletado com sucesso' });
