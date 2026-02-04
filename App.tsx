@@ -4678,9 +4678,6 @@ const AdminModule = ({ view, user, academia }: any) => {
          setHistoricoDietas([]);
       }
    };
-         setHistoricoDietas([]);
-      }
-   };
 
    const carregarAlunos = async () => {
       try {
