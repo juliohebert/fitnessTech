@@ -6817,7 +6817,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans">
+    <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans overflow-x-hidden">
       {/* Header Mobile */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-zinc-900 px-4 py-3 flex items-center justify-between">
         <button 
@@ -6870,7 +6870,7 @@ const AppContent: React.FC = () => {
             <X size={24} className="text-zinc-500" />
           </button>
         </div>
-        <nav className="flex-1 space-y-3 overflow-y-auto min-h-0 mb-8">
+        <nav className="flex-1 space-y-3 overflow-y-auto overflow-x-hidden min-h-0 mb-8">
           <NavItem icon={<LayoutDashboard size={24}/>} label="Painel" active={activeView === 'dashboard'} onClick={() => { setActiveView('dashboard'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
           {console.log('🔍 DEBUG Menu - user.role:', user?.role, 'user completo:', user)}
           {user.role === 'ALUNO' && (
