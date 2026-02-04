@@ -1682,7 +1682,8 @@ app.post('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
       data: {
         usuarioId: targetUserId,
         tipo: 'dieta',
-        conteudo: {
+        periodo: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        dados: {
           titulo,
           objetivo,
           refeicoes,
@@ -1773,9 +1774,8 @@ app.post('/api/fotos-progresso', autenticar, async (req: AuthRequest, res) => {
     const foto = await prisma.fotoProgresso.create({
       data: {
         usuarioId: targetUserId,
-        imagemUrl: url,
-        categoria: categoria || 'geral',
-        descricao: observacoes || ''
+        urlImagem: url,
+        observacoes: observacoes || ''
       }
     });
     
@@ -1797,7 +1797,7 @@ app.get('/api/metas', autenticar, async (req: AuthRequest, res) => {
         usuarioId: targetUserId as string
       },
       orderBy: {
-        createdAt: 'desc'
+        criadoEm: 'desc'
       }
     });
     
@@ -1818,8 +1818,8 @@ app.post('/api/metas', autenticar, async (req: AuthRequest, res) => {
         usuarioId: targetUserId,
         titulo,
         descricao,
-        tipo: categoria || 'geral',
-        valorAlvo: valorAlvo ? parseFloat(valorAlvo) : null,
+        valorAlvo: valorAlvo ? parseFloat(valorAlvo) : 0,
+        unidade: 'kg',
         prazo: prazo ? new Date(prazo) : null
       }
     });
@@ -1839,9 +1839,8 @@ app.patch('/api/metas/:metaId', autenticar, async (req: AuthRequest, res) => {
     const meta = await prisma.meta.update({
       where: { id: metaId as string },
       data: {
-        status: concluida ? 'completa' : 'em_progresso',
-        progresso: progresso !== undefined ? parseFloat(progresso) : undefined,
-        dataCompleta: concluida ? new Date() : undefined
+        completada: concluida !== undefined ? concluida : undefined,
+        valorAtual: progresso !== undefined ? parseFloat(progresso) : undefined
       }
     });
     
@@ -1911,7 +1910,7 @@ app.get('/api/notificacoes', autenticar, async (req: AuthRequest, res) => {
         usuarioId: req.usuario?.id
       },
       orderBy: {
-        createdAt: 'desc'
+        criadoEm: 'desc'
       }
     });
     
