@@ -6846,7 +6846,7 @@ const AppContent: React.FC = () => {
       {/* Sidebar Desktop e Mobile Drawer */}
       <aside className={`
         fixed md:sticky top-0 h-screen bg-zinc-950 border-r border-zinc-900 z-[110] transition-all duration-300
-        flex flex-col p-8
+        flex flex-col p-8 overflow-x-hidden
         ${mobileMenuOpen ? 'left-0' : '-left-full md:left-0'}
         ${sidebarOpen ? 'w-80' : 'w-28 md:w-28'}
         md:transition-all md:duration-500
