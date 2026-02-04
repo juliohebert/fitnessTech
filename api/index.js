@@ -338,8 +338,28 @@ export default async function handler(req, res) {
       });
     }
     
-    // Fallback: GET retorna array vazio
+    // Rotas que retornam arrays/objetos vazios
+    const rotasVazias = [
+      '/treinos', '/videos-exercicio', '/progresso/fotos', '/progresso/medicoes',
+      '/metas', '/conquistas', '/desafios', '/social/postagens', '/social/grupos',
+      '/ranking', '/ia/previsoes', '/ia/recuperacao', '/relatorios', '/notificacoes',
+      '/carrinho', '/admin/leads', '/admin/manutencao', '/admin/produtos',
+      '/admin/funcionarios', '/admin/financeiro', '/admin/acessos', '/historico-treinos',
+      '/historico-dietas', '/medicoes', '/fotos-progresso', '/grupos', '/schedules',
+      '/instrutor/alunos', '/usuario/perfil'
+    ];
+    
+    // Fallback: GET retorna array vazio para rotas conhecidas
     if (method === 'GET') {
+      for (const rota of rotasVazias) {
+        if (url?.includes(rota)) {
+          // Verificar auth exceto para health
+          if (!url.includes('/health')) {
+            verificarToken();
+          }
+          return res.status(200).json([]);
+        }
+      }
       return res.status(200).json([]);
     }
     
