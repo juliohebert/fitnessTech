@@ -230,124 +230,6 @@ interface WorkoutTemplate {
   exercises: Exercise[];
 }
 
-// --- CONSTANTS & MOCKS ---
-// ... (Keeping Mocks mostly same, ensuring INITIAL_DIETS is there)
-
-const INITIAL_STUDENTS: Student[] = [
-  { id: 1, name: 'Alex Rivers', email: 'alex@rivers.com', phone: '5511999999999', plan: 'VIP Performance', lastVisit: 'Hoje, 09:00', daysAbsent: 0, progress: 75, avatar: 'https://picsum.photos/seed/alex/100', financialStatus: 'OK', risk: false },
-  { id: 2, name: 'Bia Silva', email: 'bia@fitness.com', phone: '5511988888888', plan: 'Básico Semanal', lastVisit: 'Ontem', daysAbsent: 1, progress: 40, avatar: 'https://picsum.photos/seed/bia/100', financialStatus: 'LATE', risk: false },
-  { id: 3, name: 'Carlos Motta', email: 'carlos@m.com', phone: '5511977777777', plan: 'Trimestral', lastVisit: '12 dias atrás', daysAbsent: 12, progress: 10, avatar: 'https://picsum.photos/seed/carlos/100', financialStatus: 'OK', risk: true },
-];
-
-const INITIAL_TEMPLATES: WorkoutTemplate[] = [
-  { id: 't1', title: 'Hipertrofia Base - Peito/Tríceps', category: 'A', exercises: [{ id: 'te1', n: 'Supino Reto', s: 4, r: '10', w: '30kg', rest: 90, group: 'Peito', orientations: ['Escápulas presas', 'Controle o peso'] }] }
-];
-
-const INITIAL_PRODUCTS: Product[] = [
-  { id: 1, name: 'Whey Isolate 900g', price: 249.90, brand: 'Max Titanium', img: 'https://images.unsplash.com/photo-1593095191850-2a733009e073?q=80&w=400', category: 'Suplementos', stock: 15 },
-  { id: 2, name: 'Creatina Monohidratada', price: 89.90, brand: 'Growth', img: 'https://images.unsplash.com/photo-1579722820308-d74e5719d54e?q=80&w=400', category: 'Suplementos', stock: 40 },
-  { id: 3, name: 'Strap de Punho', price: 49.90, brand: 'Fitness Tech', img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400', category: 'Equipamentos', stock: 5 },
-];
-
-// Estrutura de treinos por dia da semana (0 = Domingo, 1 = Segunda, etc.)
-const INITIAL_WORKOUTS_WEEKLY: Record<number, Record<number, any>> = {
-  1: { // userId 1
-    0: { title: 'Descanso Ativo', category: 'Rest', exercises: [], duration: '-' },
-    1: { title: 'Push Day: Peito e Tríceps', category: 'A', exercises: [
-      { id: 'ex1', n: 'Supino Reto c/ Barra', s: 4, r: '8-10', w: '80kg', rest: 90, group: 'Peito', orientations: ['Mantenha as escápulas aduzidas.', 'Pico de contração no topo.', 'Desça de forma controlada.'], video: 'https://www.youtube.com/watch?v=fG_03xSzT2s' },
-      { id: 'ex2', n: 'Supino Inclinado c/ Halteres', s: 3, r: '10-12', w: '32kg', rest: 60, group: 'Peito', orientations: ['45 graus de inclinação.', 'Foco na porção superior.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4' },
-      { id: 'ex3', n: 'Tríceps Testa', s: 3, r: '12-15', w: '20kg', rest: 45, group: 'Tríceps', orientations: ['Cotovelos fixos.', 'Movimento controlado.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4' },
-    ], duration: '65m' },
-    2: { title: 'Pull Day: Costas e Bíceps', category: 'B', exercises: [
-      { id: 'ex4', n: 'Puxada Frontal', s: 4, r: '10-12', w: '60kg', rest: 60, group: 'Costas', orientations: ['Escápulas para trás e para baixo.', 'Controle na fase excêntrica.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4' },
-      { id: 'ex5', n: 'Remada Curvada', s: 4, r: '8-10', w: '70kg', rest: 90, group: 'Costas', orientations: ['Costas retas.', 'Puxe para a linha do umbigo.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4' },
-      { id: 'ex6', n: 'Rosca Direta', s: 3, r: '10-12', w: '15kg', rest: 45, group: 'Bíceps', orientations: ['Cotovelos fixos.', 'Contração no topo.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4' },
-    ], duration: '60m' },
-    3: { title: 'Leg Day: Pernas Completo', category: 'C', exercises: [
-      { id: 'ex7', n: 'Agachamento Livre', s: 4, r: '8-10', w: '100kg', rest: 120, group: 'Pernas', orientations: ['Profundidade até paralelo.', 'Core ativado.', 'Joelhos alinhados.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4' },
-      { id: 'ex8', n: 'Leg Press 45°', s: 3, r: '12-15', w: '200kg', rest: 90, group: 'Pernas', orientations: ['Amplitude completa.', 'Lombar apoiada.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' },
-      { id: 'ex9', n: 'Stiff', s: 3, r: '10-12', w: '60kg', rest: 60, group: 'Posterior', orientations: ['Joelhos levemente flexionados.', 'Foco no alongamento.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4' },
-    ], duration: '70m' },
-    4: { title: 'Upper Body: Força', category: 'D', exercises: [
-      { id: 'ex10', n: 'Desenvolvimento Militar', s: 4, r: '6-8', w: '50kg', rest: 120, group: 'Ombros', orientations: ['Barra na linha dos olhos.', 'Core estável.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4' },
-      { id: 'ex11', n: 'Elevação Lateral', s: 3, r: '12-15', w: '12kg', rest: 45, group: 'Ombros', orientations: ['Cotovelos levemente flexionados.', 'Controle o movimento.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4' },
-    ], duration: '55m' },
-    5: { title: 'Full Body: Funcional', category: 'E', exercises: [
-      { id: 'ex12', n: 'Levantamento Terra', s: 4, r: '6-8', w: '120kg', rest: 150, group: 'Full Body', orientations: ['Postura neutra da coluna.', 'Força vem das pernas.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
-      { id: 'ex13', n: 'Burpees', s: 3, r: '15', w: 'Corpo', rest: 60, group: 'Cardio', orientations: ['Movimento explosivo.', 'Mantenha o ritmo.'], video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
-    ], duration: '50m' },
-    6: { title: 'Descanso Total', category: 'Rest', exercises: [], duration: '-' },
-  }
-};
-
-const INITIAL_WORKOUTS: Record<number, any> = {
-  1: INITIAL_WORKOUTS_WEEKLY[1][new Date().getDay()],
-};
-
-// Estrutura de dietas por dia da semana (0 = Domingo, 1 = Segunda, etc.)
-const INITIAL_DIETS_WEEKLY: Record<number, Record<number, any>> = {
-  1: { // userId 1
-    0: { title: 'Domingo - Low Carb', kcal: 2500, meals: [
-      { n: 'Café da Manhã', t: '09:00', kcal: 550, icon: <Coffee />, items: [{ name: '3 Ovos Mexidos', kcal: 240 }, { name: '50g Aveia', kcal: 180 }, { name: '1 Banana', kcal: 130 }] },
-      { n: 'Almoço', t: '13:00', kcal: 750, icon: <Sun />, items: [{ name: '200g Frango', kcal: 400 }, { name: '150g Batata Doce', kcal: 200 }, { name: 'Salada', kcal: 150 }] },
-      { n: 'Lanche', t: '16:00', kcal: 400, icon: <Coffee />, items: [{ name: 'Whey Protein', kcal: 150 }, { name: '30g Amendoim', kcal: 250 }] },
-      { n: 'Jantar', t: '19:30', kcal: 600, icon: <Moon />, items: [{ name: '150g Carne', kcal: 400 }, { name: 'Legumes', kcal: 200 }] },
-      { n: 'Ceia', t: '22:00', kcal: 200, icon: <Moon />, items: [{ name: 'Iogurte Grego', kcal: 200 }] },
-    ]},
-    1: { title: 'Segunda - High Carb (Treino)', kcal: 3150, meals: [
-      { n: 'Café da Manhã', t: '07:30', kcal: 650, icon: <Coffee />, items: [{ name: '4 Ovos Mexidos', kcal: 320 }, { name: '100g Aveia', kcal: 330 }] },
-      { n: 'Pré-Treino', t: '10:30', kcal: 400, icon: <Zap />, items: [{ name: '2 Bananas', kcal: 260 }, { name: '30g Whey', kcal: 140 }] },
-      { n: 'Almoço', t: '13:00', kcal: 850, icon: <Sun />, items: [{ name: '200g Frango', kcal: 400 }, { name: '250g Arroz', kcal: 450 }] },
-      { n: 'Lanche', t: '16:00', kcal: 450, icon: <Coffee />, items: [{ name: 'Pão Integral', kcal: 200 }, { name: 'Pasta de Amendoim', kcal: 250 }] },
-      { n: 'Jantar', t: '19:30', kcal: 700, icon: <Moon />, items: [{ name: '200g Peixe', kcal: 350 }, { name: '200g Batata', kcal: 350 }] },
-      { n: 'Ceia', t: '22:00', kcal: 100, icon: <Moon />, items: [{ name: 'Caseína', kcal: 100 }] },
-    ]},
-    2: { title: 'Terça - High Carb (Treino)', kcal: 3100, meals: [
-      { n: 'Café da Manhã', t: '07:30', kcal: 630, icon: <Coffee />, items: [{ name: '3 Ovos + 2 Claras', kcal: 280 }, { name: '100g Aveia', kcal: 330 }, { name: 'Mel 20g', kcal: 20 }] },
-      { n: 'Pré-Treino', t: '10:30', kcal: 380, icon: <Zap />, items: [{ name: 'Tapioca 100g', kcal: 270 }, { name: 'Geleia', kcal: 110 }] },
-      { n: 'Almoço', t: '13:00', kcal: 880, icon: <Sun />, items: [{ name: '250g Frango', kcal: 500 }, { name: '200g Arroz', kcal: 360 }, { name: 'Feijão', kcal: 20 }] },
-      { n: 'Lanche', t: '16:00', kcal: 420, icon: <Coffee />, items: [{ name: 'Whey', kcal: 140 }, { name: 'Granola 50g', kcal: 280 }] },
-      { n: 'Jantar', t: '19:30', kcal: 690, icon: <Moon />, items: [{ name: '180g Carne Vermelha', kcal: 420 }, { name: '150g Batata Doce', kcal: 270 }] },
-      { n: 'Ceia', t: '22:00', kcal: 100, icon: <Moon />, items: [{ name: 'Caseína', kcal: 100 }] },
-    ]},
-    3: { title: 'Quarta - High Carb (Leg Day)', kcal: 3300, meals: [
-      { n: 'Café da Manhã', t: '07:00', kcal: 700, icon: <Coffee />, items: [{ name: '4 Ovos', kcal: 320 }, { name: '120g Aveia', kcal: 380 }] },
-      { n: 'Pré-Treino', t: '10:00', kcal: 450, icon: <Zap />, items: [{ name: '2 Bananas', kcal: 260 }, { name: 'Maltodextrina 30g', kcal: 190 }] },
-      { n: 'Pós-Treino', t: '12:00', kcal: 250, icon: <Zap />, items: [{ name: 'Whey + Dextrose', kcal: 250 }] },
-      { n: 'Almoço', t: '13:30', kcal: 950, icon: <Sun />, items: [{ name: '250g Frango', kcal: 500 }, { name: '300g Arroz', kcal: 450 }] },
-      { n: 'Lanche', t: '16:30', kcal: 450, icon: <Coffee />, items: [{ name: 'Sanduíche Natural', kcal: 450 }] },
-      { n: 'Jantar', t: '20:00', kcal: 700, icon: <Moon />, items: [{ name: '200g Peixe', kcal: 350 }, { name: '200g Batata', kcal: 350 }] },
-      { n: 'Ceia', t: '22:30', kcal: 100, icon: <Moon />, items: [{ name: 'Caseína', kcal: 100 }] },
-    ]},
-    4: { title: 'Quinta - Moderado Carb', kcal: 2900, meals: [
-      { n: 'Café da Manhã', t: '07:30', kcal: 600, icon: <Coffee />, items: [{ name: '3 Ovos', kcal: 240 }, { name: '80g Aveia', kcal: 280 }, { name: 'Frutas', kcal: 80 }] },
-      { n: 'Lanche', t: '10:30', kcal: 350, icon: <Coffee />, items: [{ name: 'Whey', kcal: 140 }, { name: 'Castanhas 30g', kcal: 210 }] },
-      { n: 'Almoço', t: '13:00', kcal: 800, icon: <Sun />, items: [{ name: '200g Frango', kcal: 400 }, { name: '200g Batata Doce', kcal: 400 }] },
-      { n: 'Lanche', t: '16:00', kcal: 400, icon: <Coffee />, items: [{ name: 'Iogurte + Granola', kcal: 400 }] },
-      { n: 'Jantar', t: '19:30', kcal: 650, icon: <Moon />, items: [{ name: '180g Salmão', kcal: 350 }, { name: 'Legumes', kcal: 300 }] },
-      { n: 'Ceia', t: '22:00', kcal: 100, icon: <Moon />, items: [{ name: 'Caseína', kcal: 100 }] },
-    ]},
-    5: { title: 'Sexta - Moderado Carb (Treino)', kcal: 2950, meals: [
-      { n: 'Café da Manhã', t: '07:30', kcal: 600, icon: <Coffee />, items: [{ name: '4 Ovos', kcal: 320 }, { name: '70g Aveia', kcal: 280 }] },
-      { n: 'Pré-Treino', t: '10:30', kcal: 350, icon: <Zap />, items: [{ name: 'Banana + Whey', kcal: 350 }] },
-      { n: 'Almoço', t: '13:00', kcal: 850, icon: <Sun />, items: [{ name: '220g Frango', kcal: 440 }, { name: '220g Arroz', kcal: 410 }] },
-      { n: 'Lanche', t: '16:00', kcal: 400, icon: <Coffee />, items: [{ name: 'Tapioca + Queijo', kcal: 400 }] },
-      { n: 'Jantar', t: '19:30', kcal: 650, icon: <Moon />, items: [{ name: '200g Carne', kcal: 450 }, { name: 'Salada', kcal: 200 }] },
-      { n: 'Ceia', t: '22:00', kcal: 100, icon: <Moon />, items: [{ name: 'Caseína', kcal: 100 }] },
-    ]},
-    6: { title: 'Sábado - Refeed Day', kcal: 3500, meals: [
-      { n: 'Café da Manhã', t: '09:00', kcal: 750, icon: <Coffee />, items: [{ name: 'Panquecas (4)', kcal: 500 }, { name: 'Mel + Frutas', kcal: 250 }] },
-      { n: 'Almoço', t: '13:00', kcal: 1000, icon: <Sun />, items: [{ name: '200g Carne', kcal: 450 }, { name: '300g Arroz', kcal: 450 }, { name: 'Feijão', kcal: 100 }] },
-      { n: 'Lanche', t: '16:00', kcal: 500, icon: <Coffee />, items: [{ name: 'Açaí Bowl', kcal: 500 }] },
-      { n: 'Jantar', t: '19:30', kcal: 950, icon: <Moon />, items: [{ name: 'Pizza Caseira', kcal: 950 }] },
-      { n: 'Sobremesa', t: '21:00', kcal: 300, icon: <Moon />, items: [{ name: 'Sorvete Proteico', kcal: 300 }] },
-    ]},
-  }
-};
-
-const INITIAL_DIETS: Record<number, any> = {
-  1: INITIAL_DIETS_WEEKLY[1][new Date().getDay()] || DEFAULT_DIET,
-};
 
 const FOOD_SUBSTITUTIONS: Record<string, string[]> = {
   'Frango': ['Peixe Branco', 'Lombo Suíno', 'Ovos', 'Tofu'],
@@ -355,11 +237,6 @@ const FOOD_SUBSTITUTIONS: Record<string, string[]> = {
   'Aveia': ['Granola Sem Açúcar', 'Farinha de Arroz', 'Corn Flakes'],
   'Ovos': ['Albumina', 'Queijo Cotagge', 'Whey Protein'],
 };
-
-const VISUAL_DIARY_MOCK = [
-  { id: 1, meal: 'Café da Manhã', img: 'https://images.unsplash.com/photo-1494390248081-4e521a5940db?q=80&w=400', time: '08:15', status: 'approved' },
-  { id: 2, meal: 'Almoço', img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400', time: '13:30', status: 'warning' },
-];
 
 // Funções para carregar dados do módulo administrativo
 const carregarLeads = async (token: string) => {
@@ -555,6 +432,133 @@ const salvarDieta = async (token: string, dadosDieta: any) => {
     return response.ok ? await response.json() : null;
   } catch (error) {
     console.error('Erro ao salvar dieta:', error);
+    return null;
+  }
+};
+
+// Funções para módulo de nutricionista
+const carregarRefeicoesDisario = async (token: string, usuarioId?: string) => {
+  try {
+    const url = usuarioId ? `http://localhost:3002/api/refeicoes-diario?usuarioId=${usuarioId}` : 'http://localhost:3002/api/refeicoes-diario';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) return [];
+    const text = await response.text();
+    return text ? JSON.parse(text) : [];
+  } catch (error) {
+    console.error('Erro ao carregar refeições do diário:', error);
+    return [];
+  }
+};
+
+const salvarRefeicaoDiario = async (token: string, dadosRefeicao: any) => {
+  try {
+    const response = await fetch('http://localhost:3002/api/refeicoes-diario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(dadosRefeicao)
+    });
+    if (!response.ok) return null;
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    console.error('Erro ao salvar refeição:', error);
+    return null;
+  }
+};
+
+const atualizarFeedbackRefeicao = async (token: string, id: string, status: string, feedback: string) => {
+  try {
+    const response = await fetch(`http://localhost:3002/api/refeicoes-diario/${id}/feedback`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status, feedback })
+    });
+    if (!response.ok) return null;
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    console.error('Erro ao atualizar feedback:', error);
+    return null;
+  }
+};
+
+const carregarAnalisesComposicao = async (token: string, usuarioId?: string) => {
+  try {
+    const url = usuarioId ? `http://localhost:3002/api/analises-composicao?usuarioId=${usuarioId}` : 'http://localhost:3002/api/analises-composicao';
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) return [];
+    const text = await response.text();
+    return text ? JSON.parse(text) : [];
+  } catch (error) {
+    console.error('Erro ao carregar análises de composição:', error);
+    return [];
+  }
+};
+
+const salvarAnaliseComposicao = async (token: string, dadosAnalise: any) => {
+  try {
+    const response = await fetch('http://localhost:3002/api/analises-composicao', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(dadosAnalise)
+    });
+    if (!response.ok) return null;
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    console.error('Erro ao salvar análise de composição:', error);
+    return null;
+  }
+};
+
+const carregarConteudosEducacionais = async (token: string, categoria?: string, tipo?: string) => {
+  try {
+    let url = 'http://localhost:3002/api/conteudos-educacionais';
+    const params = new URLSearchParams();
+    if (categoria) params.append('categoria', categoria);
+    if (tipo) params.append('tipo', tipo);
+    if (params.toString()) url += `?${params.toString()}`;
+    
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) return [];
+    const text = await response.text();
+    return text ? JSON.parse(text) : [];
+  } catch (error) {
+    console.error('Erro ao carregar conteúdos educacionais:', error);
+    return [];
+  }
+};
+
+const salvarConteudoEducacional = async (token: string, dadosConteudo: any) => {
+  try {
+    const response = await fetch('http://localhost:3002/api/conteudos-educacionais', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(dadosConteudo)
+    });
+    if (!response.ok) return null;
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
+  } catch (error) {
+    console.error('Erro ao salvar conteúdo educacional:', error);
     return null;
   }
 };
@@ -982,22 +986,22 @@ const UserManagement: React.FC = () => {
         <div className="bg-gradient-to-br from-lime-500/20 to-lime-600/10 p-6 rounded-3xl border border-lime-500/30">
           <Users size={32} className="text-lime-400 mb-2" />
           <p className="text-3xl font-black">{alunos.length}</p>
-          <p className="text-sm text-zinc-400">Alunos</p>
+          <p className="text-sm text-zinc-400">{alunos.length === 1 ? 'Aluno' : 'Alunos'}</p>
         </div>
         <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 p-6 rounded-3xl border border-blue-500/30">
           <Dumbbell size={32} className="text-blue-400 mb-2" />
           <p className="text-3xl font-black">{professores.length}</p>
-          <p className="text-sm text-zinc-400">Professores</p>
+          <p className="text-sm text-zinc-400">{professores.length === 1 ? 'Professor' : 'Professores'}</p>
         </div>
         <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 p-6 rounded-3xl border border-green-500/30">
           <Apple size={32} className="text-green-400 mb-2" />
           <p className="text-3xl font-black">{nutricionistas.length}</p>
-          <p className="text-sm text-zinc-400">Nutricionistas</p>
+          <p className="text-sm text-zinc-400">{nutricionistas.length === 1 ? 'Nutricionista' : 'Nutricionistas'}</p>
         </div>
         <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 p-6 rounded-3xl border border-purple-500/30">
           <Shield size={32} className="text-purple-400 mb-2" />
           <p className="text-3xl font-black">{admins.length}</p>
-          <p className="text-sm text-zinc-400">Administradores</p>
+          <p className="text-sm text-zinc-400">{admins.length === 1 ? 'Administrador' : 'Administradores'}</p>
         </div>
       </div>
 
@@ -3375,23 +3379,195 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
    const [dietForm, setDietForm] = useState({ calories: '', type: 'Equilibrada', restrictions: '' });
    const [compositionForm, setCompositionForm] = useState({ weight: '', bodyFat: '', muscle: '', water: '' });
    
-   const [mealDiary, setMealDiary] = useState<any[]>([
-      { id: 1, studentId: 1, meal: 'Café da Manhã', time: '08:15', img: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=400', status: 'approved', feedback: 'Ótima escolha! Boa quantidade de proteínas.' },
-      { id: 2, studentId: 1, meal: 'Almoço', time: '13:30', img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400', status: 'warning', feedback: 'Aumentar a porção de vegetais na próxima.' },
-      { id: 3, studentId: 1, meal: 'Jantar', time: '19:45', img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400', status: 'pending', feedback: '' },
-   ]);
-
-   const [compositionHistory, setCompositionHistory] = useState<any[]>([
-      { date: '01/01', weight: 88.5, bodyFat: 18.2, muscleMass: 38.1, water: 58.3 },
-      { date: '15/01', weight: 87.8, bodyFat: 17.8, muscleMass: 38.5, water: 58.8 },
-      { date: '01/02', weight: 87.2, bodyFat: 17.1, muscleMass: 39.2, water: 59.1 },
-   ]);
-
-   const [educationalContent, setEducationalContent] = useState([
-      { id: 1, title: 'Proteína: Quanto Consumir?', category: 'Nutrição', duration: '5 min', icon: <BookOpen /> },
-      { id: 2, title: 'Timing de Carboidratos', category: 'Performance', duration: '8 min', icon: <Zap /> },
-      { id: 3, title: 'Hidratação no Treino', category: 'Básico', duration: '4 min', icon: <Droplets /> },
-   ]);
+   // Estados para dados do banco
+   const [mealDiary, setMealDiary] = useState<any[]>([]);
+   const [compositionHistory, setCompositionHistory] = useState<any[]>([]);
+   const [educationalContent, setEducationalContent] = useState<any[]>([]);
+   const [historicoDietas, setHistoricoDietas] = useState<any[]>([]);
+   
+   // Estados para estatísticas do dashboard
+   const [totalDietas, setTotalDietas] = useState(0);
+   const [refeicoesHoje, setRefeicoesHoje] = useState(0);
+   const [refeicoesPendentes, setRefeicoesPendentes] = useState<any[]>([]);
+   
+   // Carregar dados do módulo nutricionista
+   useEffect(() => {
+      const carregarDadosNutri = async () => {
+         const token = localStorage.getItem('token');
+         if (!token) return;
+         
+         try {
+            const [conteudos] = await Promise.all([
+               carregarConteudosEducacionais(token)
+            ]);
+            
+            setEducationalContent(conteudos.map((c: any) => ({
+               id: c.id,
+               title: c.titulo,
+               category: c.categoria,
+               duration: c.duracao,
+               icon: c.tipo === 'Vídeo' ? <Zap /> : <BookOpen />
+            })));
+            
+            // Carregar estatísticas do dashboard
+            const todasRefeicoes = await carregarRefeicoesDisario(token);
+            const hoje = new Date().toDateString();
+            const refeicoesDeHoje = todasRefeicoes.filter((r: any) => 
+               new Date(r.data).toDateString() === hoje
+            );
+            const pendentes = todasRefeicoes.filter((r: any) => r.status === 'pending');
+            
+            setRefeicoesHoje(refeicoesDeHoje.length);
+            setRefeicoesPendentes(pendentes.slice(0, 5).map((r: any) => ({
+               id: r.id,
+               studentId: r.usuarioId,
+               meal: r.tipoRefeicao,
+               time: r.horario,
+               img: r.urlImagem,
+               status: r.status
+            })));
+            
+         } catch (error) {
+            console.error('Erro ao carregar dados nutricionista:', error);
+         }
+      };
+      
+      carregarDadosNutri();
+   }, []);
+   
+   // Carregar dados do aluno selecionado
+   useEffect(() => {
+      const carregarDadosAluno = async () => {
+         if (!selectedStudent?.id) return;
+         
+         const token = localStorage.getItem('token');
+         if (!token) return;
+         
+         try {
+            const [refeicoes, analises, dietas] = await Promise.all([
+               carregarRefeicoesDisario(token, selectedStudent.id),
+               carregarAnalisesComposicao(token, selectedStudent.id),
+               carregarHistoricoDietas(token, selectedStudent.id)
+            ]);
+            
+            // Formatar refeições do diário
+            setMealDiary(refeicoes.map((r: any) => ({
+               id: r.id,
+               studentId: selectedStudent.id,
+               meal: r.tipoRefeicao,
+               time: r.horario,
+               img: r.urlImagem,
+               status: r.status,
+               feedback: r.feedback || ''
+            })));
+            
+            // Formatar histórico de composição
+            setCompositionHistory(analises.map((a: any) => ({
+               date: new Date(a.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+               weight: a.peso,
+               bodyFat: a.percentualGordura || 0,
+               muscleMass: a.massaMuscular || 0,
+               water: a.aguaCorporal || 0
+            })));
+            
+            // Formatar dietas
+            const dietasFormatadas = dietas.map((dieta: any) => ({
+               id: dieta.id,
+               titulo: dieta.titulo,
+               plano: typeof dieta.conteudo === 'object' ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || '{}')
+            }));
+            setHistoricoDietas(dietasFormatadas);
+            
+         } catch (error) {
+            console.error('Erro ao carregar dados do aluno:', error);
+         }
+      };
+      
+      carregarDadosAluno();
+   }, [selectedStudent]);
+   
+   // Função para atualizar feedback de refeição
+   const handleFeedback = async (refeicaoId: string, status: string, feedback: string) => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const resultado = await atualizarFeedbackRefeicao(token, refeicaoId, status, feedback);
+      if (resultado) {
+         setMealDiary(prev => prev.map(m => 
+            m.id === refeicaoId ? { ...m, status, feedback } : m
+         ));
+         alert('Feedback salvo com sucesso!');
+      }
+   };
+   
+   // Função para salvar nova análise de composição
+   const handleSaveComposition = async () => {
+      if (!selectedStudent?.id || !compositionForm.weight) {
+         alert('Preencha ao menos o peso');
+         return;
+      }
+      
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const dadosAnalise = {
+         usuarioId: selectedStudent.id,
+         peso: compositionForm.weight,
+         percentualGordura: compositionForm.bodyFat,
+         massaMuscular: compositionForm.muscle,
+         aguaCorporal: compositionForm.water
+      };
+      
+      const resultado = await salvarAnaliseComposicao(token, dadosAnalise);
+      if (resultado) {
+         // Adicionar ao histórico
+         const novaAnalise = {
+            date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+            weight: parseFloat(compositionForm.weight),
+            bodyFat: compositionForm.bodyFat ? parseFloat(compositionForm.bodyFat) : 0,
+            muscleMass: compositionForm.muscle ? parseFloat(compositionForm.muscle) : 0,
+            water: compositionForm.water ? parseFloat(compositionForm.water) : 0
+         };
+         setCompositionHistory(prev => [novaAnalise, ...prev]);
+         setCompositionForm({ weight: '', bodyFat: '', muscle: '', water: '' });
+         setShowCompositionAnalysis(false);
+         alert('Análise salva com sucesso!');
+      }
+   };
+   
+   // Função para criar novo conteúdo educacional
+   const handleCreateContent = async () => {
+      if (!newContentForm.title) {
+         alert('Preencha o título do conteúdo');
+         return;
+      }
+      
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const dadosConteudo = {
+         titulo: newContentForm.title,
+         categoria: newContentForm.category,
+         tipo: newContentForm.category,
+         duracao: newContentForm.duration,
+         publicado: true
+      };
+      
+      const resultado = await salvarConteudoEducacional(token, dadosConteudo);
+      if (resultado) {
+         const novoConteudo = {
+            id: resultado.id,
+            title: resultado.titulo,
+            category: resultado.categoria,
+            duration: resultado.duracao,
+            icon: resultado.tipo === 'Vídeo' ? <Zap /> : <BookOpen />
+         };
+         setEducationalContent(prev => [novoConteudo, ...prev]);
+         setNewContentForm({ title: '', category: 'Artigo', duration: '' });
+         setShowNewContent(false);
+         alert('Conteúdo criado com sucesso!');
+      }
+   };
 
    if (selectedStudent) {
       return (
@@ -3439,10 +3615,18 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><TrendingUp size={20} className="text-lime-400"/> Evolução de Peso</h3>
-                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={compositionHistory}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
+                        {compositionHistory.length > 0 ? (
+                           <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={compositionHistory}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
+                        ) : (
+                           <div className="h-64 flex flex-col items-center justify-center">
+                              <Scale size={32} className="text-zinc-700 mb-3"/>
+                              <p className="text-sm text-zinc-500 font-medium">Sem dados de peso</p>
+                           </div>
+                        )}
                      </div>
                      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><Camera size={20} className="text-blue-400"/> Refeições Recentes</h3>
+                        {mealDiary.length > 0 ? (
                         <div className="space-y-3">
                            {mealDiary.slice(0, 3).map(meal => (
                               <div key={meal.id} className="bg-zinc-950 border border-zinc-800 p-4 rounded-2xl flex gap-4">
@@ -3457,6 +3641,14 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                               </div>
                            ))}
                         </div>
+                        ) : (
+                           <div className="text-center py-8">
+                              <div className="size-16 bg-zinc-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                 <Camera size={24} className="text-zinc-600"/>
+                              </div>
+                              <p className="text-sm text-zinc-500 font-medium">Nenhuma refeição registrada ainda</p>
+                           </div>
+                        )}
                      </div>
                   </div>
                </div>
@@ -3464,6 +3656,24 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 
             {subView === 'diet' && (
                <div className="space-y-6">
+                  {historicoDietas.length === 0 ? (
+                     <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                        <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                           <Utensils size={40} className="text-zinc-600"/>
+                        </div>
+                        <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Plano Alimentar</h3>
+                        <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                           Crie um plano alimentar personalizado para acompanhar a evolução nutricional do paciente.
+                        </p>
+                        <button 
+                           onClick={() => setShowCreateDiet(true)}
+                           className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                        >
+                           Criar Primeiro Plano
+                        </button>
+                     </div>
+                  ) : (
+                     <>
                   {DAYS_SHORT.map((day, idx) => {
                      const diasSemanaDieta = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
                      const diaNome = diasSemanaDieta[idx];
@@ -3507,6 +3717,8 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         </div>
                      );
                   })}
+                  </>
+                  )}
                </div>
             )}
 
@@ -3525,8 +3737,18 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                                        <p className="text-[10px] text-zinc-500 font-bold">{meal.time}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                       <button className="size-10 bg-green-500/20 text-green-500 rounded-xl hover:bg-green-500/30"><Check size={16}/></button>
-                                       <button className="size-10 bg-orange-500/20 text-orange-500 rounded-xl hover:bg-orange-500/30"><AlertTriangle size={16}/></button>
+                                       <button 
+                                          onClick={() => handleFeedback(meal.id, 'approved', 'Ótima escolha! Continue assim.')}
+                                          className="size-10 bg-green-500/20 text-green-500 rounded-xl hover:bg-green-500/30"
+                                       >
+                                          <Check size={16}/>
+                                       </button>
+                                       <button 
+                                          onClick={() => handleFeedback(meal.id, 'warning', 'Atenção à porção de vegetais.')}
+                                          className="size-10 bg-orange-500/20 text-orange-500 rounded-xl hover:bg-orange-500/30"
+                                       >
+                                          <AlertTriangle size={16}/>
+                                       </button>
                                     </div>
                                  </div>
                                  {meal.feedback && (
@@ -3557,6 +3779,24 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 
             {subView === 'composition' && (
                <div className="space-y-6">
+                  {compositionHistory.length === 0 ? (
+                     <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                        <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                           <Scale size={40} className="text-zinc-600"/>
+                        </div>
+                        <h3 className="text-3xl font-black italic uppercase mb-4">Nenhuma Análise</h3>
+                        <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                           Realize a primeira análise de composição corporal para acompanhar a evolução do paciente.
+                        </p>
+                        <button 
+                           onClick={() => setShowCompositionAnalysis(true)}
+                           className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                        >
+                           Registrar Primeira Análise
+                        </button>
+                     </div>
+                  ) : (
+                  <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                      <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">% Gordura Corporal</h3>
@@ -3567,6 +3807,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={compositionHistory}><defs><linearGradient id="colorMuscle2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="muscleMass" stroke="#D9FF00" strokeWidth={3} fill="url(#colorMuscle2)" /></AreaChart></ResponsiveContainer></div>
                      </div>
                   </div>
+                  {compositionHistory.length > 0 && (
                   <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Última Análise</h3>
                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -3576,6 +3817,9 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         <div className="bg-zinc-950 p-6 rounded-2xl text-center"><p className="text-[10px] text-zinc-600 font-black uppercase mb-2">Hidratação</p><p className="text-3xl font-black italic text-blue-400">{compositionHistory[compositionHistory.length - 1].water}%</p></div>
                      </div>
                   </div>
+                  )}
+                  </>
+                  )}
                </div>
             )}
 
@@ -3605,10 +3849,16 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                            <BookOpen size={40} className="text-zinc-600"/>
                         </div>
-                        <h4 className="text-2xl font-black italic uppercase mb-4">Conteúdos em Breve</h4>
+                        <h4 className="text-2xl font-black italic uppercase mb-4">Nenhum Conteúdo</h4>
                         <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
-                           Materiais educacionais sobre nutrição serão disponibilizados em breve pelo seu nutricionista.
+                           Crie materiais educacionais sobre nutrição para compartilhar conhecimento com seus pacientes.
                         </p>
+                        <button 
+                           onClick={() => setShowNewContent(true)}
+                           className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                        >
+                           Criar Primeiro Conteúdo
+                        </button>
                      </div>
                   )}
                </div>
@@ -3646,7 +3896,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Massa Magra (kg)</label><input type="number" step="0.1" value={compositionForm.muscle} onChange={(e) => setCompositionForm({...compositionForm, muscle: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">% Hidratação</label><input type="number" step="0.1" value={compositionForm.water} onChange={(e) => setCompositionForm({...compositionForm, water: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      </div>
-                     <button onClick={(e) => { e.preventDefault(); alert('Análise salva com sucesso!\n\nPeso: ' + compositionForm.weight + 'kg\n% Gordura: ' + compositionForm.bodyFat + '%'); setCompositionForm({ weight: '', bodyFat: '', muscle: '', water: '' }); setShowCompositionAnalysis(false); }} className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all mt-8">Salvar Análise</button>
+                     <button onClick={handleSaveComposition} className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-all mt-8">Salvar Análise</button>
                   </div>
                </div>
             )}
@@ -3718,7 +3968,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      <h3 className="text-3xl font-black italic uppercase">Novo Conteúdo Educacional</h3>
                      <button onClick={() => setShowNewContent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Conteúdo criado com sucesso!\n\nTítulo: ' + newContentForm.title + '\nCategoria: ' + newContentForm.category + '\nDuração: ' + newContentForm.duration); setNewContentForm({ title: '', category: 'Artigo', duration: '' }); setShowNewContent(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); handleCreateContent(); }} className="space-y-6">
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Título do Conteúdo</label><input required value={newContentForm.title} onChange={(e) => setNewContentForm({...newContentForm, title: e.target.value})} placeholder="Ex: Como montar um prato equilibrado" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      <div className="grid grid-cols-2 gap-4">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Categoria</label><select value={newContentForm.category} onChange={(e) => setNewContentForm({...newContentForm, category: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Artigo</option><option>Vídeo</option><option>Infográfico</option><option>Receita</option><option>Guia</option></select></div>
@@ -3740,9 +3990,9 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                <header><h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Painel Nutricional</h1><p className="text-zinc-500 font-medium">Gestão completa de nutrição</p></header>
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <StatCard label="Pacientes Ativos" value={students.length} color="text-white" icon={Users} />
-                  <StatCard label="Dietas Criadas" value="24" color="text-lime-400" icon={Utensils} />
-                  <StatCard label="Aderência Média" value="82%" color="text-blue-400" icon={Target} />
-                  <StatCard label="Refeições Hoje" value="38" color="text-orange-400" icon={Camera} />
+                  <StatCard label="Dietas Criadas" value={totalDietas} color="text-lime-400" icon={Utensils} />
+                  <StatCard label="Conteúdos" value={educationalContent.length} color="text-blue-400" icon={BookOpen} />
+                  <StatCard label="Refeições Hoje" value={refeicoesHoje} color="text-orange-400" icon={Camera} />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
@@ -3762,16 +4012,26 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Refeições Pendentes</h3>
                      <div className="space-y-3">
-                        {mealDiary.filter(m => m.status === 'pending').map(meal => (
+                        {refeicoesPendentes.length > 0 ? refeicoesPendentes.map(meal => (
                            <div key={meal.id} className="bg-zinc-950 border border-zinc-800 p-4 rounded-2xl flex gap-4">
                               <img src={meal.img} className="size-16 rounded-xl object-cover"/>
                               <div className="flex-1">
-                                 <h4 className="font-bold text-sm">{students.find(s => s.id === meal.studentId)?.name}</h4>
+                                 <h4 className="font-bold text-sm">{students.find((s: any) => s.id === meal.studentId)?.name || 'Aluno'}</h4>
                                  <p className="text-[9px] text-zinc-500 font-bold">{meal.meal} • {meal.time}</p>
                               </div>
-                              <button className="text-lime-400 hover:text-lime-300"><Eye size={16}/></button>
+                              <button 
+                                 onClick={() => {
+                                    const student = students.find((s: any) => s.id === meal.studentId);
+                                    if (student) setSelectedStudent(student);
+                                 }}
+                                 className="text-lime-400 hover:text-lime-300"
+                              >
+                                 <Eye size={16}/>
+                              </button>
                            </div>
-                        ))}
+                        )) : (
+                           <p className="text-zinc-500 text-sm text-center py-4">Nenhuma refeição pendente</p>
+                        )}
                      </div>
                   </div>
                </div>
@@ -3784,20 +4044,38 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Meus Pacientes</h2><p className="text-zinc-500 font-medium">{students.length} pacientes ativos</p></div>
                   <button onClick={() => setShowNewPatient(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><UserPlus size={16}/> Novo Paciente</button>
                </header>
-               <div className="grid gap-4">
-                  {students.map((s: Student) => (
-                     <div key={s.id} onClick={() => setSelectedStudent(s)} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex items-center justify-between cursor-pointer hover:border-lime-400/50 transition-all group">
-                        <div className="flex items-center gap-4">
-                           <img src={s.avatar} className="size-14 rounded-2xl object-cover"/>
-                           <div>
-                              <h4 className="font-black italic uppercase text-lg group-hover:text-lime-400 transition-colors">{s.name}</h4>
-                              <p className="text-[10px] font-bold text-zinc-500">Meta: 2800 kcal • Aderência: 85%</p>
+               {students.length === 0 ? (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Users size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Paciente</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Cadastre seu primeiro paciente para começar a gerenciar planos nutricionais e acompanhar o progresso.
+                     </p>
+                     <button 
+                        onClick={() => setShowNewPatient(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Cadastrar Primeiro Paciente
+                     </button>
+                  </div>
+               ) : (
+                  <div className="grid gap-4">
+                     {students.map((s: Student) => (
+                        <div key={s.id} onClick={() => setSelectedStudent(s)} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex items-center justify-between cursor-pointer hover:border-lime-400/50 transition-all group">
+                           <div className="flex items-center gap-4">
+                              <img src={s.avatar} className="size-14 rounded-2xl object-cover"/>
+                              <div>
+                                 <h4 className="font-black italic uppercase text-lg group-hover:text-lime-400 transition-colors">{s.name}</h4>
+                                 <p className="text-[10px] font-bold text-zinc-500">Meta: 2800 kcal • Aderência: 85%</p>
+                              </div>
                            </div>
-                        </div>
-                        <ChevronRight className="text-zinc-600 group-hover:text-lime-400 transition-colors"/>
+                           <ChevronRight className="text-zinc-600 group-hover:text-lime-400 transition-colors"/>
                      </div>
                   ))}
                </div>
+               )}
             </div>
          );
       case 'diets':
@@ -3807,6 +4085,23 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Planos Alimentares</h2><p className="text-zinc-500 font-medium">Gerencie dietas personalizadas</p></div>
                   <button className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Nova Dieta</button>
                </header>
+               {students.length === 0 ? (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Utensils size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Plano Alimentar</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Cadastre pacientes primeiro para poder criar e gerenciar planos alimentares personalizados.
+                     </p>
+                     <button 
+                        onClick={() => setView('students')}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Ver Pacientes
+                     </button>
+                  </div>
+               ) : (
                <div className="grid gap-6">
                   {students.map((s: Student) => (
                      <div key={s.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
@@ -3829,12 +4124,30 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      </div>
                   ))}
                </div>
+               )}
             </div>
          );
       case 'diary':
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Diário Visual de Refeições</h2><p className="text-zinc-500 font-medium">Avalie fotos das refeições dos pacientes</p></header>
+               {mealDiary.length === 0 ? (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Camera size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhuma Refeição</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Os pacientes ainda não registraram refeições no diário visual. As fotos aparecerão aqui para avaliação.
+                     </p>
+                     <button 
+                        onClick={() => setView('students')}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Ver Pacientes
+                     </button>
+                  </div>
+               ) : (
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {mealDiary.map(meal => (
                      <div key={meal.id} className={`bg-zinc-900 border-2 rounded-2xl overflow-hidden transition-all cursor-pointer hover:scale-105 ${meal.status === 'approved' ? 'border-green-500/30' : meal.status === 'warning' ? 'border-orange-500/30' : 'border-zinc-800 hover:border-lime-400/30'}`}>
@@ -3859,12 +4172,30 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      </div>
                   ))}
                </div>
+               )}
             </div>
          );
       case 'composition':
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Análise de Composição Corporal</h2><p className="text-zinc-500 font-medium">Acompanhe a evolução dos pacientes</p></header>
+               {students.length === 0 ? (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Scale size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhuma Análise</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Cadastre pacientes primeiro para poder realizar análises de composição corporal e acompanhar a evolução.
+                     </p>
+                     <button 
+                        onClick={() => setView('students')}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Ver Pacientes
+                     </button>
+                  </div>
+               ) : (
                <div className="grid gap-6">
                   {students.map((s: Student) => (
                      <div key={s.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
@@ -3887,6 +4218,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      </div>
                   ))}
                </div>
+               )}
             </div>
          );
       case 'education':
@@ -3896,6 +4228,23 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Conteúdos Educacionais</h2><p className="text-zinc-500 font-medium">Biblioteca de materiais para pacientes</p></div>
                   <button onClick={() => setShowNewContent(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Conteúdo</button>
                </header>
+               {educationalContent.length === 0 ? (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <BookOpen size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Conteúdo</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Crie materiais educacionais sobre nutrição para compartilhar conhecimento com seus pacientes.
+                     </p>
+                     <button 
+                        onClick={() => setShowNewContent(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Criar Primeiro Conteúdo
+                     </button>
+                  </div>
+               ) : (
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {educationalContent.map(content => (
                      <div key={content.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl hover:border-lime-400/30 transition-all cursor-pointer group">
@@ -3909,6 +4258,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      </div>
                   ))}
                </div>
+               )}
             </div>
          );
       default: return (
@@ -3971,6 +4321,10 @@ const AdminModule = ({ view, user, academia }: any) => {
    const [funcionarios, setFuncionarios] = useState<any[]>([]);
    const [relatoriosFinanceiros, setRelatoriosFinanceiros] = useState<any[]>([]);
    const [registrosAcesso, setRegistrosAcesso] = useState<any[]>([]);
+   const [estatisticas, setEstatisticas] = useState<any>({ alunosAtivos: 0, taxaRetencao: 0 });
+   const [funcionariosData, setFuncionariosData] = useState<any[]>([]);
+   const [showAddFuncionario, setShowAddFuncionario] = useState(false);
+   const [funcionarioForm, setFuncionarioForm] = useState({ nome: '', email: '', senha: '', funcao: 'PROFESSOR', telefone: '', cpf: '' });
    const [leadForm, setLeadForm] = useState({ name: '', contact: '', origin: 'Instagram', value: '', notes: '' });
    const [ticketForm, setTicketForm] = useState({ equipment: '', issue: '', priority: 'Média' });
    const [employeeForm, setEmployeeForm] = useState({ name: '', role: 'Professor', salary: '' });
@@ -4198,6 +4552,89 @@ const AdminModule = ({ view, user, academia }: any) => {
       }
    };
 
+   const carregarEstatisticas = async () => {
+      try {
+         const token = localStorage.getItem('fitness_token');
+         const response = await fetch('http://localhost:3002/api/admin/estatisticas', {
+            headers: { 'Authorization': `Bearer ${token}` }
+         });
+         
+         if (response.ok) {
+            const data = await response.json();
+            setEstatisticas(data);
+         }
+      } catch (error) {
+         console.error('Erro ao carregar estatísticas:', error);
+      }
+   };
+
+   const carregarFuncionarios = async () => {
+      try {
+         const token = localStorage.getItem('fitness_token');
+         const response = await fetch('http://localhost:3002/api/admin/usuarios', {
+            headers: { 'Authorization': `Bearer ${token}` }
+         });
+         
+         if (response.ok) {
+            const data = await response.json();
+            const funcionarios = data.filter((u: any) => u.funcao === 'PROFESSOR' || u.funcao === 'NUTRI');
+            setFuncionariosData(funcionarios);
+         }
+      } catch (error) {
+         console.error('Erro ao carregar funcionários:', error);
+      }
+   };
+
+   const aprovarFuncionario = async (funcionarioId: string, aprovar: boolean) => {
+      try {
+         const token = localStorage.getItem('fitness_token');
+         const response = await fetch(`http://localhost:3002/api/admin/usuarios/${funcionarioId}/status`, {
+            method: 'PATCH',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ativo: aprovar })
+         });
+         
+         if (response.ok) {
+            carregarFuncionarios();
+         }
+      } catch (error) {
+         console.error('Erro ao alterar status do funcionário:', error);
+      }
+   };
+
+   const cadastrarFuncionario = async () => {
+      try {
+         const token = localStorage.getItem('fitness_token');
+         const response = await fetch('http://localhost:3002/api/auth/registrar', {
+            method: 'POST',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+               ...funcionarioForm,
+               academiaId: academia.id
+            })
+         });
+
+         if (response.ok) {
+            setShowAddFuncionario(false);
+            setFuncionarioForm({ nome: '', email: '', senha: '', funcao: 'PROFESSOR', telefone: '', cpf: '' });
+            carregarFuncionarios();
+            alert('Funcionário cadastrado com sucesso!');
+         } else {
+            const error = await response.json();
+            alert(`Erro: ${error.erro || 'Não foi possível cadastrar o funcionário'}`);
+         }
+      } catch (error) {
+         console.error('Erro ao cadastrar funcionário:', error);
+         alert('Erro ao cadastrar funcionário');
+      }
+   };
+
    const prescrever = (aluno: any, tipo: 'treino' | 'dieta') => {
       setSelectedStudent(aluno);
       setPrescriptionType(tipo);
@@ -4420,6 +4857,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
       }
    };
 
+   useEffect(() => {
+      if (tab === 'dashboard') {
+         carregarEstatisticas();
+      }
+      if (tab === 'alunos') {
+         carregarAlunos();
+      }
+      if (tab === 'equipe') {
+         carregarFuncionarios();
+      }
+   }, [tab]);
+
    return (
       <div className="space-y-10 animate-in fade-in duration-700">
          <header className="flex flex-col md:flex-row justify-between items-end gap-6">
@@ -4428,6 +4877,231 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
          </header>
 
          {tab === 'users' && <UserManagement />}
+
+         {tab === 'equipe' && (
+            <div className="space-y-8 animate-in fade-in duration-700">
+               <header className="flex justify-between items-end">
+                  <div>
+                     <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
+                        Gerenciar Equipe
+                     </h2>
+                     <p className="text-zinc-500 font-medium">
+                        Administre professores e nutricionistas da academia
+                     </p>
+                  </div>
+                  <button
+                     onClick={() => setShowAddFuncionario(true)}
+                     className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 hover:bg-lime-300 transition-all"
+                  >
+                     <UserPlus size={16} />
+                     Adicionar Funcionário
+                  </button>
+               </header>
+
+               {/* Estatísticas */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 p-6 rounded-3xl border border-blue-500/30">
+                     <Dumbbell size={32} className="text-blue-400 mb-2" />
+                     <p className="text-3xl font-black">{funcionariosData.filter(f => f.funcao === 'PROFESSOR').length}</p>
+                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.funcao === 'PROFESSOR').length === 1 ? 'Professor' : 'Professores'}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 p-6 rounded-3xl border border-green-500/30">
+                     <Apple size={32} className="text-green-400 mb-2" />
+                     <p className="text-3xl font-black">{funcionariosData.filter(f => f.funcao === 'NUTRI').length}</p>
+                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.funcao === 'NUTRI').length === 1 ? 'Nutricionista' : 'Nutricionistas'}</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-lime-500/20 to-lime-600/10 p-6 rounded-3xl border border-lime-500/30">
+                     <Users size={32} className="text-lime-400 mb-2" />
+                     <p className="text-3xl font-black">{funcionariosData.filter(f => f.ativo).length}</p>
+                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.ativo).length === 1 ? 'Ativo' : 'Ativos'}</p>
+                  </div>
+               </div>
+
+               {/* Lista de Funcionários */}
+               {funcionariosData.length === 0 ? (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Users size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Funcionário</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Cadastre professores e nutricionistas para começar a gerenciar sua equipe.
+                     </p>
+                     <button 
+                        onClick={() => setShowAddFuncionario(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Adicionar Primeiro Funcionário
+                     </button>
+                  </div>
+               ) : (
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+                     <div className="overflow-x-auto">
+                        <table className="w-full">
+                           <thead className="bg-zinc-800/50">
+                              <tr>
+                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Nome</th>
+                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Email</th>
+                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Função</th>
+                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Telefone</th>
+                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Status</th>
+                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Ações</th>
+                              </tr>
+                           </thead>
+                           <tbody>
+                              {funcionariosData.map((funcionario) => (
+                                 <tr key={funcionario.id} className="border-t border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
+                                    <td className="p-4">
+                                       <div className="flex items-center gap-3">
+                                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-black ${
+                                             funcionario.funcao === 'PROFESSOR' ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 'bg-gradient-to-br from-green-400 to-green-600'
+                                          }`}>
+                                             {funcionario.nome.charAt(0).toUpperCase()}
+                                          </div>
+                                          <span className="font-semibold">{funcionario.nome}</span>
+                                       </div>
+                                    </td>
+                                    <td className="p-4 text-zinc-400 text-sm">{funcionario.email}</td>
+                                    <td className="p-4">
+                                       <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                          funcionario.funcao === 'PROFESSOR' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
+                                       }`}>
+                                          {funcionario.funcao === 'PROFESSOR' ? 'Professor' : 'Nutricionista'}
+                                       </span>
+                                    </td>
+                                    <td className="p-4 text-zinc-400 text-sm">{funcionario.telefone || '-'}</td>
+                                    <td className="p-4">
+                                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                          funcionario.ativo ? 'bg-lime-500/20 text-lime-400' : 'bg-red-500/20 text-red-400'
+                                       }`}>
+                                          {funcionario.ativo ? 'ATIVO' : 'INATIVO'}
+                                       </span>
+                                    </td>
+                                    <td className="p-4">
+                                       <button
+                                          onClick={() => aprovarFuncionario(funcionario.id, !funcionario.ativo)}
+                                          className={`px-4 py-2 rounded-xl font-black uppercase text-[10px] transition-all ${
+                                             funcionario.ativo 
+                                                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
+                                                : 'bg-lime-400 text-black hover:bg-lime-300'
+                                          }`}
+                                       >
+                                          {funcionario.ativo ? 'Desativar' : 'Ativar'}
+                                       </button>
+                                    </td>
+                                 </tr>
+                              ))}
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+               )}
+
+               {/* Modal Adicionar Funcionário */}
+               {showAddFuncionario && (
+                  <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 animate-in fade-in duration-300" onClick={() => setShowAddFuncionario(false)}>
+                     <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 max-w-2xl w-full animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-start mb-6">
+                           <div>
+                              <h3 className="text-2xl font-black italic uppercase mb-1">Adicionar Funcionário</h3>
+                              <p className="text-zinc-500 text-sm font-medium">Cadastre um novo professor ou nutricionista</p>
+                           </div>
+                           <button onClick={() => setShowAddFuncionario(false)} className="text-zinc-500 hover:text-white transition-colors">
+                              <X size={24}/>
+                           </button>
+                        </div>
+                        <form onSubmit={(e) => {
+                           e.preventDefault();
+                           cadastrarFuncionario();
+                        }} className="space-y-4">
+                           <div>
+                              <label className="block text-sm font-bold mb-2 uppercase text-zinc-400">Função</label>
+                              <select
+                                 value={funcionarioForm.funcao}
+                                 onChange={(e) => setFuncionarioForm({...funcionarioForm, funcao: e.target.value})}
+                                 className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
+                                 required
+                              >
+                                 <option value="PROFESSOR">Professor</option>
+                                 <option value="NUTRI">Nutricionista</option>
+                              </select>
+                           </div>
+                           <div>
+                              <label className="block text-sm font-bold mb-2 uppercase text-zinc-400">Nome Completo</label>
+                              <input
+                                 type="text"
+                                 value={funcionarioForm.nome}
+                                 onChange={(e) => setFuncionarioForm({...funcionarioForm, nome: e.target.value})}
+                                 className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
+                                 placeholder="Ex: João Silva"
+                                 required
+                              />
+                           </div>
+                           <div>
+                              <label className="block text-sm font-bold mb-2 uppercase text-zinc-400">Email</label>
+                              <input
+                                 type="email"
+                                 value={funcionarioForm.email}
+                                 onChange={(e) => setFuncionarioForm({...funcionarioForm, email: e.target.value})}
+                                 className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
+                                 placeholder="professor@academia.com"
+                                 required
+                              />
+                           </div>
+                           <div>
+                              <label className="block text-sm font-bold mb-2 uppercase text-zinc-400">Senha</label>
+                              <input
+                                 type="password"
+                                 value={funcionarioForm.senha}
+                                 onChange={(e) => setFuncionarioForm({...funcionarioForm, senha: e.target.value})}
+                                 className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
+                                 placeholder="Mínimo 6 caracteres"
+                                 required
+                              />
+                           </div>
+                           <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                 <label className="block text-sm font-bold mb-2 uppercase text-zinc-400">Telefone</label>
+                                 <input
+                                    type="text"
+                                    value={funcionarioForm.telefone}
+                                    onChange={(e) => setFuncionarioForm({...funcionarioForm, telefone: e.target.value})}
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
+                                    placeholder="(11) 98765-4321"
+                                 />
+                              </div>
+                              <div>
+                                 <label className="block text-sm font-bold mb-2 uppercase text-zinc-400">CPF</label>
+                                 <input
+                                    type="text"
+                                    value={funcionarioForm.cpf}
+                                    onChange={(e) => setFuncionarioForm({...funcionarioForm, cpf: e.target.value})}
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-lime-400"
+                                    placeholder="123.456.789-00"
+                                 />
+                              </div>
+                           </div>
+                           <div className="flex gap-3 pt-4">
+                              <button
+                                 type="button"
+                                 onClick={() => setShowAddFuncionario(false)}
+                                 className="flex-1 bg-zinc-800 text-white py-3 rounded-xl font-black uppercase text-sm hover:bg-zinc-700 transition-all"
+                              >
+                                 Cancelar
+                              </button>
+                              <button
+                                 type="submit"
+                                 className="flex-1 bg-lime-400 text-black py-3 rounded-xl font-black uppercase text-sm hover:bg-lime-300 transition-all"
+                              >
+                                 Cadastrar
+                              </button>
+                           </div>
+                        </form>
+                     </div>
+                  </div>
+               )}
+            </div>
+         )}
 
          {tab === 'alunos' && (
             <div className="space-y-8 animate-in fade-in duration-700">
@@ -5276,8 +5950,8 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <StatCard label="Receita Mensal" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].receita / 1000).toFixed(1) : '0'}k`} color="text-lime-400" icon={DollarSign} trend="+12%" />
                   <StatCard label="Lucro Líquido" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].lucro / 1000).toFixed(1) : '0'}k`} color="text-green-500" icon={TrendingUp} trend="+8%" />
-                  <StatCard label="Alunos Ativos" value="342" color="text-blue-400" icon={Users} trend="+23" />
-                  <StatCard label="Taxa Retenção" value="94%" color="text-purple-400" icon={Target} trend="+2%" />
+                  <StatCard label="Alunos Ativos" value={estatisticas.alunosAtivos.toString()} color="text-blue-400" icon={Users} trend={estatisticas.alunosAtivos > 0 ? `${estatisticas.alunosAtivos}` : '0'} />
+                  <StatCard label="Taxa Retenção" value={`${estatisticas.taxaRetencao}%`} color="text-purple-400" icon={Target} trend={`${estatisticas.taxaRetencao}%`} />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
@@ -6055,10 +6729,10 @@ const AppContent: React.FC = () => {
             <>
               <NavItem icon={<Users size={24}/>} label="Usuários" active={activeView === 'users'} onClick={() => setActiveView('users')} collapsed={!sidebarOpen} />
               <NavItem icon={<Dumbbell size={24}/>} label="Alunos" active={activeView === 'alunos'} onClick={() => setActiveView('alunos')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Briefcase size={24}/>} label="Equipe" active={activeView === 'equipe'} onClick={() => setActiveView('equipe')} collapsed={!sidebarOpen} />
               <NavItem icon={<DollarSign size={24}/>} label="Financeiro" active={activeView === 'financial'} onClick={() => setActiveView('financial')} collapsed={!sidebarOpen} />
               <NavItem icon={<Users size={24}/>} label="CRM" active={activeView === 'crm'} onClick={() => setActiveView('crm')} collapsed={!sidebarOpen} />
               <NavItem icon={<Package size={24}/>} label="Estoque" active={activeView === 'stock'} onClick={() => setActiveView('stock')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Briefcase size={24}/>} label="Equipe" active={activeView === 'employees'} onClick={() => setActiveView('employees')} collapsed={!sidebarOpen} />
               <NavItem icon={<Wrench size={24}/>} label="Manutenção" active={activeView === 'maintenance'} onClick={() => setActiveView('maintenance')} collapsed={!sidebarOpen} />
               <NavItem icon={<BarChart3 size={24}/>} label="Analytics" active={activeView === 'analytics'} onClick={() => setActiveView('analytics')} collapsed={!sidebarOpen} />
             </>

@@ -534,3 +534,69 @@ model Agendamento {
   @@index([data])
   @@index([status])
 }
+
+// ===== NUTRIÇÃO =====
+
+// Diário Alimentar Visual
+model RefeicaoDiario {
+  id            String   @id @default(cuid())
+  usuarioId     String   // Aluno que registrou a refeição
+  tipoRefeicao  String   // "Café da Manhã", "Almoço", "Jantar", "Lanche"
+  urlImagem     String   // URL da foto da refeição
+  horario       String   // Horário da refeição "08:15"
+  data          DateTime @default(now())
+  status        String   @default("pending") // pending, approved, warning, rejected
+  feedback      String?  // Feedback do nutricionista
+  avaliadoPor   String?  // ID do nutricionista que avaliou
+  avaliadoEm    DateTime?
+  calorias      Int?     // Estimativa de calorias
+  observacoes   String?
+  
+  @@map("refeicoes_diario")
+  @@index([usuarioId])
+  @@index([data])
+  @@index([status])
+}
+
+// Análise de Composição Corporal (extende MedicaoCorporal)
+model AnaliseComposicao {
+  id                String   @id @default(cuid())
+  usuarioId         String
+  peso              Float
+  percentualGordura Float?
+  massaMuscular     Float?
+  aguaCorporal      Float?
+  taxaMetabolica    Float?   // Taxa metabólica basal
+  idadeMetabolica   Int?     // Idade metabólica
+  gorduraVisceral   Int?     // Nível de gordura visceral (1-59)
+  observacoes       String?
+  avaliadoPor       String?  // ID do nutricionista
+  data              DateTime @default(now())
+  
+  @@map("analises_composicao")
+  @@index([usuarioId])
+  @@index([data])
+}
+
+// Conteúdo Educacional Nutricional
+model ConteudoEducacional {
+  id          String   @id @default(cuid())
+  titulo      String
+  descricao   String?
+  categoria   String   // "Nutrição", "Performance", "Básico", "Receita", "Guia"
+  tipo        String   // "Artigo", "Vídeo", "Infográfico", "Receita", "Guia"
+  duracao     String?  // "5 min", "10 páginas", etc
+  urlConteudo String?  // URL do conteúdo (vídeo, PDF, etc)
+  conteudo    String?  @db.Text // Conteúdo textual
+  urlImagem   String?  // Imagem de capa
+  publicadoPor String  // ID do nutricionista autor
+  publicado   Boolean  @default(false)
+  visualizacoes Int    @default(0)
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  @@map("conteudos_educacionais")
+  @@index([categoria])
+  @@index([tipo])
+  @@index([publicado])
+}

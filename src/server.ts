@@ -269,6 +269,45 @@ app.get('/api/admin/usuarios', autenticar, verificarAdmin, async (req: AuthReque
   }
 });
 
+// Estatísticas do dashboard (apenas ADMIN)
+app.get('/api/admin/estatisticas', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const academiaId = req.usuario?.academiaId;
+
+    // Contar alunos ativos
+    const alunosAtivos = await prisma.usuario.count({
+      where: {
+        academiaId,
+        funcao: 'ALUNO',
+        ativo: true
+      }
+    });
+
+    // Contar total de alunos (ativos + inativos)
+    const totalAlunos = await prisma.usuario.count({
+      where: {
+        academiaId,
+        funcao: 'ALUNO'
+      }
+    });
+
+    // Calcular taxa de retenção (alunos ativos / total de alunos)
+    const taxaRetencao = totalAlunos > 0 
+      ? Math.round((alunosAtivos / totalAlunos) * 100) 
+      : 0;
+
+    res.json({
+      alunosAtivos,
+      totalAlunos,
+      taxaRetencao,
+      alunosInativos: totalAlunos - alunosAtivos
+    });
+  } catch (err) {
+    console.error('Erro ao buscar estatísticas:', err);
+    res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
+  }
+});
+
 // Aprovar/desativar usuário (apenas ADMIN)
 app.patch('/api/admin/usuarios/:usuarioId/status', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
   try {
@@ -2032,6 +2071,333 @@ app.delete('/api/schedules/:id', autenticar, async (req: AuthRequest, res) => {
   } catch (err) {
     console.error('Erro ao deletar agendamento:', err);
     res.status(500).json({ erro: 'Erro ao deletar agendamento' });
+  }
+});
+
+// ===== DIÁRIO ALIMENTAR =====
+
+// Listar refeições do diário alimentar
+app.get('/api/refeicoes-diario', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.query;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const refeicoes = await prisma.refeicaoDiario.findMany({
+      where: {
+        usuarioId: targetUserId as string
+      },
+      orderBy: {
+        data: 'desc'
+      }
+    });
+    
+    res.json(refeicoes);
+  } catch (err) {
+    console.error('Erro ao listar refeições do diário:', err);
+    res.status(500).json({ erro: 'Erro ao listar refeições do diário' });
+  }
+});
+
+// Criar registro de refeição no diário
+app.post('/api/refeicoes-diario', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, tipoRefeicao, urlImagem, horario, calorias, observacoes } = req.body;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const refeicao = await prisma.refeicaoDiario.create({
+      data: {
+        usuarioId: targetUserId as string,
+        tipoRefeicao,
+        urlImagem,
+        horario,
+        calorias: calorias ? parseInt(calorias) : null,
+        observacoes
+      }
+    });
+    
+    res.json(refeicao);
+  } catch (err) {
+    console.error('Erro ao criar refeição no diário:', err);
+    res.status(500).json({ erro: 'Erro ao criar refeição no diário' });
+  }
+});
+
+// Atualizar feedback de refeição (nutricionista)
+app.put('/api/refeicoes-diario/:id/feedback', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { status, feedback } = req.body;
+    const nutricionistaId = req.usuario?.id;
+    
+    const refeicao = await prisma.refeicaoDiario.update({
+      where: { id },
+      data: {
+        status,
+        feedback,
+        avaliadoPor: nutricionistaId,
+        avaliadoEm: new Date()
+      }
+    });
+    
+    res.json(refeicao);
+  } catch (err) {
+    console.error('Erro ao atualizar feedback da refeição:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar feedback da refeição' });
+  }
+});
+
+// Deletar refeição do diário
+app.delete('/api/refeicoes-diario/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const usuarioId = req.usuario?.id;
+    
+    // Verificar se a refeição pertence ao usuário
+    const refeicaoExistente = await prisma.refeicaoDiario.findFirst({
+      where: { id, usuarioId }
+    });
+    
+    if (!refeicaoExistente) {
+      return res.status(404).json({ erro: 'Refeição não encontrada' });
+    }
+    
+    await prisma.refeicaoDiario.delete({
+      where: { id }
+    });
+    
+    res.json({ mensagem: 'Refeição deletada com sucesso' });
+  } catch (err) {
+    console.error('Erro ao deletar refeição:', err);
+    res.status(500).json({ erro: 'Erro ao deletar refeição' });
+  }
+});
+
+// ===== ANÁLISE DE COMPOSIÇÃO CORPORAL =====
+
+// Listar análises de composição corporal
+app.get('/api/analises-composicao', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId } = req.query;
+    const targetUserId = usuarioId || req.usuario?.id;
+    
+    const analises = await prisma.analiseComposicao.findMany({
+      where: {
+        usuarioId: targetUserId as string
+      },
+      orderBy: {
+        data: 'desc'
+      }
+    });
+    
+    res.json(analises);
+  } catch (err) {
+    console.error('Erro ao listar análises de composição:', err);
+    res.status(500).json({ erro: 'Erro ao listar análises de composição' });
+  }
+});
+
+// Criar análise de composição corporal
+app.post('/api/analises-composicao', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { 
+      usuarioId, 
+      peso, 
+      percentualGordura, 
+      massaMuscular, 
+      aguaCorporal,
+      taxaMetabolica,
+      idadeMetabolica,
+      gorduraVisceral,
+      observacoes 
+    } = req.body;
+    
+    const targetUserId = usuarioId || req.usuario?.id;
+    const avaliadoPor = req.usuario?.funcao === 'NUTRI' ? req.usuario.id : null;
+    
+    const analise = await prisma.analiseComposicao.create({
+      data: {
+        usuarioId: targetUserId as string,
+        peso: parseFloat(peso),
+        percentualGordura: percentualGordura ? parseFloat(percentualGordura) : null,
+        massaMuscular: massaMuscular ? parseFloat(massaMuscular) : null,
+        aguaCorporal: aguaCorporal ? parseFloat(aguaCorporal) : null,
+        taxaMetabolica: taxaMetabolica ? parseFloat(taxaMetabolica) : null,
+        idadeMetabolica: idadeMetabolica ? parseInt(idadeMetabolica) : null,
+        gorduraVisceral: gorduraVisceral ? parseInt(gorduraVisceral) : null,
+        observacoes,
+        avaliadoPor
+      }
+    });
+    
+    res.json(analise);
+  } catch (err) {
+    console.error('Erro ao criar análise de composição:', err);
+    res.status(500).json({ erro: 'Erro ao criar análise de composição' });
+  }
+});
+
+// ===== CONTEÚDO EDUCACIONAL =====
+
+// Listar conteúdos educacionais (públicos)
+app.get('/api/conteudos-educacionais', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { categoria, tipo } = req.query;
+    
+    const where: any = {
+      publicado: true
+    };
+    
+    if (categoria) where.categoria = categoria;
+    if (tipo) where.tipo = tipo;
+    
+    const conteudos = await prisma.conteudoEducacional.findMany({
+      where,
+      orderBy: {
+        criadoEm: 'desc'
+      },
+      select: {
+        id: true,
+        titulo: true,
+        descricao: true,
+        categoria: true,
+        tipo: true,
+        duracao: true,
+        urlImagem: true,
+        visualizacoes: true,
+        criadoEm: true
+      }
+    });
+    
+    res.json(conteudos);
+  } catch (err) {
+    console.error('Erro ao listar conteúdos educacionais:', err);
+    res.status(500).json({ erro: 'Erro ao listar conteúdos educacionais' });
+  }
+});
+
+// Obter conteúdo educacional completo
+app.get('/api/conteudos-educacionais/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    const conteudo = await prisma.conteudoEducacional.findUnique({
+      where: { id }
+    });
+    
+    if (!conteudo) {
+      return res.status(404).json({ erro: 'Conteúdo não encontrado' });
+    }
+    
+    // Incrementar visualizações
+    await prisma.conteudoEducacional.update({
+      where: { id },
+      data: {
+        visualizacoes: {
+          increment: 1
+        }
+      }
+    });
+    
+    res.json(conteudo);
+  } catch (err) {
+    console.error('Erro ao obter conteúdo educacional:', err);
+    res.status(500).json({ erro: 'Erro ao obter conteúdo educacional' });
+  }
+});
+
+// Criar conteúdo educacional (nutricionista)
+app.post('/api/conteudos-educacionais', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const nutricionistaId = req.usuario?.id;
+    
+    if (req.usuario?.funcao !== 'NUTRI' && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(403).json({ erro: 'Apenas nutricionistas podem criar conteúdo' });
+    }
+    
+    const { 
+      titulo, 
+      descricao, 
+      categoria, 
+      tipo, 
+      duracao, 
+      urlConteudo, 
+      conteudo, 
+      urlImagem,
+      publicado 
+    } = req.body;
+    
+    const novoConteudo = await prisma.conteudoEducacional.create({
+      data: {
+        titulo,
+        descricao,
+        categoria,
+        tipo,
+        duracao,
+        urlConteudo,
+        conteudo,
+        urlImagem,
+        publicadoPor: nutricionistaId as string,
+        publicado: publicado || false
+      }
+    });
+    
+    res.json(novoConteudo);
+  } catch (err) {
+    console.error('Erro ao criar conteúdo educacional:', err);
+    res.status(500).json({ erro: 'Erro ao criar conteúdo educacional' });
+  }
+});
+
+// Atualizar conteúdo educacional
+app.put('/api/conteudos-educacionais/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const nutricionistaId = req.usuario?.id;
+    
+    // Verificar se o conteúdo pertence ao nutricionista
+    const conteudoExistente = await prisma.conteudoEducacional.findFirst({
+      where: { id, publicadoPor: nutricionistaId }
+    });
+    
+    if (!conteudoExistente && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(404).json({ erro: 'Conteúdo não encontrado' });
+    }
+    
+    const conteudo = await prisma.conteudoEducacional.update({
+      where: { id },
+      data: req.body
+    });
+    
+    res.json(conteudo);
+  } catch (err) {
+    console.error('Erro ao atualizar conteúdo educacional:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar conteúdo educacional' });
+  }
+});
+
+// Deletar conteúdo educacional
+app.delete('/api/conteudos-educacionais/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const nutricionistaId = req.usuario?.id;
+    
+    // Verificar se o conteúdo pertence ao nutricionista
+    const conteudoExistente = await prisma.conteudoEducacional.findFirst({
+      where: { id, publicadoPor: nutricionistaId }
+    });
+    
+    if (!conteudoExistente && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(404).json({ erro: 'Conteúdo não encontrado' });
+    }
+    
+    await prisma.conteudoEducacional.delete({
+      where: { id }
+    });
+    
+    res.json({ mensagem: 'Conteúdo deletado com sucesso' });
+  } catch (err) {
+    console.error('Erro ao deletar conteúdo educacional:', err);
+    res.status(500).json({ erro: 'Erro ao deletar conteúdo educacional' });
   }
 });
 
