@@ -23,9 +23,21 @@ export default async function handler(req, res) {
   
   const { url, method } = req;
   
-  // Log para debug
-  console.log('📥 Request:', method, url);
-  console.log('📦 Body:', req.body);
+  // ENDPOINT DE DEBUG
+  if (url?.includes('/debug/usuarios')) {
+    try {
+      const usuarios = await prisma.usuario.findMany({
+        select: { id: true, email: true, nome: true, funcao: true }
+      });
+      return res.status(200).json({
+        total: usuarios.length,
+        usuarios,
+        databaseUrl: process.env.DATABASE_URL ? 'SET' : 'NOT SET'
+      });
+    } catch (error) {
+      return res.status(500).json({ erro: error.message });
+    }
+  }
   
   // Função auxiliar para verificar token
   const verificarToken = () => {
@@ -39,28 +51,39 @@ export default async function handler(req, res) {
     // POST /api/auth/login
     if (url?.includes('/auth/login') && method === 'POST') {
       const { email, senha } = req.body || {};
-      console.log('🔐 Tentativa de login:', email);
-      console.log('📧 Email recebido:', JSON.stringify(email));
-      console.log('🔑 Senha recebida (length):', senha?.length);
+      
+      console.log('🔐 Login request:', { email, senhaLength: senha?.length });
       
       if (!email || !senha) {
         console.log('❌ Email ou senha vazios');
         return res.status(400).json({ erro: 'Email e senha são obrigatórios' });
       }
       
-      const usuario = await prisma.usuario.findUnique({
-        where: { email: email.trim().toLowerCase() },
+      // Buscar usuário SEM trim/lowercase primeiro
+      let usuario = await prisma.usuario.findUnique({
+        where: { email },
         include: { academia: true }
       });
+      
+      // Se não encontrar, tentar com trim/lowercase
+      if (!usuario) {
+        console.log('⚠️  Tentando com lowercase...');
+        usuario = await prisma.usuario.findUnique({
+          where: { email: email.trim().toLowerCase() },
+          include: { academia: true }
+        });
+      }
       
       console.log('👤 Usuário encontrado:', usuario ? `SIM (${usuario.email})` : 'NÃO');
       
       if (!usuario) {
         console.log('❌ Usuário não existe no banco');
+        // Listar emails disponíveis para debug
+        const todosEmails = await prisma.usuario.findMany({ select: { email: true } });
+        console.log('📧 Emails no banco:', todosEmails.map(u => u.email));
         return res.status(401).json({ erro: 'Credenciais inválidas' });
       }
       
-      console.log('🔐 Hash armazenado:', usuario.senha.substring(0, 30) + '...');
       const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
       console.log('🔑 Senha correta:', senhaCorreta ? 'SIM ✅' : 'NÃO ❌');
       
