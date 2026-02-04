@@ -6816,6 +6816,7 @@ const AppContent: React.FC = () => {
         </div>
         <nav className="flex-1 space-y-3 overflow-y-auto min-h-0 mb-8">
           <NavItem icon={<LayoutDashboard size={24}/>} label="Painel" active={activeView === 'dashboard'} onClick={() => { setActiveView('dashboard'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+          {console.log('🔍 DEBUG Menu - user.role:', user?.role, 'user completo:', user)}
           {user.role === 'ALUNO' && (
             <>
               <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => { setActiveView('workouts'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
