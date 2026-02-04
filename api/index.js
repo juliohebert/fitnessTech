@@ -18,6 +18,10 @@ export default async function handler(req, res) {
   
   const { url, method } = req;
   
+  // Log para debug
+  console.log('📥 Request:', method, url);
+  console.log('📦 Body:', req.body);
+  
   // Função auxiliar para verificar token
   const verificarToken = () => {
     const authHeader = req.headers.authorization;
@@ -30,13 +34,25 @@ export default async function handler(req, res) {
     // POST /api/auth/login
     if (url?.includes('/auth/login') && method === 'POST') {
       const { email, senha } = req.body || {};
+      console.log('🔐 Tentativa de login:', email);
       
       const usuario = await prisma.usuario.findUnique({
         where: { email },
         include: { academia: true }
       });
       
-      if (!usuario || !await bcrypt.compare(senha, usuario.senha)) {
+      console.log('👤 Usuário encontrado:', usuario ? 'SIM' : 'NÃO');
+      
+      if (!usuario) {
+        console.log('❌ Usuário não existe');
+        return res.status(401).json({ erro: 'Credenciais inválidas' });
+      }
+      
+      const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
+      console.log('🔑 Senha correta:', senhaCorreta ? 'SIM' : 'NÃO');
+      
+      if (!senhaCorreta) {
+        console.log('❌ Senha incorreta');
         return res.status(401).json({ erro: 'Credenciais inválidas' });
       }
       
@@ -46,6 +62,7 @@ export default async function handler(req, res) {
         { expiresIn: '7d' }
       );
       
+      console.log('✅ Login bem-sucedido');
       return res.status(200).json({
         token,
         usuario: { ...usuario, senha: undefined },
