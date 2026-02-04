@@ -2533,7 +2533,18 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
        
        console.log('✅ Treino encontrado:', treinoDodia);
        
-       const currentWorkout = (treinoDodia && treinoDodia.plano && treinoDodia.plano[diaSelecionado]) ? treinoDodia.plano[diaSelecionado] : null;
+       const currentWorkout = (treinoDodia && treinoDodia.plano && treinoDodia.plano[diaSelecionado] && treinoDodia.plano[diaSelecionado].length > 0) ? {
+         title: treinoDodia.titulo || 'Treino',
+         category: treinoDodia.tipo === 'ia' ? 'IA' : 'Manual',
+         duration: '60 min',
+         exercises: treinoDodia.plano[diaSelecionado].map((ex: any) => ({
+           n: ex.nome,
+           s: ex.series,
+           r: ex.repeticoes,
+           w: ex.carga,
+           rest: ex.descanso || '90s'
+         }))
+       } : null;
        
        console.log('💪 Workout atual:', currentWorkout);
        
