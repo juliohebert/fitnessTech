@@ -463,14 +463,21 @@ const carregarNotificacoes = async (token: string) => {
 
 const salvarTreino = async (token: string, dadosTreino: any) => {
   try {
-    console.log('🔄 Salvando treino:', dadosTreino);
+    console.log('🔄 ===== FUNÇÃO SALVAR TREINO =====');
+    console.log('🔄 Dados recebidos:', dadosTreino);
+    console.log('🔄 Propriedade titulo:', dadosTreino.titulo);
+    console.log('🔄 Propriedades do objeto:', Object.keys(dadosTreino));
+    
+    const bodyData = JSON.stringify(dadosTreino);
+    console.log('🔄 Body que será enviado (string JSON):', bodyData);
+    
     const response = await fetch(`${API_URL}/api/historico-treinos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(dadosTreino)
+      body: bodyData
     });
     
     if (!response.ok) {
