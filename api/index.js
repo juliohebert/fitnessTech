@@ -18,6 +18,10 @@ const prisma = new PrismaClient({
 const JWT_SECRET = 'fitness_tech_super_secret_key_2025';
 
 export default async function handler(req, res) {
+  // LOG IMEDIATO - ANTES DE TUDO
+  console.log('🚀 REQUEST RECEBIDA:', req.method, req.url);
+  console.log('📦 BODY:', JSON.stringify(req.body));
+  
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
