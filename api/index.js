@@ -2,9 +2,14 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Prisma singleton para serverless
+// Prisma singleton para serverless - FORÇAR RECONEXÃO
 const globalForPrisma = global;
-const prisma = globalForPrisma.prisma || new PrismaClient();
+if (!globalForPrisma.prisma || process.env.FORCE_RECONNECT === 'true') {
+  globalForPrisma.prisma = new PrismaClient({
+    log: ['query', 'error', 'warn'],
+  });
+}
+const prisma = globalForPrisma.prisma;
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fitness_tech_super_secret_key_2025';
