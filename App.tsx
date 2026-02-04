@@ -2517,14 +2517,26 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
        
        console.log('🔍 Buscando treino para:', diaSelecionado);
        console.log('📋 Histórico de treinos disponível:', historicoTreinos);
+       console.log('📋 Quantidade de treinos:', historicoTreinos.length);
+       
+       if (historicoTreinos.length > 0) {
+         console.log('📋 Primeiro treino:', historicoTreinos[0]);
+         console.log('📋 Plano do primeiro treino:', historicoTreinos[0]?.plano);
+         console.log('📋 Dias disponíveis:', historicoTreinos[0]?.plano ? Object.keys(historicoTreinos[0].plano) : 'nenhum');
+       }
        
        const treinoDodia = historicoTreinos.find(t => {
-          return t && t.plano && t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0;
+          const temPlano = t && t.plano && t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0;
+          console.log(`🔎 Verificando treino ${t?.id}: tem plano para ${diaSelecionado}?`, temPlano);
+          return temPlano;
        });
        
        console.log('✅ Treino encontrado:', treinoDodia);
        
        const currentWorkout = (treinoDodia && treinoDodia.plano && treinoDodia.plano[diaSelecionado]) ? treinoDodia.plano[diaSelecionado] : null;
+       
+       console.log('💪 Workout atual:', currentWorkout);
+       
        return (
          <>
            {/* Banner de treino ativo */}
