@@ -2199,6 +2199,8 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 // --- MODULES ---
 
 const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime }: any) => {
+  console.log('✅ StudentModule renderizado - view:', view);
+  
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(new Date().getDay());
   const [selectedDayDiet, setSelectedDayDiet] = useState(new Date().getDay());
   
@@ -2450,6 +2452,8 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
 };
 
 const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, onRemoveTemplate, user, academia }: any) => {
+   console.log('✅ ProfessorModule renderizado - view:', view);
+   
    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
    const [subView, setSubView] = useState<string>('overview'); // overview, workouts, assessments, performance, schedule, chat
    const [showCreateWorkout, setShowCreateWorkout] = useState(false);
@@ -3402,6 +3406,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
 }
 
 const NutriModule = ({ view, students, setView, user, academia }: any) => {
+   console.log('✅ NutriModule renderizado - view:', view);
+   
    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
    const [subView, setSubView] = useState<string>('overview');
    const [showCreateDiet, setShowCreateDiet] = useState(false);
@@ -4346,6 +4352,8 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 };
 
 const AdminModule = ({ view, user, academia }: any) => {
+   console.log('✅ AdminModule renderizado - view:', view);
+   
    const tab = view || 'dashboard';
    const [showAddLead, setShowAddLead] = useState(false);
    const [showAddTicket, setShowAddTicket] = useState(false);
@@ -6636,6 +6644,13 @@ const AppContent: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  
+  // Debug logs
+  useEffect(() => {
+    console.log('🔍 DEBUG - Usuário:', user);
+    console.log('🔍 DEBUG - activeView:', activeView);
+    console.log('🔍 DEBUG - API_URL:', API_URL);
+  }, [user, activeView]);
   
   // Carregar produtos quando entrar na loja
   useEffect(() => {
