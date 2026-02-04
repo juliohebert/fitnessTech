@@ -11,7 +11,7 @@
     "build:server": "tsc src/server.ts --outDir dist",
     "start": "node dist/server.js",
     "preview": "vite preview",
-    "vercel-build": "prisma generate && prisma db push && vite build",
+    "vercel-build": "prisma generate && prisma db push --force-reset --skip-generate && vite build",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
