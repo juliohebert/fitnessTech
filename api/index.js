@@ -67,7 +67,11 @@ export default async function handler(req, res) {
     if (url?.includes('/auth/login') && method === 'POST') {
       const { email, senha } = req.body || {};
       
-      console.log('🔐 Login request:', { email, senhaLength: senha?.length });
+      console.log('🔐 Login attempt:', { 
+        email, 
+        senhaLength: senha?.length,
+        senhaPreview: senha?.substring(0, 3) + '...'
+      });
       
       if (!email || !senha) {
         console.log('❌ Email ou senha vazios');
@@ -89,21 +93,32 @@ export default async function handler(req, res) {
         });
       }
       
-      console.log('👤 Usuário encontrado:', usuario ? `SIM (${usuario.email})` : 'NÃO');
-      
       if (!usuario) {
-        console.log('❌ Usuário não existe no banco');
-        // Listar emails disponíveis para debug
-        const todosEmails = await prisma.usuario.findMany({ select: { email: true } });
-        console.log('📧 Emails no banco:', todosEmails.map(u => u.email));
+        console.log('❌ Usuário não encontrado');
+        const todosEmails = await prisma.usuario.findMany({ 
+          select: { email: true },
+          take: 10
+        });
+        console.log('📧 Emails disponíveis:', todosEmails.map(u => u.email));
         return res.status(401).json({ erro: 'Credenciais inválidas' });
       }
       
+      console.log('👤 Usuário encontrado:', {
+        email: usuario.email,
+        funcao: usuario.funcao,
+        hashPreview: usuario.senha.substring(0, 30) + '...'
+      });
+      
+      // Comparar senha
       const senhaCorreta = await bcrypt.compare(senha, usuario.senha);
-      console.log('🔑 Senha correta:', senhaCorreta ? 'SIM ✅' : 'NÃO ❌');
+      console.log('🔑 Resultado bcrypt.compare:', senhaCorreta);
       
       if (!senhaCorreta) {
-        console.log('❌ Senha incorreta');
+        console.log('❌ Senha incorreta para', usuario.email);
+        // Debug: tentar hash da senha fornecida
+        const novoHash = await bcrypt.hash(senha, 10);
+        console.log('🔍 Hash da senha fornecida:', novoHash.substring(0, 30) + '...');
+        console.log('🔍 Hash no banco:', usuario.senha.substring(0, 30) + '...');
         return res.status(401).json({ erro: 'Credenciais inválidas' });
       }
       
