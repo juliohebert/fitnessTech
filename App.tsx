@@ -21,7 +21,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 // URL base da API - usa window.location.origin em produção
 const API_BASE_URL = import.meta.env.PROD 
   ? window.location.origin 
-  : `${API_BASE_URL}';
+  : 'http://localhost:3002';
 
 // --- AI CONFIG ---
 // Initialize Gemini AI. Assumes API_KEY is available in import.meta.env
@@ -54,7 +54,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const loadUserData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      const response = await fetch(`${API_BASE_URL}
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -76,7 +76,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const login = async (email: string, senha: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -101,7 +101,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const register = async (userData: any): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/registrar`, {
+      const response = await fetch(`${API_BASE_URL}
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -444,7 +444,7 @@ const salvarDieta = async (token: string, dadosDieta: any) => {
 // Funções para módulo de nutricionista
 const carregarRefeicoesDisario = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `${API_BASE_URL}/api/refeicoes-diario?usuarioId=${usuarioId}` : `${API_BASE_URL}/api/refeicoes-diario';
+    const url = usuarioId ? `${API_BASE_URL}
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -459,7 +459,7 @@ const carregarRefeicoesDisario = async (token: string, usuarioId?: string) => {
 
 const salvarRefeicaoDiario = async (token: string, dadosRefeicao: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/refeicoes-diario', {
+    const response = await fetch(`${API_BASE_URL}
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -478,7 +478,7 @@ const salvarRefeicaoDiario = async (token: string, dadosRefeicao: any) => {
 
 const atualizarFeedbackRefeicao = async (token: string, id: string, status: string, feedback: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/refeicoes-diario/${id}/feedback`, {
+    const response = await fetch(`${API_BASE_URL}
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -497,7 +497,7 @@ const atualizarFeedbackRefeicao = async (token: string, id: string, status: stri
 
 const carregarAnalisesComposicao = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `${API_BASE_URL}/api/analises-composicao?usuarioId=${usuarioId}` : `${API_BASE_URL}/api/analises-composicao';
+    const url = usuarioId ? `${API_BASE_URL}
     const response = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -512,7 +512,7 @@ const carregarAnalisesComposicao = async (token: string, usuarioId?: string) => 
 
 const salvarAnaliseComposicao = async (token: string, dadosAnalise: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/analises-composicao', {
+    const response = await fetch(`${API_BASE_URL}
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -531,7 +531,7 @@ const salvarAnaliseComposicao = async (token: string, dadosAnalise: any) => {
 
 const carregarConteudosEducacionais = async (token: string, categoria?: string, tipo?: string) => {
   try {
-    let url = `${API_BASE_URL}/api/conteudos-educacionais';
+    let url = `${API_BASE_URL}
     const params = new URLSearchParams();
     if (categoria) params.append('categoria', categoria);
     if (tipo) params.append('tipo', tipo);
@@ -551,7 +551,7 @@ const carregarConteudosEducacionais = async (token: string, categoria?: string, 
 
 const salvarConteudoEducacional = async (token: string, dadosConteudo: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/conteudos-educacionais', {
+    const response = await fetch(`${API_BASE_URL}
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -886,7 +886,7 @@ const UserManagement: React.FC = () => {
   const carregarUsuarios = async () => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/usuarios', {
+      const response = await fetch(`${API_BASE_URL}
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -903,7 +903,7 @@ const UserManagement: React.FC = () => {
   const carregarInstrutores = async () => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/instrutores', {
+      const response = await fetch(`${API_BASE_URL}
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -918,7 +918,7 @@ const UserManagement: React.FC = () => {
   const alternarStatus = async (usuarioId: string, ativo: boolean) => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/usuarios/${usuarioId}/status`, {
+      const response = await fetch(`${API_BASE_URL}
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -938,7 +938,7 @@ const UserManagement: React.FC = () => {
   const vincularInstrutor = async (alunoId: string, instrutorId: string, tipoInstrutor: string) => {
     try {
       const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}/api/admin/vinculos', {
+      const response = await fetch(`${API_BASE_URL}
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -4566,7 +4566,7 @@ const AdminModule = ({ view, user, academia }: any) => {
          const token = localStorage.getItem('fitness_token');
          console.log('🔑 Token sendo usado:', token ? 'Token presente' : 'Token ausente');
          
-         const response = await fetch(`${API_BASE_URL}/api/admin/usuarios', {
+         const response = await fetch(`${API_BASE_URL}
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4596,7 +4596,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const carregarEstatisticas = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}/api/admin/estatisticas', {
+         const response = await fetch(`${API_BASE_URL}
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4612,7 +4612,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const carregarFuncionarios = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}/api/admin/usuarios', {
+         const response = await fetch(`${API_BASE_URL}
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4629,7 +4629,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const carregarDadosFinanceiros = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const alunosResponse = await fetch(`${API_BASE_URL}/api/admin/usuarios', {
+         const alunosResponse = await fetch(`${API_BASE_URL}
             headers: { 'Authorization': `Bearer ${token}` }
          });
          
@@ -4659,7 +4659,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const aprovarFuncionario = async (funcionarioId: string, aprovar: boolean) => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}/api/admin/usuarios/${funcionarioId}/status`, {
+         const response = await fetch(`${API_BASE_URL}
             method: 'PATCH',
             headers: {
                'Authorization': `Bearer ${token}`,
@@ -4679,7 +4679,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const cadastrarFuncionario = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}/api/auth/registrar', {
+         const response = await fetch(`${API_BASE_URL}
             method: 'POST',
             headers: {
                'Authorization': `Bearer ${token}`,
@@ -4715,7 +4715,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const cadastrarAluno = async () => {
       try {
          const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}/api/auth/registrar', {
+         const response = await fetch(`${API_BASE_URL}
             method: 'POST',
             headers: {
                'Authorization': `Bearer ${token}`,
