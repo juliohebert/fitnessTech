@@ -1647,17 +1647,26 @@ app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => 
     console.log('📋 Titulo é null?', titulo === null);
     console.log('📋 Titulo é string vazia?', titulo === '');
     
-    // Validações
-    if (!titulo || typeof titulo !== 'string' || titulo.trim() === '') {
-      console.error('❌ Título inválido:', { titulo, tipo: typeof titulo });
-      return res.status(400).json({ 
-        erro: 'Título do treino é obrigatório',
-        recebido: { titulo, tipo: typeof titulo }
-      });
+    // Validações com mensagens mais claras
+    if (!targetUserId) {
+      console.error('❌ UserId está faltando');
+      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
     }
     
-    if (!targetUserId) {
-      return res.status(400).json({ erro: 'ID do usuário é obrigatório' });
+    if (!titulo || typeof titulo !== 'string' || titulo.trim() === '') {
+      console.error('❌ Título inválido:', { 
+        titulo, 
+        tipo: typeof titulo,
+        body: req.body 
+      });
+      return res.status(400).json({ 
+        erro: 'Título do treino é obrigatório e deve ser uma string não vazia',
+        recebido: { 
+          titulo, 
+          tipo: typeof titulo,
+          todasChaves: Object.keys(req.body)
+        }
+      });
     }
     
     const tituloFinal = titulo.trim();

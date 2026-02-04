@@ -4894,9 +4894,12 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
             // Salvar no banco de dados usando a API
             const token = localStorage.getItem('fitness_token');
             if (token) {
+               // Garantir que o titulo existe
+               const tituloFinal = planoGerado.titulo || planoTreino.titulo || `Treino IA - ${new Date().toLocaleDateString()}`;
+               
                const dadosTreino = {
                   usuarioId: selectedStudent.id,
-                  titulo: planoGerado.titulo,
+                  titulo: tituloFinal,
                   tipoTreino: 'Treino Personalizado IA',
                   duracao: 60,
                   exercicios: planoGerado,
@@ -5819,14 +5822,23 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     return;
                                  }
                                  
-                                 if (!planoTreino.titulo || planoTreino.titulo.trim() === '') {
-                                    alert('Erro: Preencha o nome do plano de treino.');
+                                 // Validação extra do titulo
+                                 const tituloTreino = planoTreino?.titulo?.trim() || '';
+                                 console.log('🔍 Validando titulo:', { 
+                                    original: planoTreino.titulo, 
+                                    trimmed: tituloTreino,
+                                    isEmpty: tituloTreino === ''
+                                 });
+                                 
+                                 if (!tituloTreino || tituloTreino === '') {
+                                    alert('Erro: Preencha o nome do plano de treino antes de salvar.');
+                                    console.error('❌ Tentativa de salvar sem titulo');
                                     return;
                                  }
                                  
                                  const dadosTreino = {
                                     usuarioId: selectedStudent.id,
-                                    titulo: planoTreino.titulo.trim(),
+                                    titulo: tituloTreino,
                                     tipoTreino: 'Treino Personalizado Manual',
                                     duracao: 60,
                                     exercicios: planoAtualizado,
