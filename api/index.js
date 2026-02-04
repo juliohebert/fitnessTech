@@ -1,5 +1,5 @@
 // FitnessTech API - Versão Produção com Prisma
-// Atualizado: 2026-02-04 16:10
+// Atualizado: 2026-02-04 16:25
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -14,7 +14,8 @@ const prisma = new PrismaClient({
   }
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fitness_tech_super_secret_key_2025';
+// FIXO - não usar env variable
+const JWT_SECRET = 'fitness_tech_super_secret_key_2025';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
