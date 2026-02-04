@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from `react`;
 import { 
   Dumbbell, LayoutDashboard, Apple, TrendingUp, Trophy,
   ArrowLeft, ArrowRight, Flame, DollarSign, Search, ShoppingCart, 
@@ -10,22 +10,20 @@ import {
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, Shield, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
   Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu
-} from 'lucide-react';
+} from `lucide-react`;
 import { 
   ResponsiveContainer, Cell, 
   XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, AreaChart, Area, BarChart, Bar, Legend, LineChart, Line,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis
-} from 'recharts';
+} from `recharts`;
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// URL base da API - usa window.location.origin em produção
-const API_BASE_URL = import.meta.env.PROD 
-  ? window.location.origin 
-  : 'http://localhost:3002';
+// URL base da API
+const API_URL = import.meta.env.PROD ? `` : `${API_URL}`;
 
 // --- AI CONFIG ---
 // Initialize Gemini AI. Assumes API_KEY is available in import.meta.env
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY || '');
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY || ``);
 
 // --- AUTH CONTEXT ---
 const AuthContext = React.createContext<AuthContextType | null>(null);
@@ -33,7 +31,7 @@ const AuthContext = React.createContext<AuthContextType | null>(null);
 const useAuth = () => {
   const context = React.useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error(`useAuth must be used within an AuthProvider`);
   }
   return context;
 };
@@ -42,7 +40,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const [user, setUser] = useState<AuthUser | null>(null);
   const [academia, setAcademia] = useState<Academia | null>(null);
   const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('fitness_token');
+    return localStorage.getItem(`fitness_token`);
   });
 
   useEffect(() => {
@@ -54,10 +52,10 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const loadUserData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          `Authorization`: `Bearer ${token}`,
+          `Content-Type`: `application/json`
         }
       });
       
@@ -69,17 +67,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         logout();
       }
     } catch (error) {
-      console.error('Erro ao carregar dados do usuário:', error);
+      console.error(`Erro ao carregar dados do usuário:`, error);
       logout();
     }
   };
 
   const login = async (email: string, senha: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}
-        method: 'POST',
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: `POST`,
         headers: {
-          'Content-Type': 'application/json'
+          `Content-Type`: `application/json`
         },
         body: JSON.stringify({ email, senha })
       });
@@ -89,22 +87,22 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         setToken(data.token);
         setUser(data.user);
         setAcademia(data.academia);
-        localStorage.setItem('fitness_token', data.token);
+        localStorage.setItem(`fitness_token`, data.token);
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error(`Erro no login:`, error);
       return false;
     }
   };
 
   const register = async (userData: any): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}
-        method: 'POST',
+      const response = await fetch(`${API_URL}/api/auth/registrar`, {
+        method: `POST`,
         headers: {
-          'Content-Type': 'application/json'
+          `Content-Type`: `application/json`
         },
         body: JSON.stringify(userData)
       });
@@ -114,12 +112,12 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         setToken(data.token);
         setUser(data.user);
         setAcademia(data.academia);
-        localStorage.setItem('fitness_token', data.token);
+        localStorage.setItem(`fitness_token`, data.token);
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Erro no registro:', error);
+      console.error(`Erro no registro:`, error);
       return false;
     }
   };
@@ -128,7 +126,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     setUser(null);
     setAcademia(null);
     setToken(null);
-    localStorage.removeItem('fitness_token');
+    localStorage.removeItem(`fitness_token`);
   };
 
   const isAuthenticated = !!user && !!token;
@@ -149,7 +147,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 };
 
 // ... (Types and Interfaces remain the same)
-type Role = 'ALUNO' | 'PROFESSOR' | 'NUTRI' | 'ADMIN';
+type Role = `ALUNO` | `PROFESSOR` | `NUTRI` | `ADMIN`;
 
 interface AuthUser {
   id: string;
@@ -165,7 +163,7 @@ interface Academia {
   id: string;
   name: string;
   logo?: string;
-  subscription: 'BASIC' | 'PRO' | 'ENTERPRISE';
+  subscription: `BASIC` | `PRO` | `ENTERPRISE`;
   maxUsers: number;
   features: string[];
 }
@@ -212,7 +210,7 @@ interface Student {
   daysAbsent: number; // For Retention Radar
   progress: number;
   avatar: string;
-  financialStatus: 'OK' | 'LATE'; // For Admin
+  financialStatus: `OK` | `LATE`; // For Admin
   risk: boolean; // For Retention Radar
 }
 
@@ -237,82 +235,82 @@ interface WorkoutTemplate {
 
 
 const FOOD_SUBSTITUTIONS: Record<string, string[]> = {
-  'Frango': ['Peixe Branco', 'Lombo Suíno', 'Ovos', 'Tofu'],
-  'Arroz': ['Batata Inglesa', 'Batata Doce', 'Mandioca', 'Macarrão'],
-  'Aveia': ['Granola Sem Açúcar', 'Farinha de Arroz', 'Corn Flakes'],
-  'Ovos': ['Albumina', 'Queijo Cotagge', 'Whey Protein'],
+  `Frango`: [`Peixe Branco`, `Lombo Suíno`, `Ovos`, `Tofu`],
+  `Arroz`: [`Batata Inglesa`, `Batata Doce`, `Mandioca`, `Macarrão`],
+  `Aveia`: [`Granola Sem Açúcar`, `Farinha de Arroz`, `Corn Flakes`],
+  `Ovos`: [`Albumina`, `Queijo Cotagge`, `Whey Protein`],
 };
 
 // Funções para carregar dados do módulo administrativo
 const carregarLeads = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/leads', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(`/api/admin/leads`, {
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar leads:', error);
+    console.error(`Erro ao carregar leads:`, error);
     return [];
   }
 };
 
 const carregarTicketsManutencao = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/manutencao', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(`/api/admin/manutencao`, {
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar tickets:', error);
+    console.error(`Erro ao carregar tickets:`, error);
     return [];
   }
 };
 
 const carregarProdutos = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/produtos', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(`/api/admin/produtos`, {
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar produtos:', error);
+    console.error(`Erro ao carregar produtos:`, error);
     return [];
   }
 };
 
 const carregarFuncionarios = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/funcionarios', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(`/api/admin/funcionarios`, {
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar funcionários:', error);
+    console.error(`Erro ao carregar funcionários:`, error);
     return [];
   }
 };
 
 const carregarRelatoriosFinanceiros = async (token: string) => {
   try {
-    const response = await fetch('/api/admin/financeiro', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(`/api/admin/financeiro`, {
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar relatórios:', error);
+    console.error(`Erro ao carregar relatórios:`, error);
     return [];
   }
 };
 
 const carregarRegistrosAcesso = async (token: string, data?: string) => {
   try {
-    const url = data ? `/api/admin/acessos?data=${data}` : '/api/admin/acessos';
+    const url = data ? `/api/admin/acessos?data=${data}` : `/api/admin/acessos`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar registros de acesso:', error);
+    console.error(`Erro ao carregar registros de acesso:`, error);
     return [];
   }
 };
@@ -320,123 +318,123 @@ const carregarRegistrosAcesso = async (token: string, data?: string) => {
 // Funções para os módulos aluno/professor/nutricionista
 const carregarHistoricoTreinos = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/historico-treinos?usuarioId=${usuarioId}` : '/api/historico-treinos';
+    const url = usuarioId ? `/api/historico-treinos?usuarioId=${usuarioId}` : `/api/historico-treinos`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar histórico de treinos:', error);
+    console.error(`Erro ao carregar histórico de treinos:`, error);
     return [];
   }
 };
 
 const carregarHistoricoDietas = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/historico-dietas?usuarioId=${usuarioId}` : '/api/historico-dietas';
+    const url = usuarioId ? `/api/historico-dietas?usuarioId=${usuarioId}` : `/api/historico-dietas`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar histórico de dietas:', error);
+    console.error(`Erro ao carregar histórico de dietas:`, error);
     return [];
   }
 };
 
 const carregarMedicoes = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/medicoes?usuarioId=${usuarioId}` : '/api/medicoes';
+    const url = usuarioId ? `/api/medicoes?usuarioId=${usuarioId}` : `/api/medicoes`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar medições:', error);
+    console.error(`Erro ao carregar medições:`, error);
     return [];
   }
 };
 
 const carregarFotosProgresso = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/fotos-progresso?usuarioId=${usuarioId}` : '/api/fotos-progresso';
+    const url = usuarioId ? `/api/fotos-progresso?usuarioId=${usuarioId}` : `/api/fotos-progresso`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar fotos de progresso:', error);
+    console.error(`Erro ao carregar fotos de progresso:`, error);
     return [];
   }
 };
 
 const carregarMetas = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `/api/metas?usuarioId=${usuarioId}` : '/api/metas';
+    const url = usuarioId ? `/api/metas?usuarioId=${usuarioId}` : `/api/metas`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar metas:', error);
+    console.error(`Erro ao carregar metas:`, error);
     return [];
   }
 };
 
 const carregarGrupos = async (token: string) => {
   try {
-    const response = await fetch('/api/grupos', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(`/api/grupos`, {
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar grupos:', error);
+    console.error(`Erro ao carregar grupos:`, error);
     return [];
   }
 };
 
 const carregarNotificacoes = async (token: string) => {
   try {
-    const response = await fetch('/api/notificacoes', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const response = await fetch(`/api/notificacoes`, {
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     return response.ok ? await response.json() : [];
   } catch (error) {
-    console.error('Erro ao carregar notificações:', error);
+    console.error(`Erro ao carregar notificações:`, error);
     return [];
   }
 };
 
 const salvarTreino = async (token: string, dadosTreino: any) => {
   try {
-    const response = await fetch('/api/historico-treinos', {
-      method: 'POST',
+    const response = await fetch(`/api/historico-treinos`, {
+      method: `POST`,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        `Content-Type`: `application/json`,
+        `Authorization`: `Bearer ${token}`
       },
       body: JSON.stringify(dadosTreino)
     });
     return response.ok ? await response.json() : null;
   } catch (error) {
-    console.error('Erro ao salvar treino:', error);
+    console.error(`Erro ao salvar treino:`, error);
     return null;
   }
 };
 
 const salvarDieta = async (token: string, dadosDieta: any) => {
   try {
-    const response = await fetch('/api/historico-dietas', {
-      method: 'POST',
+    const response = await fetch(`/api/historico-dietas`, {
+      method: `POST`,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        `Content-Type`: `application/json`,
+        `Authorization`: `Bearer ${token}`
       },
       body: JSON.stringify(dadosDieta)
     });
     return response.ok ? await response.json() : null;
   } catch (error) {
-    console.error('Erro ao salvar dieta:', error);
+    console.error(`Erro ao salvar dieta:`, error);
     return null;
   }
 };
@@ -444,26 +442,26 @@ const salvarDieta = async (token: string, dadosDieta: any) => {
 // Funções para módulo de nutricionista
 const carregarRefeicoesDisario = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `${API_BASE_URL}
+    const url = usuarioId ? `${API_URL}/api/refeicoes-diario?usuarioId=${usuarioId}` : `${API_URL}/api/refeicoes-diario`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     if (!response.ok) return [];
     const text = await response.text();
     return text ? JSON.parse(text) : [];
   } catch (error) {
-    console.error('Erro ao carregar refeições do diário:', error);
+    console.error(`Erro ao carregar refeições do diário:`, error);
     return [];
   }
 };
 
 const salvarRefeicaoDiario = async (token: string, dadosRefeicao: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}
-      method: 'POST',
+    const response = await fetch(`${API_URL}/api/refeicoes-diario`, {
+      method: `POST`,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        `Content-Type`: `application/json`,
+        `Authorization`: `Bearer ${token}`
       },
       body: JSON.stringify(dadosRefeicao)
     });
@@ -471,18 +469,18 @@ const salvarRefeicaoDiario = async (token: string, dadosRefeicao: any) => {
     const text = await response.text();
     return text ? JSON.parse(text) : null;
   } catch (error) {
-    console.error('Erro ao salvar refeição:', error);
+    console.error(`Erro ao salvar refeição:`, error);
     return null;
   }
 };
 
 const atualizarFeedbackRefeicao = async (token: string, id: string, status: string, feedback: string) => {
   try {
-    const response = await fetch(`${API_BASE_URL}
-      method: 'PUT',
+    const response = await fetch(`${API_URL}/api/refeicoes-diario/${id}/feedback`, {
+      method: `PUT`,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        `Content-Type`: `application/json`,
+        `Authorization`: `Bearer ${token}`
       },
       body: JSON.stringify({ status, feedback })
     });
@@ -490,33 +488,33 @@ const atualizarFeedbackRefeicao = async (token: string, id: string, status: stri
     const text = await response.text();
     return text ? JSON.parse(text) : null;
   } catch (error) {
-    console.error('Erro ao atualizar feedback:', error);
+    console.error(`Erro ao atualizar feedback:`, error);
     return null;
   }
 };
 
 const carregarAnalisesComposicao = async (token: string, usuarioId?: string) => {
   try {
-    const url = usuarioId ? `${API_BASE_URL}
+    const url = usuarioId ? `${API_URL}/api/analises-composicao?usuarioId=${usuarioId}` : `${API_URL}/api/analises-composicao`;
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     if (!response.ok) return [];
     const text = await response.text();
     return text ? JSON.parse(text) : [];
   } catch (error) {
-    console.error('Erro ao carregar análises de composição:', error);
+    console.error(`Erro ao carregar análises de composição:`, error);
     return [];
   }
 };
 
 const salvarAnaliseComposicao = async (token: string, dadosAnalise: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}
-      method: 'POST',
+    const response = await fetch(`${API_URL}/api/analises-composicao`, {
+      method: `POST`,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        `Content-Type`: `application/json`,
+        `Authorization`: `Bearer ${token}`
       },
       body: JSON.stringify(dadosAnalise)
     });
@@ -524,38 +522,38 @@ const salvarAnaliseComposicao = async (token: string, dadosAnalise: any) => {
     const text = await response.text();
     return text ? JSON.parse(text) : null;
   } catch (error) {
-    console.error('Erro ao salvar análise de composição:', error);
+    console.error(`Erro ao salvar análise de composição:`, error);
     return null;
   }
 };
 
 const carregarConteudosEducacionais = async (token: string, categoria?: string, tipo?: string) => {
   try {
-    let url = `${API_BASE_URL}
+    let url = `${API_URL}/api/conteudos-educacionais`;
     const params = new URLSearchParams();
-    if (categoria) params.append('categoria', categoria);
-    if (tipo) params.append('tipo', tipo);
+    if (categoria) params.append(`categoria`, categoria);
+    if (tipo) params.append(`tipo`, tipo);
     if (params.toString()) url += `?${params.toString()}`;
     
     const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: { `Authorization`: `Bearer ${token}` }
     });
     if (!response.ok) return [];
     const text = await response.text();
     return text ? JSON.parse(text) : [];
   } catch (error) {
-    console.error('Erro ao carregar conteúdos educacionais:', error);
+    console.error(`Erro ao carregar conteúdos educacionais:`, error);
     return [];
   }
 };
 
 const salvarConteudoEducacional = async (token: string, dadosConteudo: any) => {
   try {
-    const response = await fetch(`${API_BASE_URL}
-      method: 'POST',
+    const response = await fetch(`${API_URL}/api/conteudos-educacionais`, {
+      method: `POST`,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        `Content-Type`: `application/json`,
+        `Authorization`: `Bearer ${token}`
       },
       body: JSON.stringify(dadosConteudo)
     });
@@ -563,42 +561,42 @@ const salvarConteudoEducacional = async (token: string, dadosConteudo: any) => {
     const text = await response.text();
     return text ? JSON.parse(text) : null;
   } catch (error) {
-    console.error('Erro ao salvar conteúdo educacional:', error);
+    console.error(`Erro ao salvar conteúdo educacional:`, error);
     return null;
   }
 };
 
 const ASSESSMENT_RADAR_DATA = [
-  { subject: 'Força', A: 120, B: 110, fullMark: 150 },
-  { subject: 'Cardio', A: 98, B: 130, fullMark: 150 },
-  { subject: 'Flexib.', A: 86, B: 130, fullMark: 150 },
-  { subject: 'Core', A: 99, B: 100, fullMark: 150 },
-  { subject: 'Potência', A: 85, B: 90, fullMark: 150 },
-  { subject: 'Resist.', A: 65, B: 85, fullMark: 150 },
+  { subject: `Força`, A: 120, B: 110, fullMark: 150 },
+  { subject: `Cardio`, A: 98, B: 130, fullMark: 150 },
+  { subject: `Flexib.`, A: 86, B: 130, fullMark: 150 },
+  { subject: `Core`, A: 99, B: 100, fullMark: 150 },
+  { subject: `Potência`, A: 85, B: 90, fullMark: 150 },
+  { subject: `Resist.`, A: 65, B: 85, fullMark: 150 },
 ];
 
-const DEFAULT_DIET = { title: 'Padrão', kcal: 2500, meals: [{ n: 'Café', t: '08:00', kcal: 500, icon: <Coffee />, items: [{ name: 'Pão c/ Ovo', kcal: 500 }] }] };
-const DAYS_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const DEFAULT_DIET = { title: `Padrão`, kcal: 2500, meals: [{ n: `Café`, t: `08:00`, kcal: 500, icon: <Coffee />, items: [{ name: `Pão c/ Ovo`, kcal: 500 }] }] };
+const DAYS_SHORT = [`Dom`, `Seg`, `Ter`, `Qua`, `Qui`, `Sex`, `Sáb`];
 
 const WEIGHT_HISTORY = [
-  { date: '01/10', weight: 88.5 },
-  { date: '08/10', weight: 87.2 },
-  { date: '15/10', weight: 86.0 },
-  { date: '22/10', weight: 85.1 },
-  { date: '29/10', weight: 84.2 },
+  { date: `01/10`, weight: 88.5 },
+  { date: `08/10`, weight: 87.2 },
+  { date: `15/10`, weight: 86.0 },
+  { date: `22/10`, weight: 85.1 },
+  { date: `29/10`, weight: 84.2 },
 ];
 
 const LIFT_PROGRESS = [
-  { week: 'Sem 1', load: 60 },
-  { week: 'Sem 2', load: 65 },
-  { week: 'Sem 3', load: 72 },
-  { week: 'Sem 4', load: 82 },
+  { week: `Sem 1`, load: 60 },
+  { week: `Sem 2`, load: 65 },
+  { week: `Sem 3`, load: 72 },
+  { week: `Sem 4`, load: 82 },
 ];
 
 const PERSONAL_RECORDS = [
-  { exercise: 'Supino Reto', weight: '100kg', date: 'Ontem', icon: <Dumbbell />, color: 'text-lime-400' },
-  { exercise: 'Agachamento', weight: '140kg', date: '3 dias atrás', icon: <Zap />, color: 'text-blue-400' },
-  { exercise: 'Levantamento Terra', weight: '180kg', date: 'Semana passada', icon: <Flame />, color: 'text-orange-500' },
+  { exercise: `Supino Reto`, weight: `100kg`, date: `Ontem`, icon: <Dumbbell />, color: `text-lime-400` },
+  { exercise: `Agachamento`, weight: `140kg`, date: `3 dias atrás`, icon: <Zap />, color: `text-blue-400` },
+  { exercise: `Levantamento Terra`, weight: `180kg`, date: `Semana passada`, icon: <Flame />, color: `text-orange-500` },
 ];
 
 // --- HELPERS ---
@@ -611,14 +609,14 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
 };
 
 const isYouTubeUrl = (url: string): boolean => {
-  return url?.includes('youtube.com') || url?.includes('youtu.be');
+  return url?.includes(`youtube.com`) || url?.includes(`youtu.be`);
 };
 
 const formatTime = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  return [h, m, s].map(v => (v < 10 ? '0' + v : v)).filter((v, i) => v !== '00' || i > 0).join(':');
+  return [h, m, s].map(v => (v < 10 ? `0` + v : v)).filter((v, i) => v !== `00` || i > 0).join(`:`);
 };
 
 const getBase64FromUrl = async (url: string): Promise<string> => {
@@ -630,7 +628,7 @@ const getBase64FromUrl = async (url: string): Promise<string> => {
       reader.readAsDataURL(blob); 
       reader.onloadend = () => {
         const base64data = reader.result as string;
-        resolve(base64data.split(',')[1]); // remove data:image/jpeg;base64,
+        resolve(base64data.split(`,`)[1]); // remove data:image/jpeg;base64,
       }
     });
   } catch (e) {
@@ -642,15 +640,15 @@ const getBase64FromUrl = async (url: string): Promise<string> => {
 // Helper to extract frames from video for AI Analysis
 const extractFramesFromVideo = async (videoFile: File, numFrames: number = 3): Promise<string[]> => {
   return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    video.preload = 'metadata';
+    const video = document.createElement(`video`);
+    video.preload = `metadata`;
     video.src = URL.createObjectURL(videoFile);
     video.muted = true;
     video.playsInline = true;
 
     const frames: string[] = [];
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement(`canvas`);
+    const ctx = canvas.getContext(`2d`);
 
     video.onloadedmetadata = async () => {
       canvas.width = video.videoWidth / 4; // Resize for quicker AI processing
@@ -663,7 +661,7 @@ const extractFramesFromVideo = async (videoFile: File, numFrames: number = 3): P
         await new Promise(r => { video.onseeked = r; });
         if (ctx) {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          frames.push(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+          frames.push(canvas.toDataURL(`image/jpeg`, 0.7).split(`,`)[1]);
         }
       }
       URL.revokeObjectURL(video.src);
@@ -676,8 +674,8 @@ const extractFramesFromVideo = async (videoFile: File, numFrames: number = 3): P
 // --- BASE UI COMPONENTS ---
 // ... (NavItem, StatCard, CalendarBase remain unchanged)
 const NavItem = ({ icon, label, active, onClick, collapsed, badge }: any) => (
-  <div onClick={onClick} className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer transition-all relative ${active ? 'bg-lime-400 text-black shadow-xl shadow-lime-400/20 scale-[1.02]' : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200'}`}>
-    <div className={`shrink-0 transition-transform ${active ? 'scale-110' : ''}`}>{icon}</div>
+  <div onClick={onClick} className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer transition-all relative ${active ? `bg-lime-400 text-black shadow-xl shadow-lime-400/20 scale-[1.02]` : `text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200`}`}>
+    <div className={`shrink-0 transition-transform ${active ? `scale-110` : ``}`}>{icon}</div>
     {!collapsed && <span className="text-xs font-black uppercase tracking-widest truncate">{label}</span>}
     {badge > 0 && <div className="absolute top-2 right-2 size-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-zinc-950">{badge}</div>}
   </div>
@@ -696,44 +694,44 @@ const StatCard = ({ label, value, trend, color, icon: Icon }: any) => (
 
 const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void }) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [nome, setNome] = useState('');
-  const [nomeAcademia, setNomeAcademia] = useState('');
-  const [selectedRole, setSelectedRole] = useState<Role>('ALUNO');
+  const [email, setEmail] = useState(``);
+  const [senha, setSenha] = useState(``);
+  const [nome, setNome] = useState(``);
+  const [nomeAcademia, setNomeAcademia] = useState(``);
+  const [selectedRole, setSelectedRole] = useState<Role>(`ALUNO`);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(``);
   const { login, register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError(``);
 
     try {
       if (isLogin) {
         const success = await login(email, senha);
         if (!success) {
-          setError('Credenciais inválidas');
+          setError(`Credenciais inválidas`);
         } else {
-          setActiveView('dashboard');
+          setActiveView(`dashboard`);
         }
       } else {
         const success = await register({
           email,
           senha,
           nome,
-          nomeAcademia: selectedRole === 'ADMIN' ? nomeAcademia : undefined,
+          nomeAcademia: selectedRole === `ADMIN` ? nomeAcademia : undefined,
           role: selectedRole
         });
         if (!success) {
-          setError('Erro ao criar conta');
+          setError(`Erro ao criar conta`);
         } else {
-          setActiveView('dashboard');
+          setActiveView(`dashboard`);
         }
       }
     } catch (err) {
-      setError('Erro de conexão');
+      setError(`Erro de conexão`);
     } finally {
       setLoading(false);
     }
@@ -748,7 +746,7 @@ const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void })
               <Dumbbell size={40} strokeWidth={3} />
             </div>
             <h1 className="text-3xl font-black italic uppercase text-white mb-2">FITNESS TECH</h1>
-            <p className="text-zinc-500 font-medium">{isLogin ? 'Entre na sua conta' : 'Criar nova conta'}</p>
+            <p className="text-zinc-500 font-medium">{isLogin ? `Entre na sua conta` : `Criar nova conta`}</p>
           </div>
 
           {error && (
@@ -764,15 +762,15 @@ const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void })
                   Tipo de Conta
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {(['ALUNO', 'PROFESSOR', 'NUTRI', 'ADMIN'] as Role[]).map((role) => (
+                  {([`ALUNO`, `PROFESSOR`, `NUTRI`, `ADMIN`] as Role[]).map((role) => (
                     <button
                       key={role}
                       type="button"
                       onClick={() => setSelectedRole(role)}
                       className={`p-4 rounded-2xl border-2 transition-all font-bold text-sm ${
                         selectedRole === role
-                          ? 'bg-lime-400 text-black border-lime-400'
-                          : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-600'
+                          ? `bg-lime-400 text-black border-lime-400`
+                          : `bg-zinc-950 text-zinc-400 border-zinc-800 hover:border-zinc-600`
                       }`}
                     >
                       {role}
@@ -816,7 +814,7 @@ const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void })
                     className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-white placeholder-zinc-500 outline-none focus:border-lime-400 transition-colors"
                   />
                 </div>
-                {selectedRole === 'ADMIN' && (
+                {selectedRole === `ADMIN` && (
                   <div>
                     <input
                       type="text"
@@ -831,7 +829,7 @@ const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void })
                     </p>
                   </div>
                 )}
-                {selectedRole !== 'ADMIN' && (
+                {selectedRole !== `ADMIN` && (
                   <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                     <p className="text-xs text-zinc-500">
                       <span className="text-lime-400 font-bold">Nota:</span> Para se registrar como {selectedRole}, 
@@ -850,7 +848,7 @@ const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void })
               {loading ? (
                 <Loader2 size={20} className="animate-spin" />
               ) : (
-                isLogin ? 'Entrar' : 'Criar Conta'
+                isLogin ? `Entrar` : `Criar Conta`
               )}
             </button>
           </form>
@@ -860,7 +858,7 @@ const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void })
               onClick={() => setIsLogin(!isLogin)}
               className="text-zinc-500 hover:text-white transition-colors font-medium text-sm"
             >
-              {isLogin ? 'Não tem conta? Registre-se aqui' : 'Já tem conta? Faça login'}
+              {isLogin ? `Não tem conta? Registre-se aqui` : `Já tem conta? Faça login`}
             </button>
           </div>
         </div>
@@ -885,16 +883,16 @@ const UserManagement: React.FC = () => {
 
   const carregarUsuarios = async () => {
     try {
-      const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}
-        headers: { 'Authorization': `Bearer ${token}` }
+      const token = localStorage.getItem(`fitness_token`);
+      const response = await fetch(`${API_URL}/api/admin/usuarios`, {
+        headers: { `Authorization`: `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
         setUsuarios(data);
       }
     } catch (error) {
-      console.error('Erro ao carregar usuários:', error);
+      console.error(`Erro ao carregar usuários:`, error);
     } finally {
       setLoading(false);
     }
@@ -902,27 +900,27 @@ const UserManagement: React.FC = () => {
 
   const carregarInstrutores = async () => {
     try {
-      const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}
-        headers: { 'Authorization': `Bearer ${token}` }
+      const token = localStorage.getItem(`fitness_token`);
+      const response = await fetch(`${API_URL}/api/admin/instrutores`, {
+        headers: { `Authorization`: `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
         setInstrutores(data);
       }
     } catch (error) {
-      console.error('Erro ao carregar instrutores:', error);
+      console.error(`Erro ao carregar instrutores:`, error);
     }
   };
 
   const alternarStatus = async (usuarioId: string, ativo: boolean) => {
     try {
-      const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}
-        method: 'PATCH',
+      const token = localStorage.getItem(`fitness_token`);
+      const response = await fetch(`${API_URL}/api/admin/usuarios/${usuarioId}/status`, {
+        method: `PATCH`,
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          `Authorization`: `Bearer ${token}`,
+          `Content-Type`: `application/json`
         },
         body: JSON.stringify({ ativo: !ativo })
       });
@@ -931,32 +929,32 @@ const UserManagement: React.FC = () => {
         carregarUsuarios();
       }
     } catch (error) {
-      console.error('Erro ao alterar status:', error);
+      console.error(`Erro ao alterar status:`, error);
     }
   };
 
   const vincularInstrutor = async (alunoId: string, instrutorId: string, tipoInstrutor: string) => {
     try {
-      const token = localStorage.getItem('fitness_token');
-      const response = await fetch(`${API_BASE_URL}
-        method: 'POST',
+      const token = localStorage.getItem(`fitness_token`);
+      const response = await fetch(`${API_URL}/api/admin/vinculos`, {
+        method: `POST`,
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          `Authorization`: `Bearer ${token}`,
+          `Content-Type`: `application/json`
         },
         body: JSON.stringify({ alunoId, instrutorId, tipoInstrutor })
       });
       
       if (response.ok) {
         setShowVinculoModal(false);
-        alert('Vínculo criado com sucesso!');
+        alert(`Vínculo criado com sucesso!`);
       } else {
         const error = await response.json();
-        alert(error.erro || 'Erro ao criar vínculo');
+        alert(error.erro || `Erro ao criar vínculo`);
       }
     } catch (error) {
-      console.error('Erro ao vincular instrutor:', error);
-      alert('Erro ao criar vínculo');
+      console.error(`Erro ao vincular instrutor:`, error);
+      alert(`Erro ao criar vínculo`);
     }
   };
 
@@ -968,10 +966,10 @@ const UserManagement: React.FC = () => {
     );
   }
 
-  const alunos = usuarios.filter(u => u.funcao === 'ALUNO');
-  const professores = usuarios.filter(u => u.funcao === 'PROFESSOR');
-  const nutricionistas = usuarios.filter(u => u.funcao === 'NUTRI');
-  const admins = usuarios.filter(u => u.funcao === 'ADMIN');
+  const alunos = usuarios.filter(u => u.funcao === `ALUNO`);
+  const professores = usuarios.filter(u => u.funcao === `PROFESSOR`);
+  const nutricionistas = usuarios.filter(u => u.funcao === `NUTRI`);
+  const admins = usuarios.filter(u => u.funcao === `ADMIN`);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -989,22 +987,22 @@ const UserManagement: React.FC = () => {
         <div className="bg-gradient-to-br from-lime-500/20 to-lime-600/10 p-6 rounded-3xl border border-lime-500/30">
           <Users size={32} className="text-lime-400 mb-2" />
           <p className="text-3xl font-black">{alunos.length}</p>
-          <p className="text-sm text-zinc-400">{alunos.length === 1 ? 'Aluno' : 'Alunos'}</p>
+          <p className="text-sm text-zinc-400">{alunos.length === 1 ? `Aluno` : `Alunos`}</p>
         </div>
         <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 p-6 rounded-3xl border border-blue-500/30">
           <Dumbbell size={32} className="text-blue-400 mb-2" />
           <p className="text-3xl font-black">{professores.length}</p>
-          <p className="text-sm text-zinc-400">{professores.length === 1 ? 'Professor' : 'Professores'}</p>
+          <p className="text-sm text-zinc-400">{professores.length === 1 ? `Professor` : `Professores`}</p>
         </div>
         <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 p-6 rounded-3xl border border-green-500/30">
           <Apple size={32} className="text-green-400 mb-2" />
           <p className="text-3xl font-black">{nutricionistas.length}</p>
-          <p className="text-sm text-zinc-400">{nutricionistas.length === 1 ? 'Nutricionista' : 'Nutricionistas'}</p>
+          <p className="text-sm text-zinc-400">{nutricionistas.length === 1 ? `Nutricionista` : `Nutricionistas`}</p>
         </div>
         <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-purple-500/30">
           <Shield size={32} className="text-purple-400 mb-2" />
           <p className="text-3xl font-black">{admins.length}</p>
-          <p className="text-sm text-zinc-400">{admins.length === 1 ? 'Administrador' : 'Administradores'}</p>
+          <p className="text-sm text-zinc-400">{admins.length === 1 ? `Administrador` : `Administradores`}</p>
         </div>
       </div>
 
@@ -1035,23 +1033,23 @@ const UserManagement: React.FC = () => {
                   <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm">{usuario.email}</td>
                   <td className="p-3 md:p-4">
                     <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase whitespace-nowrap ${
-                      usuario.funcao === 'ADMIN' ? 'bg-purple-500/20 text-purple-400' :
-                      usuario.funcao === 'PROFESSOR' ? 'bg-blue-500/20 text-blue-400' :
-                      usuario.funcao === 'NUTRI' ? 'bg-green-500/20 text-green-400' :
-                      'bg-lime-500/20 text-lime-400'
+                      usuario.funcao === `ADMIN` ? `bg-purple-500/20 text-purple-400` :
+                      usuario.funcao === `PROFESSOR` ? `bg-blue-500/20 text-blue-400` :
+                      usuario.funcao === `NUTRI` ? `bg-green-500/20 text-green-400` :
+                      `bg-lime-500/20 text-lime-400`
                     }`}>
                       {usuario.funcao}
                     </span>
                   </td>
                   <td className="p-3 md:p-4">
                     <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap ${
-                      usuario.ativo ? 'bg-lime-500/20 text-lime-400' : 'bg-red-500/20 text-red-400'
+                      usuario.ativo ? `bg-lime-500/20 text-lime-400` : `bg-red-500/20 text-red-400`
                     }`}>
-                      {usuario.ativo ? 'ATIVO' : 'INATIVO'}
+                      {usuario.ativo ? `ATIVO` : `INATIVO`}
                     </span>
                   </td>
                   <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm whitespace-nowrap">
-                    {new Date(usuario.criadoEm).toLocaleDateString('pt-BR')}
+                    {new Date(usuario.criadoEm).toLocaleDateString(`pt-BR`)}
                   </td>
                   <td className="p-3 md:p-4">
                     <div className="flex gap-2">
@@ -1059,13 +1057,13 @@ const UserManagement: React.FC = () => {
                         onClick={() => alternarStatus(usuario.id, usuario.ativo)}
                         className={`px-2 md:px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-colors whitespace-nowrap ${
                           usuario.ativo 
-                            ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
-                            : 'bg-lime-500/20 text-lime-400 hover:bg-lime-500/30'
+                            ? `bg-red-500/20 text-red-400 hover:bg-red-500/30` 
+                            : `bg-lime-500/20 text-lime-400 hover:bg-lime-500/30`
                         }`}
                       >
-                        {usuario.ativo ? 'Desativar' : 'Ativar'}
+                        {usuario.ativo ? `Desativar` : `Ativar`}
                       </button>
-                      {usuario.funcao === 'ALUNO' && (
+                      {usuario.funcao === `ALUNO` && (
                         <button
                           onClick={() => {
                             setSelectedAluno(usuario);
@@ -1107,7 +1105,7 @@ const UserManagement: React.FC = () => {
                     {professores.map(prof => (
                       <button
                         key={prof.id}
-                        onClick={() => vincularInstrutor(selectedAluno.id, prof.id, 'PROFESSOR')}
+                        onClick={() => vincularInstrutor(selectedAluno.id, prof.id, `PROFESSOR`)}
                         className="w-full p-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-left transition-colors"
                       >
                         <p className="font-semibold">{prof.nome}</p>
@@ -1129,7 +1127,7 @@ const UserManagement: React.FC = () => {
                     {nutricionistas.map(nutri => (
                       <button
                         key={nutri.id}
-                        onClick={() => vincularInstrutor(selectedAluno.id, nutri.id, 'NUTRI')}
+                        onClick={() => vincularInstrutor(selectedAluno.id, nutri.id, `NUTRI`)}
                         className="w-full p-3 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-left transition-colors"
                       >
                         <p className="font-semibold">{nutri.nome}</p>
@@ -1162,7 +1160,7 @@ const CalendarBase = ({ title, sub, selectedDay, setSelectedDay, days, children 
     <header className="flex flex-col lg:flex-row justify-between lg:items-end gap-6">
       <div><h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">{title}</h2><p className="text-zinc-500 font-medium">{sub}</p></div>
       <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-3xl gap-1 shadow-xl overflow-x-auto no-scrollbar">
-        {days.map((day: string, idx: number) => (<button key={idx} onClick={() => setSelectedDay(idx)} className={`min-w-[4.5rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-4 ${selectedDay === idx ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-800'}`}>{day}</button>))}
+        {days.map((day: string, idx: number) => (<button key={idx} onClick={() => setSelectedDay(idx)} className={`min-w-[4.5rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-4 ${selectedDay === idx ? `bg-lime-400 text-black shadow-lg shadow-lime-400/20` : `text-zinc-500 hover:bg-zinc-800`}`}>{day}</button>))}
       </div>
     </header>
     <div className="min-h-[50vh]">{children}</div>
@@ -1173,10 +1171,10 @@ const CalendarBase = ({ title, sub, selectedDay, setSelectedDay, days, children 
 // ... (AIChatWidget remains unchanged)
 const AIChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{role: 'user' | 'model', text: string}[]>([
-    {role: 'model', text: 'Olá! Sou seu AI Coach. Como posso te ajudar hoje com seus treinos ou dieta?'}
+  const [messages, setMessages] = useState<{role: `user` | `model`, text: string}[]>([
+    {role: `model`, text: `Olá! Sou seu AI Coach. Como posso te ajudar hoje com seus treinos ou dieta?`}
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(``);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -1187,8 +1185,8 @@ const AIChatWidget = () => {
   const handleSend = async () => {
     if(!input.trim()) return;
     const userMsg = input;
-    setInput('');
-    setMessages(prev => [...prev, {role: 'user', text: userMsg}]);
+    setInput(``);
+    setMessages(prev => [...prev, {role: `user`, text: userMsg}]);
     setIsLoading(true);
 
     try {
@@ -1197,10 +1195,10 @@ const AIChatWidget = () => {
         parts: [{ text: m.text }]
       }));
       
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const model = genAI.getGenerativeModel({ model: `gemini-2.5-flash` });
       const chat = model.startChat({
         history: history.map(h => ({
-          role: h.role === 'model' ? 'model' : 'user',
+          role: h.role === `model` ? `model` : `user`,
           parts: [{ text: h.parts[0].text }]
         })),
         generationConfig: {
@@ -1210,10 +1208,10 @@ const AIChatWidget = () => {
 
       const result = await chat.sendMessage(userMsg);
       const response = await result.response;
-      setMessages(prev => [...prev, { role: 'model', text: response.text() || "Desculpe, não consegui processar." }]);
+      setMessages(prev => [...prev, { role: `model`, text: response.text() || "Desculpe, não consegui processar." }]);
     } catch (error) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', text: "Erro de conexão com o Coach AI." }]);
+      setMessages(prev => [...prev, { role: `model`, text: "Erro de conexão com o Coach AI." }]);
     } finally {
       setIsLoading(false);
     }
@@ -1222,7 +1220,7 @@ const AIChatWidget = () => {
   return (
     <>
       <button onClick={() => setIsOpen(!isOpen)} className="fixed bottom-6 right-6 md:right-10 z-[100] size-16 bg-lime-400 text-black rounded-[2rem] flex items-center justify-center shadow-2xl hover:scale-110 transition-all border-4 border-zinc-950">
-        <Sparkles size={28} className={isOpen ? 'rotate-90 transition-transform' : ''} />
+        <Sparkles size={28} className={isOpen ? `rotate-90 transition-transform` : ``} />
       </button>
 
       {isOpen && (
@@ -1233,8 +1231,8 @@ const AIChatWidget = () => {
            </div>
            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                   <div className={`max-w-[80%] p-4 rounded-2xl text-xs font-medium leading-relaxed ${m.role === 'user' ? 'bg-zinc-800 text-zinc-200 rounded-br-none' : 'bg-lime-400/10 text-lime-400 rounded-bl-none'}`}>
+                <div key={i} className={`flex ${m.role === `user` ? `justify-end` : `justify-start`}`}>
+                   <div className={`max-w-[80%] p-4 rounded-2xl text-xs font-medium leading-relaxed ${m.role === `user` ? `bg-zinc-800 text-zinc-200 rounded-br-none` : `bg-lime-400/10 text-lime-400 rounded-bl-none`}`}>
                       {m.text}
                    </div>
                 </div>
@@ -1246,7 +1244,7 @@ const AIChatWidget = () => {
               <input 
                 value={input} 
                 onChange={e => setInput(e.target.value)} 
-                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                onKeyDown={e => e.key === `Enter` && handleSend()}
                 placeholder="Pergunte ao Coach..." 
                 className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-xs outline-none focus:border-lime-400 transition-all"
               />
@@ -1302,7 +1300,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
   }, [watchConnected]);
 
   const totalPossibleSets: number = (workout.exercises || []).reduce((acc: number, ex: any) => {
-    const sets = typeof ex.s === 'string' ? parseInt(ex.s) : Number(ex.s);
+    const sets = typeof ex.s === `string` ? parseInt(ex.s) : Number(ex.s);
     return acc + (isNaN(sets) ? 0 : sets);
   }, 0);
   
@@ -1318,13 +1316,13 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
     
     const allCompleted = workout.exercises.every((ex: any) => {
       const completed = exerciseProgress[ex.id] || 0;
-      const required = typeof ex.s === 'string' ? parseInt(ex.s) : Number(ex.s);
+      const required = typeof ex.s === `string` ? parseInt(ex.s) : Number(ex.s);
       return !isNaN(required) && completed >= required;
     });
     
     // Só finaliza se todos estiverem completos E pelo menos uma série foi feita
     if (allCompleted && totalCompletedSets >= totalPossibleSets && totalPossibleSets > 0) {
-      console.log('✅ Todos os exercícios completos! Finalizando treino em 3 segundos...');
+      console.log(`✅ Todos os exercícios completos! Finalizando treino em 3 segundos...`);
       const timer = setTimeout(() => {
         onFinish();
       }, 3000);
@@ -1334,7 +1332,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 
   const handleVoiceGuidance = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR';
+    utterance.lang = `pt-BR`;
     utterance.rate = 1.1;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
@@ -1352,9 +1350,9 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
     try {
       // Extract frames from video for AI analysis
       const frames = await extractFramesFromVideo(file, 3);
-      const parts = frames.map(f => ({ inlineData: { mimeType: 'image/jpeg', data: f } }));
+      const parts = frames.map(f => ({ inlineData: { mimeType: `image/jpeg`, data: f } }));
       
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const model = genAI.getGenerativeModel({ model: `gemini-2.5-flash` });
       const result = await model.generateContent([
         "Analise a técnica deste exercício de musculação baseado nesses frames do vídeo. Identifique erros de postura (como valgo, coluna torta, amplitude) e dê 3 dicas de correção diretas e motivadoras. Responda em português.",
         ...parts
@@ -1414,12 +1412,12 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
           const isExpanded = expandedId === ex.id;
           const isResting = restingExerciseId === ex.id;
           return (
-            <div key={ex.id} className={`bg-zinc-900 border transition-all duration-300 rounded-[2.5rem] overflow-hidden ${isDone ? 'border-zinc-800/50 opacity-50' : isExpanded ? 'border-lime-400/40 shadow-2xl' : 'border-zinc-800 hover:border-zinc-700'}`}>
+            <div key={ex.id} className={`bg-zinc-900 border transition-all duration-300 rounded-[2.5rem] overflow-hidden ${isDone ? `border-zinc-800/50 opacity-50` : isExpanded ? `border-lime-400/40 shadow-2xl` : `border-zinc-800 hover:border-zinc-700`}`}>
               <div className="p-8 flex items-center justify-between cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : ex.id)}>
                 <div className="flex items-center gap-5">
-                  <div className={`size-14 rounded-2xl border-2 flex items-center justify-center transition-all ${isDone ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : isExpanded ? 'bg-lime-400 border-lime-400 text-black shadow-lg' : 'bg-zinc-950 border-zinc-800 text-zinc-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : <span className="text-lg font-black italic tracking-tighter">{idx + 1}</span>}</div>
+                  <div className={`size-14 rounded-2xl border-2 flex items-center justify-center transition-all ${isDone ? `bg-zinc-800 border-zinc-700 text-zinc-500` : isExpanded ? `bg-lime-400 border-lime-400 text-black shadow-lg` : `bg-zinc-950 border-zinc-800 text-zinc-400`}`}>{isDone ? <Check size={28} strokeWidth={4} /> : <span className="text-lg font-black italic tracking-tighter">{idx + 1}</span>}</div>
                   <div>
-                    <h4 className={`font-black italic uppercase tracking-tight text-xl leading-none mb-1.5 ${isDone ? 'line-through text-zinc-600' : ''}`}>{ex.n}</h4>
+                    <h4 className={`font-black italic uppercase tracking-tight text-xl leading-none mb-1.5 ${isDone ? `line-through text-zinc-600` : ``}`}>{ex.n}</h4>
                     <div className="flex items-center gap-3"><span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">{ex.group}</span><div className="size-1 bg-zinc-800 rounded-full" /><span className="text-[10px] font-black uppercase text-lime-400 tracking-widest">{completed} de {ex.s} séries</span></div>
                   </div>
                 </div>
@@ -1451,9 +1449,9 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                       <div className="bg-zinc-950/50 p-6 rounded-3xl border border-zinc-800/50">
                         <div className="flex justify-between items-center mb-3">
                            <p className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2"><BookOpen size={14}/> Técnica</p>
-                           <button onClick={() => handleVoiceGuidance(ex.orientations.join('. '))} className={`flex items-center gap-2 text-[10px] font-black uppercase transition-colors px-3 py-1.5 rounded-lg border ${isSpeaking ? 'bg-lime-400 text-black border-lime-400 animate-pulse' : 'bg-zinc-900 text-lime-400 border-zinc-800 hover:border-lime-400/50'}`}>
+                           <button onClick={() => handleVoiceGuidance(ex.orientations.join(`. `))} className={`flex items-center gap-2 text-[10px] font-black uppercase transition-colors px-3 py-1.5 rounded-lg border ${isSpeaking ? `bg-lime-400 text-black border-lime-400 animate-pulse` : `bg-zinc-900 text-lime-400 border-zinc-800 hover:border-lime-400/50`}`}>
                               {isSpeaking ? <Volume2 size={12} className="animate-bounce"/> : <Volume2 size={12}/>} 
-                              {isSpeaking ? 'Falando...' : 'Ouvir Dicas'}
+                              {isSpeaking ? `Falando...` : `Ouvir Dicas`}
                            </button>
                         </div>
                         <ul className="space-y-2">{ex.orientations.map((item: string, i: number) => (<li key={i} className="text-xs text-zinc-400 italic"><span className="text-lime-400 font-black mr-1">{i+1}.</span> {item}</li>))}</ul>
@@ -1472,7 +1470,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                          <button onClick={() => { 
                            const next = (exerciseProgress[ex.id] || 0) + 1; 
                            setExerciseProgress({...exerciseProgress, [ex.id]: next}); 
-                           const requiredSets = typeof ex.s === 'string' ? parseInt(ex.s) : Number(ex.s);
+                           const requiredSets = typeof ex.s === `string` ? parseInt(ex.s) : Number(ex.s);
                            if(next >= requiredSets) {
                              // Exercício completo - avançar para o próximo
                              const currentIndex = workout.exercises.findIndex((e: any) => e.id === ex.id);
@@ -1484,7 +1482,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                              }
                            } else { 
                              setRestingExerciseId(ex.id); 
-                             setRestSeconds(typeof ex.rest === 'string' ? parseInt(ex.rest) : Number(ex.rest) || 60); 
+                             setRestSeconds(typeof ex.rest === `string` ? parseInt(ex.rest) : Number(ex.rest) || 60); 
                            } 
                          }} className="w-full bg-lime-400 hover:bg-lime-300 text-black py-8 rounded-[2rem] font-black uppercase tracking-widest text-xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-all shadow-lime-400/20"><Zap size={28} fill="currentColor" /> Finalizar Série {completed + 1}</button>
                        )}
@@ -1557,32 +1555,32 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                        
                        {/* Parse e formata o feedback em seções */}
                        <div className="space-y-4">
-                          {postureFeedback.split('\n\n').map((section: string, idx: number) => {
-                             const lines = section.trim().split('\n');
+                          {postureFeedback.split(`\n\n`).map((section: string, idx: number) => {
+                             const lines = section.trim().split(`\n`);
                              const title = lines[0];
-                             const isTitle = title.includes('**') || title.includes(':') || title.match(/^\d+\./);
+                             const isTitle = title.includes(`**`) || title.includes(`:`) || title.match(/^\d+\./);
                              
                              return (
-                                <div key={idx} className={`${isTitle ? 'bg-zinc-900/50 p-4 rounded-xl' : ''}`}>
+                                <div key={idx} className={`${isTitle ? `bg-zinc-900/50 p-4 rounded-xl` : ``}`}>
                                    {isTitle ? (
                                       <>
                                          <h5 className="text-sm font-black uppercase text-lime-400 mb-2 flex items-center gap-2">
-                                            {title.includes('Positivo') || title.includes('✅') ? 
+                                            {title.includes(`Positivo`) || title.includes(`✅`) ? 
                                                <CheckCircle size={16} className="text-green-400"/> : 
-                                             title.includes('Melhoria') || title.includes('Correção') ? 
+                                             title.includes(`Melhoria`) || title.includes(`Correção`) ? 
                                                <AlertTriangle size={16} className="text-orange-400"/> :
-                                             title.includes('Risco') || title.includes('Lesão') ?
+                                             title.includes(`Risco`) || title.includes(`Lesão`) ?
                                                <XCircle size={16} className="text-red-400"/> :
                                                <ChevronRight size={16}/>
                                             }
-                                            {title.replace(/\*\*/g, '').replace(/^\d+\.\s*/, '')}
+                                            {title.replace(/\*\*/g, ``).replace(/^\d+\.\s*/, ``)}
                                          </h5>
                                          {lines.slice(1).map((line: string, i: number) => (
                                             <p key={i} className="text-sm text-zinc-300 leading-relaxed ml-6 mb-1">
-                                               {line.startsWith('-') ? 
+                                               {line.startsWith(`-`) ? 
                                                   <span className="flex items-start gap-2">
                                                      <span className="text-lime-400 mt-1">•</span>
-                                                     <span>{line.replace(/^-\s*/, '')}</span>
+                                                     <span>{line.replace(/^-\s*/, ``)}</span>
                                                   </span> : 
                                                   line
                                                }
@@ -1671,11 +1669,11 @@ const EvolutionView = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] shadow-2xl">
               <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Peso Corporal (kg)</p><h4 className="text-3xl font-black italic text-white">-4.3kg este mês</h4></div><div className="size-12 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center"><Scale size={24} /></div></div>
-              <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={weightHistory}><defs><linearGradient id="colorW" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={4} fill="url(#colorW)" /></AreaChart></ResponsiveContainer></div>
+              <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={weightHistory}><defs><linearGradient id="colorW" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Area type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={4} fill="url(#colorW)" /></AreaChart></ResponsiveContainer></div>
             </div>
             <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] shadow-2xl">
               <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Progressão de Carga (kg)</p><h4 className="text-3xl font-black italic text-blue-400">+22kg total</h4></div><div className="size-12 bg-blue-400/10 text-blue-400 rounded-2xl flex items-center justify-center"><Zap size={24} /></div></div>
-              <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={liftProgress}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
+              <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={liftProgress}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
             </div>
           </div>
           <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-10 rounded-2xl md:rounded-[3rem] shadow-2xl">
@@ -1697,27 +1695,27 @@ const EvolutionView = () => {
 };
 
 const GoalsView = () => {
-  const [activeGoalTab, setActiveGoalTab] = useState('badges');
+  const [activeGoalTab, setActiveGoalTab] = useState(`badges`);
   
   const BADGES = [
-    { id: 1, name: 'Primeiro Treino', desc: 'Complete seu primeiro treino', icon: <Star />, earned: true, earnedDate: '15/Jan' },
-    { id: 2, name: 'Sequência de 7 dias', desc: 'Treinar 7 dias consecutivos', icon: <Flame />, earned: true, earnedDate: '22/Jan' },
-    { id: 3, name: 'Levantador de Peso', desc: 'Levante mais de 100kg', icon: <Zap />, earned: false, progress: 85 },
-    { id: 4, name: 'Cardio Master', desc: 'Complete 50 sessões de cardio', icon: <Heart />, earned: false, progress: 32 },
-    { id: 5, name: 'Transformação', desc: 'Perca 10kg', icon: <TrendingDown />, earned: false, progress: 43 },
-    { id: 6, name: 'Maratonista', desc: 'Corra 42km em uma sessão', icon: <Target />, earned: false, progress: 0 }
+    { id: 1, name: `Primeiro Treino`, desc: `Complete seu primeiro treino`, icon: <Star />, earned: true, earnedDate: `15/Jan` },
+    { id: 2, name: `Sequência de 7 dias`, desc: `Treinar 7 dias consecutivos`, icon: <Flame />, earned: true, earnedDate: `22/Jan` },
+    { id: 3, name: `Levantador de Peso`, desc: `Levante mais de 100kg`, icon: <Zap />, earned: false, progress: 85 },
+    { id: 4, name: `Cardio Master`, desc: `Complete 50 sessões de cardio`, icon: <Heart />, earned: false, progress: 32 },
+    { id: 5, name: `Transformação`, desc: `Perca 10kg`, icon: <TrendingDown />, earned: false, progress: 43 },
+    { id: 6, name: `Maratonista`, desc: `Corra 42km em uma sessão`, icon: <Target />, earned: false, progress: 0 }
   ];
 
   const STREAKS = [
-    { type: 'Treinos Consecutivos', current: 12, best: 25, color: 'text-lime-400', bg: 'bg-lime-400/10' },
-    { type: 'Cardio Semanal', current: 3, best: 7, color: 'text-red-400', bg: 'bg-red-400/10' },
-    { type: 'Meta Calórica', current: 5, best: 14, color: 'text-blue-400', bg: 'bg-blue-400/10' }
+    { type: `Treinos Consecutivos`, current: 12, best: 25, color: `text-lime-400`, bg: `bg-lime-400/10` },
+    { type: `Cardio Semanal`, current: 3, best: 7, color: `text-red-400`, bg: `bg-red-400/10` },
+    { type: `Meta Calórica`, current: 5, best: 14, color: `text-blue-400`, bg: `bg-blue-400/10` }
   ];
 
   const CHALLENGES = [
-    { name: 'Desafio Fevereiro', desc: '20 treinos este mês', progress: 12, total: 20, daysLeft: 8, prize: '1 mês grátis' },
-    { name: 'Mega Transformação', desc: 'Perca 5kg em 2 meses', progress: 2.3, total: 5, daysLeft: 45, prize: 'Kit suplementos' },
-    { name: 'Força Máxima', desc: 'Aumente 15kg no supino', progress: 8, total: 15, daysLeft: 30, prize: 'Consulta nutricional' }
+    { name: `Desafio Fevereiro`, desc: `20 treinos este mês`, progress: 12, total: 20, daysLeft: 8, prize: `1 mês grátis` },
+    { name: `Mega Transformação`, desc: `Perca 5kg em 2 meses`, progress: 2.3, total: 5, daysLeft: 45, prize: `Kit suplementos` },
+    { name: `Força Máxima`, desc: `Aumente 15kg no supino`, progress: 8, total: 15, daysLeft: 30, prize: `Consulta nutricional` }
   ];
 
   return (
@@ -1729,31 +1727,31 @@ const GoalsView = () => {
       
       <div className="flex gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-2">
         <button 
-          onClick={() => setActiveGoalTab('badges')} 
-          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'badges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          onClick={() => setActiveGoalTab(`badges`)} 
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === `badges` ? `bg-lime-400 text-black` : `bg-zinc-800 text-zinc-400`}`}
         >
           BADGES
         </button>
         <button 
-          onClick={() => setActiveGoalTab('streaks')} 
-          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'streaks' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          onClick={() => setActiveGoalTab(`streaks`)} 
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === `streaks` ? `bg-lime-400 text-black` : `bg-zinc-800 text-zinc-400`}`}
         >
           SEQUÊNCIAS
         </button>
         <button 
-          onClick={() => setActiveGoalTab('challenges')} 
-          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'challenges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          onClick={() => setActiveGoalTab(`challenges`)} 
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === `challenges` ? `bg-lime-400 text-black` : `bg-zinc-800 text-zinc-400`}`}
         >
           DESAFIOS
         </button>
       </div>
 
-      {activeGoalTab === 'badges' && (
+      {activeGoalTab === `badges` && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {BADGES.map((badge) => (
-            <div key={badge.id} className={`p-6 rounded-[2rem] border transition-all ${badge.earned ? 'bg-zinc-900 border-lime-400/30' : 'bg-zinc-950 border-zinc-800'}`}>
+            <div key={badge.id} className={`p-6 rounded-[2rem] border transition-all ${badge.earned ? `bg-zinc-900 border-lime-400/30` : `bg-zinc-950 border-zinc-800`}`}>
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl ${badge.earned ? 'bg-lime-400/20 text-lime-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                <div className={`p-3 rounded-xl ${badge.earned ? `bg-lime-400/20 text-lime-400` : `bg-zinc-800 text-zinc-500`}`}>
                   {badge.icon}
                 </div>
                 {badge.earned && <span className="text-xs font-bold text-lime-400 bg-lime-400/10 px-2 py-1 rounded-full">{badge.earnedDate}</span>}
@@ -1776,7 +1774,7 @@ const GoalsView = () => {
         </div>
       )}
 
-      {activeGoalTab === 'streaks' && (
+      {activeGoalTab === `streaks` && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {STREAKS.map((streak, i) => (
             <div key={i} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem]">
@@ -1794,7 +1792,7 @@ const GoalsView = () => {
         </div>
       )}
 
-      {activeGoalTab === 'challenges' && (
+      {activeGoalTab === `challenges` && (
         <div className="space-y-6">
           {CHALLENGES.map((challenge, i) => (
             <div key={i} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem]">
@@ -1809,7 +1807,7 @@ const GoalsView = () => {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-black text-lime-400 mb-1">
-                    {typeof challenge.progress === 'number' ? challenge.progress.toFixed(1) : challenge.progress}
+                    {typeof challenge.progress === `number` ? challenge.progress.toFixed(1) : challenge.progress}
                   </div>
                   <div className="text-xs text-zinc-500">de {challenge.total}</div>
                 </div>
@@ -1844,9 +1842,9 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
   const handleCancel = () => { setTempBiometrics({...biometrics}); setIsEditing(false); };
 
   const mockDevices = [
-    { id: 1, name: 'Apple Watch Series 8', os: '8.8.1 (19U512)', signal: 'Forte', type: 'apple' },
-    { id: 2, name: 'Apple Watch SE', os: '8.7', signal: 'Fraco', type: 'apple' },
-    { id: 3, name: 'Mi Band 7', os: 'N/A', signal: 'Médio', type: 'other' }
+    { id: 1, name: `Apple Watch Series 8`, os: `8.8.1 (19U512)`, signal: `Forte`, type: `apple` },
+    { id: 2, name: `Apple Watch SE`, os: `8.7`, signal: `Fraco`, type: `apple` },
+    { id: 3, name: `Mi Band 7`, os: `N/A`, signal: `Médio`, type: `other` }
   ];
 
   const handleDevicePairing = () => {
@@ -1864,7 +1862,7 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
 
   const selectDevice = (device: any) => {
     setShowDeviceList(false);
-    toggleWatch(true, device.name + ' - ' + device.os);
+    toggleWatch(true, device.name + ` - ` + device.os);
   };
 
   return (
@@ -1883,20 +1881,20 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
               <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Meta</p>{isEditing ? (<select value={tempBiometrics.goal} onChange={(e) => setTempBiometrics({...tempBiometrics, goal: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none appearance-none"><option value="Hipertrofia">Hipertrofia</option><option value="Cutting">Cutting</option><option value="Bulking">Bulking</option></select>) : (<p className="text-xl font-black italic text-lime-400 uppercase tracking-tighter break-words">{biometrics.goal}</p>)}</div>
            </div>
         </section>
-        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-8"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-10 opacity-5"><Trophy size={140} className="text-lime-400" /></div><div className="relative z-10"><p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-4 mb-8"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div><div><p className="text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-6 border-t border-zinc-900 flex justify-between items-end"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-sm font-black italic text-white">15 de Nov, 2024</p></div><button onClick={() => alert('Gerenciar Assinatura\n\nPlano Atual: BLACK VIP\nPróxima cobrança: 15 de Nov, 2024\n\nOpções:\n• Alterar plano\n• Alterar forma de pagamento\n• Cancelar assinatura')} className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 transition-all">Gerenciar</button></div></div></div></section>
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-8"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-10 opacity-5"><Trophy size={140} className="text-lime-400" /></div><div className="relative z-10"><p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-4 mb-8"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div><div><p className="text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-6 border-t border-zinc-900 flex justify-between items-end"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-sm font-black italic text-white">15 de Nov, 2024</p></div><button onClick={() => alert(`Gerenciar Assinatura\n\nPlano Atual: BLACK VIP\nPróxima cobrança: 15 de Nov, 2024\n\nOpções:\n• Alterar plano\n• Alterar forma de pagamento\n• Cancelar assinatura`)} className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 transition-all">Gerenciar</button></div></div></div></section>
       </div>
       <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl">
          <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Settings size={20} className="text-orange-400"/> Configurações</h4>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
             <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
                <div className="flex items-center gap-4"><div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><Bell size={20}/></div><div><p className="text-sm font-black uppercase italic text-zinc-200">Notificações</p><p className="text-[10px] font-bold text-zinc-600">Lembretes diários</p></div></div>
-               <button onClick={() => setNotif(!notif)} className={`w-14 h-8 rounded-full transition-all relative p-1 ${notif ? 'bg-lime-400' : 'bg-zinc-950 border border-zinc-800'}`}><div className={`size-6 rounded-full transition-all ${notif ? 'bg-black translate-x-6' : 'bg-zinc-700'}`} /></button>
+               <button onClick={() => setNotif(!notif)} className={`w-14 h-8 rounded-full transition-all relative p-1 ${notif ? `bg-lime-400` : `bg-zinc-950 border border-zinc-800`}`}><div className={`size-6 rounded-full transition-all ${notif ? `bg-black translate-x-6` : `bg-zinc-700`}`} /></button>
             </div>
             <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
                <div className="flex items-center gap-4"><div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><Smartphone size={20}/></div><div><p className="text-sm font-black uppercase italic text-zinc-200">Dispositivos</p><p className="text-[10px] font-bold text-zinc-600">Apple Health / Watch</p></div></div>
-               <button onClick={handleDevicePairing} disabled={isPairing} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${watchConnected ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 'bg-zinc-950 border border-zinc-800 hover:text-white'}`}>
+               <button onClick={handleDevicePairing} disabled={isPairing} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${watchConnected ? `bg-green-500/20 text-green-500 border border-green-500/30` : `bg-zinc-950 border border-zinc-800 hover:text-white`}`}>
                   {isPairing ? <Loader2 size={12} className="animate-spin"/> : watchConnected ? <Watch size={14}/> : <Plus size={14}/>}
-                  {isPairing ? 'Buscando...' : watchConnected ? `Conectado: ${deviceName || 'Apple Watch'}` : 'Conectar'}
+                  {isPairing ? `Buscando...` : watchConnected ? `Conectado: ${deviceName || `Apple Watch`}` : `Conectar`}
                </button>
             </div>
          </div>
@@ -1919,7 +1917,7 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
                           <p className="text-[10px] font-black text-zinc-500 uppercase">{device.os}</p>
                        </div>
                        <div className="flex items-center gap-2">
-                          <Signal size={14} className={device.signal === 'Forte' ? 'text-green-500' : 'text-orange-500'} />
+                          <Signal size={14} className={device.signal === `Forte` ? `text-green-500` : `text-orange-500`} />
                        </div>
                     </button>
                  ))}
@@ -1935,9 +1933,9 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
 };
 
 const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
-  const [filter, setFilter] = useState('Todos');
-  const categories = ['Todos', 'Suplementos', 'Equipamentos', 'Vestuário'];
-  const filtered = filter === 'Todos' ? products : products.filter((p: Product) => p.category === filter);
+  const [filter, setFilter] = useState(`Todos`);
+  const categories = [`Todos`, `Suplementos`, `Equipamentos`, `Vestuário`];
+  const filtered = filter === `Todos` ? products : products.filter((p: Product) => p.category === filter);
 
   return (
     <div className="animate-in fade-in duration-700 space-y-10 relative">
@@ -1945,7 +1943,7 @@ const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
         <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">Marketplace</h2><p className="text-zinc-500 font-medium">Equipamentos de elite.</p></div>
         <div className="flex items-center gap-2 md:gap-4">
           <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-3xl gap-1 overflow-x-auto no-scrollbar">
-            {categories.map((c) => (<button key={c} onClick={() => setFilter(c)} className={`min-w-[6rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-6 ${filter === c ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-800'}`}>{c}</button>))}
+            {categories.map((c) => (<button key={c} onClick={() => setFilter(c)} className={`min-w-[6rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-6 ${filter === c ? `bg-lime-400 text-black shadow-lg shadow-lime-400/20` : `text-zinc-500 hover:bg-zinc-800`}`}>{c}</button>))}
           </div>
           <button onClick={openCart} className="hidden md:flex bg-zinc-900 border border-zinc-800 h-14 px-6 rounded-3xl items-center gap-4 hover:border-lime-400/40 transition-all text-zinc-400 hover:text-white group cursor-pointer">
             <div className="relative"><ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />{cartCount > 0 && <div className="absolute -top-2 -right-2 size-4 bg-lime-400 text-black text-[9px] font-black rounded-full flex items-center justify-center">{cartCount}</div>}</div>
@@ -2000,9 +1998,9 @@ const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
 
 const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: number, onGenerateDiet: (d: any) => void }) => {
   const [completedMeals, setCompletedMeals] = useState<number[]>([]);
-  const [substitutionModal, setSubstitutionModal] = useState<{ isOpen: boolean, original: string, options: string[] }>({ isOpen: false, original: '', options: [] });
+  const [substitutionModal, setSubstitutionModal] = useState<{ isOpen: boolean, original: string, options: string[] }>({ isOpen: false, original: ``, options: [] });
   const [showAI, setShowAI] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState({ kcal: '2000', type: 'Equilibrada', restrictions: 'Sem restrições' });
+  const [aiPrompt, setAiPrompt] = useState({ kcal: `2000`, type: `Equilibrada`, restrictions: `Sem restrições` });
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
@@ -2047,16 +2045,16 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
           ]
         }`;
 
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: `gemini-2.5-flash` });
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text() || "{}";
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const jsonStr = text.replace(/```json/g, ``).replace(/```/g, ``).trim();
         const generated = JSON.parse(jsonStr);
         
         const mealsWithIcons = generated.meals.map((m: any) => ({
             ...m,
-            icon: m.n.toLowerCase().includes('café') ? <Coffee/> : m.n.toLowerCase().includes('almoço') ? <Sun/> : <Moon/>
+            icon: m.n.toLowerCase().includes(`café`) ? <Coffee/> : m.n.toLowerCase().includes(`almoço`) ? <Sun/> : <Moon/>
         }));
 
         onGenerateDiet({ ...generated, meals: mealsWithIcons });
@@ -2102,12 +2100,12 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
            {diet.meals.map((meal: any, idx: number) => {
              const isDone = completedMeals.includes(idx);
              return (
-               <div key={idx} onClick={() => toggleMeal(idx)} className={`group relative bg-zinc-900 border cursor-pointer rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 transition-all duration-300 active:scale-[0.98] ${isDone ? 'border-lime-400/30 bg-lime-400/5' : 'border-zinc-800 hover:border-zinc-700 hover:shadow-lg hover:shadow-lime-400/10'}`}>
-                  <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 shadow-lg border transition-all duration-500 ${isDone ? 'bg-lime-400 border-lime-400 text-black rotate-12' : 'bg-zinc-950 border-zinc-800 text-blue-400 group-hover:border-lime-400/30 group-hover:text-lime-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : meal.icon}</div>
+               <div key={idx} onClick={() => toggleMeal(idx)} className={`group relative bg-zinc-900 border cursor-pointer rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 transition-all duration-300 active:scale-[0.98] ${isDone ? `border-lime-400/30 bg-lime-400/5` : `border-zinc-800 hover:border-zinc-700 hover:shadow-lg hover:shadow-lime-400/10`}`}>
+                  <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 shadow-lg border transition-all duration-500 ${isDone ? `bg-lime-400 border-lime-400 text-black rotate-12` : `bg-zinc-950 border-zinc-800 text-blue-400 group-hover:border-lime-400/30 group-hover:text-lime-400`}`}>{isDone ? <Check size={28} strokeWidth={4} /> : meal.icon}</div>
                   <div className="flex-1">
-                     <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-2"><h4 className={`text-lg md:text-xl font-black italic uppercase tracking-tight ${isDone ? 'text-zinc-500 line-through' : 'text-white group-hover:text-lime-400 transition-colors'}`}>{meal.n} {!isDone && <span className="text-[9px] text-zinc-600 group-hover:text-lime-400/50 font-normal ml-2">· Clique para marcar</span>}</h4><div className="flex gap-3"><span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{meal.t}</span><span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? 'bg-lime-400 text-black' : 'bg-blue-500/20 text-blue-400'}`}>{meal.kcal} kcal</span></div></div>
+                     <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-2"><h4 className={`text-lg md:text-xl font-black italic uppercase tracking-tight ${isDone ? `text-zinc-500 line-through` : `text-white group-hover:text-lime-400 transition-colors`}`}>{meal.n} {!isDone && <span className="text-[9px] text-zinc-600 group-hover:text-lime-400/50 font-normal ml-2">· Clique para marcar</span>}</h4><div className="flex gap-3"><span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{meal.t}</span><span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? `bg-lime-400 text-black` : `bg-blue-500/20 text-blue-400`}`}>{meal.kcal} kcal</span></div></div>
                      <div className="grid grid-cols-1 gap-3">{meal.items.map((item: any, i: number) => (
-                       <div key={i} onClick={(e) => handleFoodClick(e, item.name)} className={`p-4 rounded-2xl flex justify-between items-center border hover:border-lime-400/50 transition-colors ${isDone ? 'bg-zinc-950/30 border-zinc-800/50 opacity-60' : 'bg-zinc-950 border-zinc-800'}`}>
+                       <div key={i} onClick={(e) => handleFoodClick(e, item.name)} className={`p-4 rounded-2xl flex justify-between items-center border hover:border-lime-400/50 transition-colors ${isDone ? `bg-zinc-950/30 border-zinc-800/50 opacity-60` : `bg-zinc-950 border-zinc-800`}`}>
                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-2">{item.name} {Object.keys(FOOD_SUBSTITUTIONS).some(k => item.name.includes(k)) && <RefreshCw size={10} className="text-lime-400"/>}</span>
                          <span className="text-[9px] font-black uppercase text-zinc-600">{item.kcal} kcal</span>
                        </div>
@@ -2121,13 +2119,13 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
           <h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-8">Macros</h4>
           {(() => {
             const macros = diet.macros ? [
-              { name: 'Proteínas', value: diet.macros.protein || 30, fill: '#D9FF00' },
-              { name: 'Carboidratos', value: diet.macros.carbs || 50, fill: '#3b82f6' },
-              { name: 'Gorduras', value: diet.macros.fat || 20, fill: '#f97316' }
+              { name: `Proteínas`, value: diet.macros.protein || 30, fill: `#D9FF00` },
+              { name: `Carboidratos`, value: diet.macros.carbs || 50, fill: `#3b82f6` },
+              { name: `Gorduras`, value: diet.macros.fat || 20, fill: `#f97316` }
             ] : [
-              { name: 'Proteínas', value: 30, fill: '#D9FF00' },
-              { name: 'Carboidratos', value: 50, fill: '#3b82f6' },
-              { name: 'Gorduras', value: 20, fill: '#f97316' }
+              { name: `Proteínas`, value: 30, fill: `#D9FF00` },
+              { name: `Carboidratos`, value: 50, fill: `#3b82f6` },
+              { name: `Gorduras`, value: 20, fill: `#f97316` }
             ];
             
             return (
@@ -2135,7 +2133,7 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} />
+                      <Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem`, fontSize: `12px`, fontWeight: `bold` }} itemStyle={{ color: `#fff` }} />
                       <Pie data={macros} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">
                         {macros.map((e, i) => <Cell key={i} fill={e.fill} />)}
                       </Pie>
@@ -2186,7 +2184,7 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Restrições / Preferências</label><input placeholder="Ex: Sem glúten, barato, rápido de fazer..." value={aiPrompt.restrictions} onChange={e => setAiPrompt({...aiPrompt, restrictions: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
                   <button onClick={generateDiet} disabled={isGenerating} className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                     {isGenerating ? <Loader2 className="animate-spin"/> : <Sparkles size={18}/>} 
-                    {isGenerating ? 'Criando Plano...' : 'Gerar Dieta'}
+                    {isGenerating ? `Criando Plano...` : `Gerar Dieta`}
                   </button>
                </div>
             </div>
@@ -2214,7 +2212,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
   // Carregar dados do aluno quando componente montar
   useEffect(() => {
     const carregarDadosAluno = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem(`token`);
       if (!token) return;
       
       try {
@@ -2237,7 +2235,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
         setNotificacoes(notifs);
         
       } catch (error) {
-        console.error('Erro ao carregar dados do aluno:', error);
+        console.error(`Erro ao carregar dados do aluno:`, error);
       }
     };
     
@@ -2245,33 +2243,33 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
   }, []);
 
   // Se estiver na view de treino ativo, mostrar a sessão
-  if (view === 'active-workout' && activeSession) {
-    return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); setView('dashboard'); }} onClose={() => setView('dashboard')} watchConnected={watchConnected} connectedDeviceName={deviceName} />;
+  if (view === `active-workout` && activeSession) {
+    return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); setView(`dashboard`); }} onClose={() => setView(`dashboard`)} watchConnected={watchConnected} connectedDeviceName={deviceName} />;
   }
 
   // Se treino foi finalizado, mostrar tela de finalização
   if (sessionFinished) {
-    return <FinishedSessionView totalTime={activeSessionTime} reset={() => { setSessionFinished(false); setActiveSessionTime(0); setView('dashboard'); }} />;
+    return <FinishedSessionView totalTime={activeSessionTime} reset={() => { setSessionFinished(false); setActiveSessionTime(0); setView(`dashboard`); }} />;
   }
 
   const handleStartWorkout = (workout: any) => {
     setActiveSession(workout);
-    setView('active-workout');
+    setView(`active-workout`);
   };
 
   return (
     <>
       {/* Indicador flutuante de treino ativo */}
-      {activeSession && view !== 'active-workout' && (
+      {activeSession && view !== `active-workout` && (
         <div className="fixed bottom-6 left-6 z-[100] animate-in slide-in-from-bottom duration-500">
           <button 
-            onClick={() => setView('active-workout')} 
+            onClick={() => setView(`active-workout`)} 
             className="bg-lime-400 text-black px-6 py-4 rounded-2xl shadow-2xl shadow-lime-400/30 flex items-center gap-4 hover:scale-105 transition-all border-4 border-zinc-950"
           >
             <div className="size-3 bg-red-500 rounded-full animate-pulse" />
             <div className="flex flex-col items-start">
               <span className="text-[10px] font-black uppercase tracking-widest">Treino Ativo</span>
-              <span className="text-lg font-black italic">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</span>
+              <span className="text-lg font-black italic">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, `0`)}</span>
             </div>
             <Play size={20} fill="currentColor" />
           </button>
@@ -2281,7 +2279,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
       <div className="w-full min-h-screen">
         {(() => {
           switch (view) {
-    case 'dashboard':
+    case `dashboard`:
       // Pegar treino de hoje do histórico real
       const hoje = new Date();
       const treinoHoje = historicoTreinos.find(t => {
@@ -2290,10 +2288,10 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
       });
       
       const todayWorkout = treinoHoje ? treinoHoje.plano : {
-         name: 'Treino não definido',
+         name: `Treino não definido`,
          duration: 45,
          exercises: [],
-         difficulty: 'medium'
+         difficulty: `medium`
       };
       return (
         <div className="space-y-12 animate-in fade-in duration-700">
@@ -2318,10 +2316,10 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
                  <div className="flex items-center gap-6">
                    <div className="text-center">
                      <p className="text-[10px] font-black uppercase text-zinc-500 mb-1">Tempo Decorrido</p>
-                     <p className="text-4xl font-black italic text-lime-400 tracking-tighter">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</p>
+                     <p className="text-4xl font-black italic text-lime-400 tracking-tighter">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, `0`)}</p>
                    </div>
                    <button 
-                     onClick={() => setView('active-workout')} 
+                     onClick={() => setView(`active-workout`)} 
                      className="bg-lime-400 hover:bg-lime-300 text-black px-8 py-4 rounded-2xl font-black uppercase text-sm flex items-center gap-3 shadow-xl transition-all hover:scale-105"
                    >
                      <Play size={20} fill="currentColor" />
@@ -2341,7 +2339,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-3">
                  <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter">Treino de Hoje</h3>
                  <button 
-                    onClick={() => setView('workouts')} 
+                    onClick={() => setView(`workouts`)} 
                     className="text-lime-400 hover:text-lime-300 font-black uppercase text-[10px] md:text-xs flex items-center gap-2"
                  >
                     Ver Todos <ChevronRight size={16}/>
@@ -2357,7 +2355,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
                     <h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3>
                     <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-6">Foque na recuperação</p>
                     <button 
-                       onClick={() => setView('workouts')} 
+                       onClick={() => setView(`workouts`)} 
                        className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-xs"
                     >
                        Ver Outros Treinos
@@ -2367,9 +2365,9 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
            </section>
         </div>
       );
-    case 'workouts':
+    case `workouts`:
        // Pegar treino do dia selecionado do histórico real
-       const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+       const diasSemana = [`domingo`, `segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`];
        const diaSelecionado = diasSemana[selectedDayWorkout];
        
        const treinoDodia = historicoTreinos.find(t => {
@@ -2387,11 +2385,11 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
                    <div className="size-3 bg-red-500 rounded-full animate-pulse" />
                    <div>
                      <h3 className="text-lg font-black italic uppercase tracking-tight text-lime-400">Treino Ativo: {activeSession.title}</h3>
-                     <p className="text-2xl font-black italic text-lime-400">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</p>
+                     <p className="text-2xl font-black italic text-lime-400">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, `0`)}</p>
                    </div>
                  </div>
                  <button 
-                   onClick={() => setView('active-workout')} 
+                   onClick={() => setView(`active-workout`)} 
                    className="bg-lime-400 hover:bg-lime-300 text-black px-6 py-3 rounded-xl font-black uppercase text-xs flex items-center gap-2 shadow-xl transition-all"
                  >
                    <Play size={16} fill="currentColor" />
@@ -2411,9 +2409,9 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
            </CalendarBase>
          </>
        );
-    case 'diet':
+    case `diet`:
        // Pegar dieta do dia selecionado do histórico real
-       const diasSemanaDieta = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+       const diasSemanaDieta = [`domingo`, `segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`];
        const diaSelecionadoDieta = diasSemanaDieta[selectedDayDiet];
        
        const dietaDoDia = historicoDietas.find(d => {
@@ -2436,11 +2434,11 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
            <NutritionView diet={currentDiet} dayIdx={selectedDayDiet} onGenerateDiet={(newDiet: any) => setDietPlans({...dietPlans, [`${1}_${selectedDayDiet}`]: newDiet})} />
          </CalendarBase>
        );
-    case 'store':
+    case `store`:
        return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
-    case 'evolution': return <EvolutionView />;
-    case 'goals': return <GoalsView />;
-    case 'profile': return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={toggleWatch} deviceName={deviceName} />;
+    case `evolution`: return <EvolutionView />;
+    case `goals`: return <GoalsView />;
+    case `profile`: return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={toggleWatch} deviceName={deviceName} />;
     default: return null;
           }
         })()}
@@ -2451,32 +2449,32 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
 
 const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, onRemoveTemplate, user, academia }: any) => {
    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-   const [subView, setSubView] = useState<string>('overview'); // overview, workouts, assessments, performance, schedule, chat
+   const [subView, setSubView] = useState<string>(`overview`); // overview, workouts, assessments, performance, schedule, chat
    const [showCreateWorkout, setShowCreateWorkout] = useState(false);
    const [showAssessment, setShowAssessment] = useState(false);
    const [showNewStudent, setShowNewStudent] = useState(false);
    
    // Form states
-   const [newStudentForm, setNewStudentForm] = useState({ name: '', email: '', phone: '', plan: 'Básico Semanal', goal: 'Hipertrofia' });
-   const [newTemplateForm, setNewTemplateForm] = useState({ title: '', category: '' });
-   const [newScheduleForm, setNewScheduleForm] = useState({ studentId: '', type: 'Personal Training', date: '', time: '', notes: '' });
-   const [newAssessmentForm, setNewAssessmentForm] = useState({ weight: '', bodyFat: '', muscle: '', water: '', chest: '', waist: '', arm: '', leg: '' });
+   const [newStudentForm, setNewStudentForm] = useState({ name: ``, email: ``, phone: ``, plan: `Básico Semanal`, goal: `Hipertrofia` });
+   const [newTemplateForm, setNewTemplateForm] = useState({ title: ``, category: `` });
+   const [newScheduleForm, setNewScheduleForm] = useState({ studentId: ``, type: `Personal Training`, date: ``, time: ``, notes: `` });
+   const [newAssessmentForm, setNewAssessmentForm] = useState({ weight: ``, bodyFat: ``, muscle: ``, water: ``, chest: ``, waist: ``, arm: ``, leg: `` });
    const [showNewTemplate, setShowNewTemplate] = useState(false);
    const [showNewSchedule, setShowNewSchedule] = useState(false);
    const [selectedDate, setSelectedDate] = useState(new Date());
    
    // Mock data para demonstração
    const [assessments, setAssessments] = useState<any[]>([
-      { id: 1, studentId: 1, date: '2024-01-15', weight: 88.5, bodyFat: 18.2, muscle: 38.1, water: 58.3, chest: 105, waist: 88, arm: 38, leg: 62 },
-      { id: 2, studentId: 1, date: '2024-02-01', weight: 87.2, bodyFat: 17.1, muscle: 39.2, water: 59.1, chest: 106, waist: 86, arm: 39, leg: 63 },
+      { id: 1, studentId: 1, date: `2024-01-15`, weight: 88.5, bodyFat: 18.2, muscle: 38.1, water: 58.3, chest: 105, waist: 88, arm: 38, leg: 62 },
+      { id: 2, studentId: 1, date: `2024-02-01`, weight: 87.2, bodyFat: 17.1, muscle: 39.2, water: 59.1, chest: 106, waist: 86, arm: 39, leg: 63 },
    ]);
    
    const [schedules, setSchedules] = useState<any[]>([]);
    const [loadingSchedules, setLoadingSchedules] = useState(false);
 
    const [chatMessages, setChatMessages] = useState<any[]>([
-      { id: 1, from: 'teacher', text: 'Como foi o treino de hoje?', time: '10:30' },
-      { id: 2, from: 'student', text: 'Muito bom! Consegui aumentar a carga no supino 💪', time: '10:35' },
+      { id: 1, from: `teacher`, text: `Como foi o treino de hoje?`, time: `10:30` },
+      { id: 2, from: `student`, text: `Muito bom! Consegui aumentar a carga no supino 💪`, time: `10:35` },
    ]);
 
    // Carregar agendamentos ao montar o componente
@@ -2487,11 +2485,11 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
    const loadSchedules = async () => {
       try {
          setLoadingSchedules(true);
-         const { scheduleAPI } = await import('./src/api');
+         const { scheduleAPI } = await import(`./src/api`);
          const data = await scheduleAPI.getAll();
          setSchedules(data);
       } catch (err) {
-         console.error('Erro ao carregar agendamentos:', err);
+         console.error(`Erro ao carregar agendamentos:`, err);
       } finally {
          setLoadingSchedules(false);
       }
@@ -2501,12 +2499,12 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
       e.preventDefault();
       
       if (!newScheduleForm.studentId || !newScheduleForm.date || !newScheduleForm.time) {
-         alert('Preencha todos os campos obrigatórios');
+         alert(`Preencha todos os campos obrigatórios`);
          return;
       }
 
       try {
-         const { scheduleAPI } = await import('./src/api');
+         const { scheduleAPI } = await import(`./src/api`);
          await scheduleAPI.create({
             alunoId: newScheduleForm.studentId,
             data: newScheduleForm.date,
@@ -2515,44 +2513,44 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             observacoes: newScheduleForm.notes
          });
          
-         alert('Agendamento criado com sucesso!');
-         setNewScheduleForm({ studentId: '', type: 'Personal Training', date: '', time: '', notes: '' });
+         alert(`Agendamento criado com sucesso!`);
+         setNewScheduleForm({ studentId: ``, type: `Personal Training`, date: ``, time: ``, notes: `` });
          setShowNewSchedule(false);
          loadSchedules();
       } catch (err: any) {
-         console.error('Erro ao criar agendamento:', err);
-         alert('Erro ao criar agendamento: ' + (err.message || 'Erro desconhecido'));
+         console.error(`Erro ao criar agendamento:`, err);
+         alert(`Erro ao criar agendamento: ` + (err.message || `Erro desconhecido`));
       }
    };
 
    const handleUpdateScheduleStatus = async (scheduleId: string, newStatus: string) => {
       try {
-         const { scheduleAPI } = await import('./src/api');
+         const { scheduleAPI } = await import(`./src/api`);
          await scheduleAPI.update(scheduleId, { status: newStatus });
          loadSchedules();
       } catch (err) {
-         console.error('Erro ao atualizar status:', err);
-         alert('Erro ao atualizar status do agendamento');
+         console.error(`Erro ao atualizar status:`, err);
+         alert(`Erro ao atualizar status do agendamento`);
       }
    };
 
    const handleDeleteSchedule = async (scheduleId: string) => {
-      if (!confirm('Tem certeza que deseja deletar este agendamento?')) return;
+      if (!confirm(`Tem certeza que deseja deletar este agendamento?`)) return;
       
       try {
-         const { scheduleAPI } = await import('./src/api');
+         const { scheduleAPI } = await import(`./src/api`);
          await scheduleAPI.delete(scheduleId);
          loadSchedules();
       } catch (err) {
-         console.error('Erro ao deletar agendamento:', err);
-         alert('Erro ao deletar agendamento');
+         console.error(`Erro ao deletar agendamento:`, err);
+         alert(`Erro ao deletar agendamento`);
       }
    };
 
    if (selectedStudent) {
       return (<>
          <div className="animate-in fade-in slide-in-from-right duration-500 space-y-8">
-            <button onClick={() => { setSelectedStudent(null); setSubView('overview'); }} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4"><ArrowLeft size={20}/><span className="text-xs font-black uppercase">Voltar</span></button>
+            <button onClick={() => { setSelectedStudent(null); setSubView(`overview`); }} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4"><ArrowLeft size={20}/><span className="text-xs font-black uppercase">Voltar</span></button>
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                <div className="flex items-center gap-6">
@@ -2574,21 +2572,21 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
 
             <div className="flex gap-2 overflow-x-auto no-scrollbar bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl">
                {[
-                  { id: 'overview', label: 'Visão Geral', icon: <LayoutDashboard size={16}/> },
-                  { id: 'workouts', label: 'Treinos', icon: <Dumbbell size={16}/> },
-                  { id: 'assessments', label: 'Avaliações', icon: <ClipboardList size={16}/> },
-                  { id: 'historico', label: 'Histórico', icon: <History size={16}/> },
-                  { id: 'performance', label: 'Performance', icon: <TrendingUp size={16}/> },
-                  { id: 'schedule', label: 'Agenda', icon: <Calendar size={16}/> },
-                  { id: 'chat', label: 'Chat', icon: <MessageCircle size={16}/> },
+                  { id: `overview`, label: `Visão Geral`, icon: <LayoutDashboard size={16}/> },
+                  { id: `workouts`, label: `Treinos`, icon: <Dumbbell size={16}/> },
+                  { id: `assessments`, label: `Avaliações`, icon: <ClipboardList size={16}/> },
+                  { id: `historico`, label: `Histórico`, icon: <History size={16}/> },
+                  { id: `performance`, label: `Performance`, icon: <TrendingUp size={16}/> },
+                  { id: `schedule`, label: `Agenda`, icon: <Calendar size={16}/> },
+                  { id: `chat`, label: `Chat`, icon: <MessageCircle size={16}/> },
                ].map(tab => (
-                  <button key={tab.id} onClick={() => setSubView(tab.id)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap ${subView === tab.id ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}>
+                  <button key={tab.id} onClick={() => setSubView(tab.id)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap ${subView === tab.id ? `bg-lime-400 text-black` : `text-zinc-500 hover:text-white`}`}>
                      {tab.icon} {tab.label}
                   </button>
                ))}
             </div>
 
-            {subView === 'overview' && (
+            {subView === `overview` && (
                <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                      <StatCard label="Frequência" value={`${100 - (selectedStudent.daysAbsent * 10)}%`} color="text-lime-400" icon={Activity} />
@@ -2619,7 +2617,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                                     <p className="font-black text-sm">{schedule.type}</p>
                                     <p className="text-[10px] text-zinc-500 font-bold">{schedule.date} às {schedule.time}</p>
                                  </div>
-                                 <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${schedule.status === 'confirmed' ? 'bg-green-500/20 text-green-500' : 'bg-orange-500/20 text-orange-500'}`}>{schedule.status === 'confirmed' ? 'Confirmado' : 'Pendente'}</span>
+                                 <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${schedule.status === `confirmed` ? `bg-green-500/20 text-green-500` : `bg-orange-500/20 text-orange-500`}`}>{schedule.status === `confirmed` ? `Confirmado` : `Pendente`}</span>
                               </div>
                            ))}
                         </div>
@@ -2628,13 +2626,13 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                </div>
             )}
 
-            {subView === 'workouts' && (
+            {subView === `workouts` && (
                <div className="space-y-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-2xl font-black italic uppercase mb-6">Treinos Prescritos</h3>
                      <div className="grid gap-4">
                         {DAYS_SHORT.map((day, idx) => {
-                           const diasSemanaTreino = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+                           const diasSemanaTreino = [`domingo`, `segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`];
                            const diaNome = diasSemanaTreino[idx];
                            
                            // Pegar treino mais recente para este dia
@@ -2643,13 +2641,13 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                            );
                            
                            const workout = treinoMaisRecente ? {
-                              title: treinoMaisRecente.plano[diaNome]?.[0]?.nome || 'Treino',
+                              title: treinoMaisRecente.plano[diaNome]?.[0]?.nome || `Treino`,
                               exercises: treinoMaisRecente.plano[diaNome] || [],
-                              duration: '45-60min'
+                              duration: `45-60min`
                            } : {
-                              title: 'Sem treino',
+                              title: `Sem treino`,
                               exercises: [],
-                              duration: '0min'
+                              duration: `0min`
                            };
                            return (
                               <div key={idx} className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl">
@@ -2668,7 +2666,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                </div>
             )}
 
-            {subView === 'assessments' && (
+            {subView === `assessments` && (
                <div className="space-y-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <div className="flex justify-between items-center mb-6">
@@ -2698,7 +2696,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                            <div key={assessment.id} className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl">
                               <div className="flex justify-between items-start mb-6">
                                  <div>
-                                    <h4 className="font-black text-lg">{new Date(assessment.date).toLocaleDateString('pt-BR')}</h4>
+                                    <h4 className="font-black text-lg">{new Date(assessment.date).toLocaleDateString(`pt-BR`)}</h4>
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase">Avaliação Física Completa</p>
                                  </div>
                               </div>
@@ -2722,7 +2720,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                </div>
             )}
 
-            {subView === 'historico' && (
+            {subView === `historico` && (
                <div className="space-y-6">
                   {/* Histórico de Treinos */}
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
@@ -2748,9 +2746,9 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                                           <div className="flex items-center gap-4 mt-2">
                                              <p className="text-xs text-zinc-500 font-bold uppercase">📅 {treino.data}</p>
                                              <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                                treino.tipo === 'ia' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+                                                treino.tipo === `ia` ? `bg-purple-500/20 text-purple-400` : `bg-blue-500/20 text-blue-400`
                                              }`}>
-                                                {treino.tipo === 'ia' ? '🤖 IA' : '✋ Manual'}
+                                                {treino.tipo === `ia` ? `🤖 IA` : `✋ Manual`}
                                              </span>
                                           </div>
                                        </div>
@@ -2801,16 +2799,16 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                                           <div className="flex items-center gap-4 mt-2">
                                              <p className="text-xs text-zinc-500 font-bold uppercase">📅 {dieta.data}</p>
                                              <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                                dieta.tipo === 'ia' ? 'bg-purple-500/20 text-purple-400' : 'bg-green-500/20 text-green-400'
+                                                dieta.tipo === `ia` ? `bg-purple-500/20 text-purple-400` : `bg-green-500/20 text-green-400`
                                              }`}>
-                                                {dieta.tipo === 'ia' ? '🤖 IA' : '✋ Manual'}
+                                                {dieta.tipo === `ia` ? `🤖 IA` : `✋ Manual`}
                                              </span>
                                           </div>
                                        </div>
                                        <div className="text-right">
                                           <p className="text-[10px] text-zinc-600 uppercase font-bold">Objetivo Calórico</p>
                                           <p className="text-xl font-black text-white">
-                                             {dieta.plano.objetivoCalorico || 'N/D'}
+                                             {dieta.plano.objetivoCalorico || `N/D`}
                                           </p>
                                        </div>
                                     </div>
@@ -2830,26 +2828,26 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                </div>
             )}
 
-            {subView === 'performance' && (
+            {subView === `performance` && (
                <div className="space-y-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Evolução de Peso</h3>
-                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}), peso: a.weight }))}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="peso" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
+                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString(`pt-BR`, {day: `2-digit`, month: `2-digit`}), peso: a.weight }))}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Line type="monotone" dataKey="peso" stroke="#D9FF00" strokeWidth={3} dot={{ fill: `#D9FF00`, r: 5 }} /></LineChart></ResponsiveContainer></div>
                      </div>
                      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Composição Corporal</h3>
-                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}), gordura: a.bodyFat, musculo: a.muscle }))}><defs><linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient><linearGradient id="colorMuscle" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="gordura" stroke="#f97316" strokeWidth={2} fill="url(#colorFat)" /><Area type="monotone" dataKey="musculo" stroke="#D9FF00" strokeWidth={2} fill="url(#colorMuscle)" /></AreaChart></ResponsiveContainer></div>
+                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString(`pt-BR`, {day: `2-digit`, month: `2-digit`}), gordura: a.bodyFat, musculo: a.muscle }))}><defs><linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient><linearGradient id="colorMuscle" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Area type="monotone" dataKey="gordura" stroke="#f97316" strokeWidth={2} fill="url(#colorFat)" /><Area type="monotone" dataKey="musculo" stroke="#D9FF00" strokeWidth={2} fill="url(#colorMuscle)" /></AreaChart></ResponsiveContainer></div>
                      </div>
                   </div>
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Progressão de Carga (Supino Reto)</h3>
-                     <div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={LIFT_PROGRESS}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
+                     <div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={LIFT_PROGRESS}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
                   </div>
                </div>
             )}
 
-            {subView === 'schedule' && (
+            {subView === `schedule` && (
                <div className="space-y-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <div className="flex justify-between items-center mb-6">
@@ -2875,8 +2873,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                                     </div>
                                  </div>
                                  <div className="flex items-center gap-4">
-                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${schedule.status === 'confirmed' ? 'bg-green-500/20 text-green-500' : 'bg-orange-500/20 text-orange-500'}`}>
-                                       {schedule.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
+                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase ${schedule.status === `confirmed` ? `bg-green-500/20 text-green-500` : `bg-orange-500/20 text-orange-500`}`}>
+                                       {schedule.status === `confirmed` ? `Confirmado` : `Pendente`}
                                     </span>
                                     <div className="flex gap-2">
                                        <button className="size-10 bg-green-500/20 text-green-500 rounded-xl flex items-center justify-center hover:bg-green-500/30 transition-all">
@@ -2903,8 +2901,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                </div>
             )}
 
-            {subView === 'chat' && (
-               <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] overflow-hidden" style={{height: '500px'}}>
+            {subView === `chat` && (
+               <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] overflow-hidden" style={{height: `500px`}}>
                   <div className="h-full flex flex-col">
                      <div className="p-6 border-b border-zinc-800 flex items-center gap-4">
                         <div className="size-12 bg-lime-400/10 text-lime-400 rounded-xl flex items-center justify-center"><MessageCircle size={20}/></div>
@@ -2912,8 +2910,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      </div>
                      <div className="flex-1 overflow-y-auto p-6 space-y-4">
                         {chatMessages.map(msg => (
-                           <div key={msg.id} className={`flex ${msg.from === 'teacher' ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-[70%] p-4 rounded-2xl ${msg.from === 'teacher' ? 'bg-lime-400 text-black rounded-br-none' : 'bg-zinc-950 border border-zinc-800 rounded-bl-none'}`}>
+                           <div key={msg.id} className={`flex ${msg.from === `teacher` ? `justify-end` : `justify-start`}`}>
+                              <div className={`max-w-[70%] p-4 rounded-2xl ${msg.from === `teacher` ? `bg-lime-400 text-black rounded-br-none` : `bg-zinc-950 border border-zinc-800 rounded-bl-none`}`}>
                                  <p className="text-sm font-medium">{msg.text}</p>
                                  <p className="text-[9px] mt-1 opacity-60">{msg.time}</p>
                               </div>
@@ -2961,7 +2959,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                         <h3 className="text-3xl font-black italic uppercase">Nova Avaliação Física</h3>
                         <button onClick={() => setShowAssessment(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                      </div>
-                     <form onSubmit={(e) => { e.preventDefault(); alert('Avaliação salva com sucesso!\n\nPeso: ' + newAssessmentForm.weight + 'kg\n% Gordura: ' + newAssessmentForm.bodyFat + '%'); setNewAssessmentForm({ weight: '', bodyFat: '', muscle: '', water: '', chest: '', waist: '', arm: '', leg: '' }); setShowAssessment(false); }} className="grid grid-cols-1 gap-4 md:gap-6">
+                     <form onSubmit={(e) => { e.preventDefault(); alert(`Avaliação salva com sucesso!\n\nPeso: ` + newAssessmentForm.weight + `kg\n% Gordura: ` + newAssessmentForm.bodyFat + `%`); setNewAssessmentForm({ weight: ``, bodyFat: ``, muscle: ``, water: ``, chest: ``, waist: ``, arm: ``, leg: `` }); setShowAssessment(false); }} className="grid grid-cols-1 gap-4 md:gap-6">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Peso (kg)</label><input required type="number" step="0.1" value={newAssessmentForm.weight} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, weight: e.target.value})} placeholder="Ex: 84.5" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">% Gordura</label><input required type="number" step="0.1" value={newAssessmentForm.bodyFat} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, bodyFat: e.target.value})} placeholder="Ex: 18.2" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Massa Magra (kg)</label><input type="number" step="0.1" value={newAssessmentForm.muscle} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, muscle: e.target.value})} placeholder="Ex: 38.1" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -2984,7 +2982,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                         <h3 className="text-3xl font-black italic uppercase">Novo Agendamento</h3>
                         <button onClick={() => setShowNewSchedule(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                      </div>
-                     <form onSubmit={(e) => { e.preventDefault(); alert('Agendamento criado com sucesso!\n\nTipo: ' + newScheduleForm.type + '\nData: ' + newScheduleForm.date + '\nHorário: ' + newScheduleForm.time); setNewScheduleForm({ type: 'Personal Training', date: '', time: '', notes: '' }); setShowNewSchedule(false); }} className="space-y-6">
+                     <form onSubmit={(e) => { e.preventDefault(); alert(`Agendamento criado com sucesso!\n\nTipo: ` + newScheduleForm.type + `\nData: ` + newScheduleForm.date + `\nHorário: ` + newScheduleForm.time); setNewScheduleForm({ type: `Personal Training`, date: ``, time: ``, notes: `` }); setShowNewSchedule(false); }} className="space-y-6">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Tipo de Sessão</label><select value={newScheduleForm.type} onChange={(e) => setNewScheduleForm({...newScheduleForm, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Personal Training</option><option>Avaliação Física</option><option>Consulta Nutricional</option></select></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Data</label><input required type="date" value={newScheduleForm.date} onChange={(e) => setNewScheduleForm({...newScheduleForm, date: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Horário</label><input required type="time" value={newScheduleForm.time} onChange={(e) => setNewScheduleForm({...newScheduleForm, time: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3011,7 +3009,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      <h3 className="text-3xl font-black italic uppercase">Novo Aluno</h3>
                      <button onClick={() => setShowNewStudent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Aluno cadastrado com sucesso!\n\nNome: ' + newStudentForm.name + '\nEmail: ' + newStudentForm.email + '\nPlano: ' + newStudentForm.plan); setNewStudentForm({ name: '', email: '', phone: '', plan: 'Básico Semanal', goal: 'Hipertrofia' }); setShowNewStudent(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); alert(`Aluno cadastrado com sucesso!\n\nNome: ` + newStudentForm.name + `\nEmail: ` + newStudentForm.email + `\nPlano: ` + newStudentForm.plan); setNewStudentForm({ name: ``, email: ``, phone: ``, plan: `Básico Semanal`, goal: `Hipertrofia` }); setShowNewStudent(false); }} className="space-y-6">
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input required value={newStudentForm.name} onChange={(e) => setNewStudentForm({...newStudentForm, name: e.target.value})} placeholder="Ex: João Silva" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      <div className="grid grid-cols-2 gap-4">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Email</label><input required type="email" value={newStudentForm.email} onChange={(e) => setNewStudentForm({...newStudentForm, email: e.target.value})} placeholder="joao@email.com" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3055,7 +3053,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      <h3 className="text-3xl font-black italic uppercase">Nova Avaliação Física</h3>
                      <button onClick={() => setShowAssessment(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Avaliação registrada com sucesso!\n\nPeso: ' + newAssessmentForm.weight + ' kg\nPercentual de Gordura: ' + newAssessmentForm.bodyFat + '%'); setNewAssessmentForm({ weight: '', bodyFat: '', muscle: '', water: '', chest: '', waist: '', arm: '', leg: '' }); setShowAssessment(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); alert(`Avaliação registrada com sucesso!\n\nPeso: ` + newAssessmentForm.weight + ` kg\nPercentual de Gordura: ` + newAssessmentForm.bodyFat + `%`); setNewAssessmentForm({ weight: ``, bodyFat: ``, muscle: ``, water: ``, chest: ``, waist: ``, arm: ``, leg: `` }); setShowAssessment(false); }} className="space-y-6">
                      <div className="grid grid-cols-2 gap-4">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Peso (kg)</label><input required type="number" step="0.1" value={newAssessmentForm.weight} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, weight: e.target.value})} placeholder="Ex: 84.2" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Gordura Corporal (%)</label><input required type="number" step="0.1" value={newAssessmentForm.bodyFat} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, bodyFat: e.target.value})} placeholder="Ex: 18.5" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3085,7 +3083,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      <h3 className="text-3xl font-black italic uppercase">Novo Modelo de Treino</h3>
                      <button onClick={() => setShowNewTemplate(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); if (onAddTemplate) onAddTemplate({ id: 't' + Date.now(), title: newTemplateForm.title, category: newTemplateForm.category, exercises: [] }); alert('Modelo salvo com sucesso!\n\nTítulo: ' + newTemplateForm.title + '\nCategoria: ' + newTemplateForm.category); setNewTemplateForm({ title: '', category: '' }); setShowNewTemplate(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); if (onAddTemplate) onAddTemplate({ id: `t` + Date.now(), title: newTemplateForm.title, category: newTemplateForm.category, exercises: [] }); alert(`Modelo salvo com sucesso!\n\nTítulo: ` + newTemplateForm.title + `\nCategoria: ` + newTemplateForm.category); setNewTemplateForm({ title: ``, category: `` }); setShowNewTemplate(false); }} className="space-y-6">
                      <div className="grid grid-cols-2 gap-4">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome do Modelo</label><input required value={newTemplateForm.title} onChange={(e) => setNewTemplateForm({...newTemplateForm, title: e.target.value})} placeholder="Ex: Hipertrofia Base - Peito/Tríceps" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Categoria</label><input required value={newTemplateForm.category} onChange={(e) => setNewTemplateForm({...newTemplateForm, category: e.target.value})} placeholder="Ex: A, B, Push, Pull..." className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3106,7 +3104,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
    );
 
    switch(view) {
-      case 'dashboard':
+      case `dashboard`:
          return (
             <div className="space-y-10 animate-in fade-in duration-700">
                <header><h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Painel do Treinador</h1><p className="text-zinc-500 font-medium">Gerencie seus alunos e treinos</p></header>
@@ -3147,7 +3145,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                </div>
             </div>
          );
-      case 'students':
+      case `students`:
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
@@ -3198,7 +3196,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {renderProfessorModals()}
             </>
          );
-      case 'templates':
+      case `templates`:
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
@@ -3245,7 +3243,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {renderProfessorModals()}
             </>
          );
-      case 'schedule':
+      case `schedule`:
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
@@ -3260,7 +3258,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      {schedules.map(schedule => {
                         const student = students.find(s => s.id === schedule.alunoId);
                         const scheduleDate = new Date(schedule.data);
-                        const formattedDate = scheduleDate.toLocaleDateString('pt-BR');
+                        const formattedDate = scheduleDate.toLocaleDateString(`pt-BR`);
                         
                         return (
                         <div key={schedule.id} className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] hover:border-lime-400/30 transition-all">
@@ -3278,15 +3276,15 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                                        )}
                                     </div>
                                     <span className={`px-4 py-1.5 rounded-xl text-[11px] font-black uppercase shrink-0 ${
-                                       schedule.status === 'confirmed' ? 'bg-green-500/20 text-green-500' : 
-                                       schedule.status === 'completed' ? 'bg-blue-500/20 text-blue-500' :
-                                       schedule.status === 'cancelled' ? 'bg-red-500/20 text-red-500' :
-                                       'bg-orange-500/20 text-orange-500'
+                                       schedule.status === `confirmed` ? `bg-green-500/20 text-green-500` : 
+                                       schedule.status === `completed` ? `bg-blue-500/20 text-blue-500` :
+                                       schedule.status === `cancelled` ? `bg-red-500/20 text-red-500` :
+                                       `bg-orange-500/20 text-orange-500`
                                     }`}>
-                                       {schedule.status === 'confirmed' ? 'Confirmado' : 
-                                        schedule.status === 'completed' ? 'Concluído' :
-                                        schedule.status === 'cancelled' ? 'Cancelado' :
-                                        'Pendente'}
+                                       {schedule.status === `confirmed` ? `Confirmado` : 
+                                        schedule.status === `completed` ? `Concluído` :
+                                        schedule.status === `cancelled` ? `Cancelado` :
+                                        `Pendente`}
                                     </span>
                                  </div>
                               {student && (
@@ -3301,18 +3299,18 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                            </div>
                         </div>
                         <div className="flex gap-3">
-                           {schedule.status === 'pending' && (
-                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, 'confirmed')} className="flex-1 bg-green-500/20 text-green-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
+                           {schedule.status === `pending` && (
+                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, `confirmed`)} className="flex-1 bg-green-500/20 text-green-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
                                  <Check size={16}/> Confirmar
                               </button>
                            )}
-                           {(schedule.status === 'pending' || schedule.status === 'confirmed') && (
-                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, 'completed')} className="flex-1 bg-blue-500/20 text-blue-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2">
+                           {(schedule.status === `pending` || schedule.status === `confirmed`) && (
+                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, `completed`)} className="flex-1 bg-blue-500/20 text-blue-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2">
                                  <Check size={16}/> Concluir
                               </button>
                            )}
-                           {schedule.status !== 'cancelled' && schedule.status !== 'completed' && (
-                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, 'cancelled')} className="flex-1 bg-red-500/20 text-red-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500/30 transition-all flex items-center justify-center gap-2">
+                           {schedule.status !== `cancelled` && schedule.status !== `completed` && (
+                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, `cancelled`)} className="flex-1 bg-red-500/20 text-red-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500/30 transition-all flex items-center justify-center gap-2">
                                  <X size={16}/> Cancelar
                               </button>
                            )}
@@ -3345,7 +3343,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {renderProfessorModals()}
             </>
          );
-      case 'assessments':
+      case `assessments`:
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
@@ -3403,17 +3401,17 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
 
 const NutriModule = ({ view, students, setView, user, academia }: any) => {
    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-   const [subView, setSubView] = useState<string>('overview');
+   const [subView, setSubView] = useState<string>(`overview`);
    const [showCreateDiet, setShowCreateDiet] = useState(false);
    const [showCompositionAnalysis, setShowCompositionAnalysis] = useState(false);
    const [showNewPatient, setShowNewPatient] = useState(false);
    const [showNewContent, setShowNewContent] = useState(false);
-   const [newPatientForm, setNewPatientForm] = useState({ name: '', email: '', phone: '', goal: 'Emagrecimento', restrictions: '' });
-   const [newContentForm, setNewContentForm] = useState({ title: '', category: 'Artigo', duration: '' });
+   const [newPatientForm, setNewPatientForm] = useState({ name: ``, email: ``, phone: ``, goal: `Emagrecimento`, restrictions: `` });
+   const [newContentForm, setNewContentForm] = useState({ title: ``, category: `Artigo`, duration: `` });
    
    // Form states
-   const [dietForm, setDietForm] = useState({ calories: '', type: 'Equilibrada', restrictions: '' });
-   const [compositionForm, setCompositionForm] = useState({ weight: '', bodyFat: '', muscle: '', water: '' });
+   const [dietForm, setDietForm] = useState({ calories: ``, type: `Equilibrada`, restrictions: `` });
+   const [compositionForm, setCompositionForm] = useState({ weight: ``, bodyFat: ``, muscle: ``, water: `` });
    
    // Estados para dados do banco
    const [mealDiary, setMealDiary] = useState<any[]>([]);
@@ -3429,7 +3427,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
    // Carregar dados do módulo nutricionista
    useEffect(() => {
       const carregarDadosNutri = async () => {
-         const token = localStorage.getItem('token');
+         const token = localStorage.getItem(`token`);
          if (!token) return;
          
          try {
@@ -3442,7 +3440,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                title: c.titulo,
                category: c.categoria,
                duration: c.duracao,
-               icon: c.tipo === 'Vídeo' ? <Zap /> : <BookOpen />
+               icon: c.tipo === `Vídeo` ? <Zap /> : <BookOpen />
             })));
             
             // Carregar estatísticas do dashboard
@@ -3451,7 +3449,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             const refeicoesDeHoje = todasRefeicoes.filter((r: any) => 
                new Date(r.data).toDateString() === hoje
             );
-            const pendentes = todasRefeicoes.filter((r: any) => r.status === 'pending');
+            const pendentes = todasRefeicoes.filter((r: any) => r.status === `pending`);
             
             setRefeicoesHoje(refeicoesDeHoje.length);
             setRefeicoesPendentes(pendentes.slice(0, 5).map((r: any) => ({
@@ -3464,7 +3462,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             })));
             
          } catch (error) {
-            console.error('Erro ao carregar dados nutricionista:', error);
+            console.error(`Erro ao carregar dados nutricionista:`, error);
          }
       };
       
@@ -3476,7 +3474,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       const carregarDadosAluno = async () => {
          if (!selectedStudent?.id) return;
          
-         const token = localStorage.getItem('token');
+         const token = localStorage.getItem(`token`);
          if (!token) return;
          
          try {
@@ -3494,12 +3492,12 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                time: r.horario,
                img: r.urlImagem,
                status: r.status,
-               feedback: r.feedback || ''
+               feedback: r.feedback || ``
             })));
             
             // Formatar histórico de composição
             setCompositionHistory(analises.map((a: any) => ({
-               date: new Date(a.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+               date: new Date(a.data).toLocaleDateString(`pt-BR`, { day: `2-digit`, month: `2-digit` }),
                weight: a.peso,
                bodyFat: a.percentualGordura || 0,
                muscleMass: a.massaMuscular || 0,
@@ -3510,12 +3508,12 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             const dietasFormatadas = dietas.map((dieta: any) => ({
                id: dieta.id,
                titulo: dieta.titulo,
-               plano: typeof dieta.conteudo === 'object' ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || '{}')
+               plano: typeof dieta.conteudo === `object` ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || `{}`)
             }));
             setHistoricoDietas(dietasFormatadas);
             
          } catch (error) {
-            console.error('Erro ao carregar dados do aluno:', error);
+            console.error(`Erro ao carregar dados do aluno:`, error);
          }
       };
       
@@ -3524,7 +3522,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
    
    // Função para atualizar feedback de refeição
    const handleFeedback = async (refeicaoId: string, status: string, feedback: string) => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem(`token`);
       if (!token) return;
       
       const resultado = await atualizarFeedbackRefeicao(token, refeicaoId, status, feedback);
@@ -3532,18 +3530,18 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
          setMealDiary(prev => prev.map(m => 
             m.id === refeicaoId ? { ...m, status, feedback } : m
          ));
-         alert('Feedback salvo com sucesso!');
+         alert(`Feedback salvo com sucesso!`);
       }
    };
    
    // Função para salvar nova análise de composição
    const handleSaveComposition = async () => {
       if (!selectedStudent?.id || !compositionForm.weight) {
-         alert('Preencha ao menos o peso');
+         alert(`Preencha ao menos o peso`);
          return;
       }
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem(`token`);
       if (!token) return;
       
       const dadosAnalise = {
@@ -3558,27 +3556,27 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       if (resultado) {
          // Adicionar ao histórico
          const novaAnalise = {
-            date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+            date: new Date().toLocaleDateString(`pt-BR`, { day: `2-digit`, month: `2-digit` }),
             weight: parseFloat(compositionForm.weight),
             bodyFat: compositionForm.bodyFat ? parseFloat(compositionForm.bodyFat) : 0,
             muscleMass: compositionForm.muscle ? parseFloat(compositionForm.muscle) : 0,
             water: compositionForm.water ? parseFloat(compositionForm.water) : 0
          };
          setCompositionHistory(prev => [novaAnalise, ...prev]);
-         setCompositionForm({ weight: '', bodyFat: '', muscle: '', water: '' });
+         setCompositionForm({ weight: ``, bodyFat: ``, muscle: ``, water: `` });
          setShowCompositionAnalysis(false);
-         alert('Análise salva com sucesso!');
+         alert(`Análise salva com sucesso!`);
       }
    };
    
    // Função para criar novo conteúdo educacional
    const handleCreateContent = async () => {
       if (!newContentForm.title) {
-         alert('Preencha o título do conteúdo');
+         alert(`Preencha o título do conteúdo`);
          return;
       }
       
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem(`token`);
       if (!token) return;
       
       const dadosConteudo = {
@@ -3596,12 +3594,12 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             title: resultado.titulo,
             category: resultado.categoria,
             duration: resultado.duracao,
-            icon: resultado.tipo === 'Vídeo' ? <Zap /> : <BookOpen />
+            icon: resultado.tipo === `Vídeo` ? <Zap /> : <BookOpen />
          };
          setEducationalContent(prev => [novoConteudo, ...prev]);
-         setNewContentForm({ title: '', category: 'Artigo', duration: '' });
+         setNewContentForm({ title: ``, category: `Artigo`, duration: `` });
          setShowNewContent(false);
-         alert('Conteúdo criado com sucesso!');
+         alert(`Conteúdo criado com sucesso!`);
       }
    };
 
@@ -3609,7 +3607,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       return (
          <>
          <div className="animate-in fade-in slide-in-from-right duration-500 space-y-8">
-            <button onClick={() => { setSelectedStudent(null); setSubView('overview'); }} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4"><ArrowLeft size={20}/><span className="text-xs font-black uppercase">Voltar</span></button>
+            <button onClick={() => { setSelectedStudent(null); setSubView(`overview`); }} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-4"><ArrowLeft size={20}/><span className="text-xs font-black uppercase">Voltar</span></button>
             
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                <div className="flex items-center gap-6">
@@ -3627,19 +3625,19 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 
             <div className="flex gap-2 overflow-x-auto no-scrollbar bg-zinc-900 border border-zinc-800 p-1.5 rounded-2xl">
                {[
-                  { id: 'overview', label: 'Visão Geral', icon: <LayoutDashboard size={16}/> },
-                  { id: 'diet', label: 'Plano Alimentar', icon: <Utensils size={16}/> },
-                  { id: 'diary', label: 'Diário Visual', icon: <Camera size={16}/> },
-                  { id: 'composition', label: 'Composição', icon: <Scale size={16}/> },
-                  { id: 'education', label: 'Educação', icon: <BookOpen size={16}/> },
+                  { id: `overview`, label: `Visão Geral`, icon: <LayoutDashboard size={16}/> },
+                  { id: `diet`, label: `Plano Alimentar`, icon: <Utensils size={16}/> },
+                  { id: `diary`, label: `Diário Visual`, icon: <Camera size={16}/> },
+                  { id: `composition`, label: `Composição`, icon: <Scale size={16}/> },
+                  { id: `education`, label: `Educação`, icon: <BookOpen size={16}/> },
                ].map(tab => (
-                  <button key={tab.id} onClick={() => setSubView(tab.id)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap ${subView === tab.id ? 'bg-lime-400 text-black' : 'text-zinc-500 hover:text-white'}`}>
+                  <button key={tab.id} onClick={() => setSubView(tab.id)} className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 whitespace-nowrap ${subView === tab.id ? `bg-lime-400 text-black` : `text-zinc-500 hover:text-white`}`}>
                      {tab.icon} {tab.label}
                   </button>
                ))}
             </div>
 
-            {subView === 'overview' && (
+            {subView === `overview` && (
                <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                      <StatCard label="Peso Atual" value="87.2kg" color="text-lime-400" icon={Scale} trend="-1.3kg" />
@@ -3652,7 +3650,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><TrendingUp size={20} className="text-lime-400"/> Evolução de Peso</h3>
                         {compositionHistory.length > 0 ? (
-                           <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={compositionHistory}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
+                           <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={compositionHistory}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Line type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={3} dot={{ fill: `#D9FF00`, r: 5 }} /></LineChart></ResponsiveContainer></div>
                         ) : (
                            <div className="h-64 flex flex-col items-center justify-center">
                               <Scale size={32} className="text-zinc-700 mb-3"/>
@@ -3670,7 +3668,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                                  <div className="flex-1">
                                     <div className="flex justify-between items-start mb-1">
                                        <h4 className="font-bold text-sm">{meal.meal}</h4>
-                                       <span className={`size-3 rounded-full ${meal.status === 'approved' ? 'bg-green-500' : meal.status === 'warning' ? 'bg-orange-500' : 'bg-zinc-600'}`}/>
+                                       <span className={`size-3 rounded-full ${meal.status === `approved` ? `bg-green-500` : meal.status === `warning` ? `bg-orange-500` : `bg-zinc-600`}`}/>
                                     </div>
                                     <p className="text-[9px] text-zinc-500 font-bold">{meal.time}</p>
                                  </div>
@@ -3690,7 +3688,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                </div>
             )}
 
-            {subView === 'diet' && (
+            {subView === `diet` && (
                <div className="space-y-6">
                   {historicoDietas.length === 0 ? (
                      <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
@@ -3711,7 +3709,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   ) : (
                      <>
                   {DAYS_SHORT.map((day, idx) => {
-                     const diasSemanaDieta = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+                     const diasSemanaDieta = [`domingo`, `segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`];
                      const diaNome = diasSemanaDieta[idx];
                      
                      // Pegar dieta mais recente para este dia
@@ -3720,12 +3718,12 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      );
                      
                      const diet = dietaMaisRecente ? {
-                        title: dietaMaisRecente.titulo || 'Plano Nutricional',
-                        kcal: dietaMaisRecente.plano.objetivoCalorico || '2000',
+                        title: dietaMaisRecente.titulo || `Plano Nutricional`,
+                        kcal: dietaMaisRecente.plano.objetivoCalorico || `2000`,
                         meals: dietaMaisRecente.plano[diaNome] || []
                      } : {
-                        title: 'Sem dieta',
-                        kcal: '0',
+                        title: `Sem dieta`,
+                        kcal: `0`,
                         meals: []
                      };
                      return (
@@ -3758,13 +3756,13 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                </div>
             )}
 
-            {subView === 'diary' && (
+            {subView === `diary` && (
                <div className="bg-zinc-900 border border-zinc-800 p-4 md:p-8 rounded-2xl md:rounded-[3rem]">
                   <h3 className="text-xl md:text-2xl font-black italic uppercase mb-6">Diário Alimentar Visual</h3>
                   {mealDiary.length > 0 ? (
                      <div className="grid grid-cols-1 gap-6">
                         {mealDiary.map(meal => (
-                           <div key={meal.id} className={`bg-zinc-950 border-2 rounded-2xl overflow-hidden transition-all ${meal.status === 'approved' ? 'border-green-500/30' : meal.status === 'warning' ? 'border-orange-500/30' : 'border-zinc-800'}`}>
+                           <div key={meal.id} className={`bg-zinc-950 border-2 rounded-2xl overflow-hidden transition-all ${meal.status === `approved` ? `border-green-500/30` : meal.status === `warning` ? `border-orange-500/30` : `border-zinc-800`}`}>
                               <img src={meal.img} className="w-full aspect-video object-cover"/>
                               <div className="p-4 md:p-6">
                                  <div className="flex flex-col md:flex-row justify-between md:items-start mb-3 gap-3">
@@ -3774,13 +3772,13 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                                     </div>
                                     <div className="flex gap-2">
                                        <button 
-                                          onClick={() => handleFeedback(meal.id, 'approved', 'Ótima escolha! Continue assim.')}
+                                          onClick={() => handleFeedback(meal.id, `approved`, `Ótima escolha! Continue assim.`)}
                                           className="size-10 bg-green-500/20 text-green-500 rounded-xl hover:bg-green-500/30"
                                        >
                                           <Check size={16}/>
                                        </button>
                                        <button 
-                                          onClick={() => handleFeedback(meal.id, 'warning', 'Atenção à porção de vegetais.')}
+                                          onClick={() => handleFeedback(meal.id, `warning`, `Atenção à porção de vegetais.`)}
                                           className="size-10 bg-orange-500/20 text-orange-500 rounded-xl hover:bg-orange-500/30"
                                        >
                                           <AlertTriangle size={16}/>
@@ -3813,7 +3811,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                </div>
             )}
 
-            {subView === 'composition' && (
+            {subView === `composition` && (
                <div className="space-y-6">
                   {compositionHistory.length === 0 ? (
                      <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
@@ -3836,11 +3834,11 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">% Gordura Corporal</h3>
-                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={compositionHistory}><defs><linearGradient id="colorFat2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="bodyFat" stroke="#f97316" strokeWidth={3} fill="url(#colorFat2)" /></AreaChart></ResponsiveContainer></div>
+                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={compositionHistory}><defs><linearGradient id="colorFat2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Area type="monotone" dataKey="bodyFat" stroke="#f97316" strokeWidth={3} fill="url(#colorFat2)" /></AreaChart></ResponsiveContainer></div>
                      </div>
                      <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Massa Magra</h3>
-                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={compositionHistory}><defs><linearGradient id="colorMuscle2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="muscleMass" stroke="#D9FF00" strokeWidth={3} fill="url(#colorMuscle2)" /></AreaChart></ResponsiveContainer></div>
+                        <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={compositionHistory}><defs><linearGradient id="colorMuscle2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Area type="monotone" dataKey="muscleMass" stroke="#D9FF00" strokeWidth={3} fill="url(#colorMuscle2)" /></AreaChart></ResponsiveContainer></div>
                      </div>
                   </div>
                   {compositionHistory.length > 0 && (
@@ -3859,7 +3857,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                </div>
             )}
 
-            {subView === 'education' && (
+            {subView === `education` && (
                <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                   <h3 className="text-2xl font-black italic uppercase mb-6">Conteúdos Educacionais</h3>
                   {educationalContent.length > 0 ? (
@@ -3908,7 +3906,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         <h3 className="text-3xl font-black italic uppercase">Novo Plano Alimentar</h3>
                         <button onClick={() => setShowCreateDiet(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                      </div>
-                     <form onSubmit={(e) => { e.preventDefault(); alert('Plano alimentar gerado com sucesso!\n\nCalorias: ' + dietForm.calories + ' kcal\nTipo: ' + dietForm.type); setDietForm({ calories: '', type: 'Equilibrada', restrictions: '' }); setShowCreateDiet(false); }} className="space-y-6">
+                     <form onSubmit={(e) => { e.preventDefault(); alert(`Plano alimentar gerado com sucesso!\n\nCalorias: ` + dietForm.calories + ` kcal\nTipo: ` + dietForm.type); setDietForm({ calories: ``, type: `Equilibrada`, restrictions: `` }); setShowCreateDiet(false); }} className="space-y-6">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Meta Calórica Diária</label><input required type="number" value={dietForm.calories} onChange={(e) => setDietForm({...dietForm, calories: e.target.value})} placeholder="Ex: 2800" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Tipo de Dieta</label><select value={dietForm.type} onChange={(e) => setDietForm({...dietForm, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Equilibrada</option><option>Low Carb</option><option>Cetogênica</option><option>Vegetariana</option><option>Vegana</option><option>Bulking (Ganho de Massa)</option><option>Cutting (Definição)</option></select></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Restrições Alimentares</label><input value={dietForm.restrictions} onChange={(e) => setDietForm({...dietForm, restrictions: e.target.value})} placeholder="Ex: Sem lactose, sem glúten..." className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3946,7 +3944,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      <h3 className="text-3xl font-black italic uppercase">Novo Plano Alimentar</h3>
                      <button onClick={() => setShowCreateDiet(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Plano alimentar gerado com sucesso!\n\nCalorias: ' + dietForm.calories + ' kcal\nTipo: ' + dietForm.type); setDietForm({ calories: '', type: 'Equilibrada', restrictions: '' }); setShowCreateDiet(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); alert(`Plano alimentar gerado com sucesso!\n\nCalorias: ` + dietForm.calories + ` kcal\nTipo: ` + dietForm.type); setDietForm({ calories: ``, type: `Equilibrada`, restrictions: `` }); setShowCreateDiet(false); }} className="space-y-6">
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Meta Calórica Diária</label><input required type="number" value={dietForm.calories} onChange={(e) => setDietForm({...dietForm, calories: e.target.value})} placeholder="Ex: 2800" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Tipo de Dieta</label><select value={dietForm.type} onChange={(e) => setDietForm({...dietForm, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Equilibrada</option><option>Low Carb</option><option>Cetogênica</option><option>Vegetariana</option><option>Vegana</option><option>Bulking (Ganho de Massa)</option><option>Cutting (Definição)</option></select></div>
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Restrições Alimentares</label><input value={dietForm.restrictions} onChange={(e) => setDietForm({...dietForm, restrictions: e.target.value})} placeholder="Ex: Sem lactose, sem glúten..." className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3963,7 +3961,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      <h3 className="text-3xl font-black italic uppercase">Nova Análise de Composição</h3>
                      <button onClick={() => setShowCompositionAnalysis(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Análise registrada com sucesso!\n\nPeso: ' + compositionForm.weight + ' kg\nGordura: ' + compositionForm.bodyFat + '%'); setCompositionForm({ weight: '', bodyFat: '', muscle: '', water: '' }); setShowCompositionAnalysis(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); alert(`Análise registrada com sucesso!\n\nPeso: ` + compositionForm.weight + ` kg\nGordura: ` + compositionForm.bodyFat + `%`); setCompositionForm({ weight: ``, bodyFat: ``, muscle: ``, water: `` }); setShowCompositionAnalysis(false); }} className="space-y-6">
                      <div className="grid grid-cols-2 gap-4">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Peso (kg)</label><input required type="number" step="0.1" value={compositionForm.weight} onChange={(e) => setCompositionForm({...compositionForm, weight: e.target.value})} placeholder="Ex: 87.2" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Gordura Corporal (%)</label><input required type="number" step="0.1" value={compositionForm.bodyFat} onChange={(e) => setCompositionForm({...compositionForm, bodyFat: e.target.value})} placeholder="Ex: 17.1" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3983,7 +3981,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      <h3 className="text-3xl font-black italic uppercase">Novo Paciente</h3>
                      <button onClick={() => setShowNewPatient(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Paciente cadastrado com sucesso!\n\nNome: ' + newPatientForm.name + '\nEmail: ' + newPatientForm.email + '\nObjetivo: ' + newPatientForm.goal); setNewPatientForm({ name: '', email: '', phone: '', goal: 'Emagrecimento', restrictions: '' }); setShowNewPatient(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); alert(`Paciente cadastrado com sucesso!\n\nNome: ` + newPatientForm.name + `\nEmail: ` + newPatientForm.email + `\nObjetivo: ` + newPatientForm.goal); setNewPatientForm({ name: ``, email: ``, phone: ``, goal: `Emagrecimento`, restrictions: `` }); setShowNewPatient(false); }} className="space-y-6">
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input required value={newPatientForm.name} onChange={(e) => setNewPatientForm({...newPatientForm, name: e.target.value})} placeholder="Ex: Maria Silva" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      <div className="grid grid-cols-2 gap-4">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Email</label><input required type="email" value={newPatientForm.email} onChange={(e) => setNewPatientForm({...newPatientForm, email: e.target.value})} placeholder="maria@email.com" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -4020,7 +4018,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
    }
 
    switch(view) {
-      case 'dashboard':
+      case `dashboard`:
          return (
             <div className="space-y-10 animate-in fade-in duration-700">
                <header><h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Painel Nutricional</h1><p className="text-zinc-500 font-medium">Gestão completa de nutrição</p></header>
@@ -4052,7 +4050,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                            <div key={meal.id} className="bg-zinc-950 border border-zinc-800 p-4 rounded-2xl flex gap-4">
                               <img src={meal.img} className="size-16 rounded-xl object-cover"/>
                               <div className="flex-1">
-                                 <h4 className="font-bold text-sm">{students.find((s: any) => s.id === meal.studentId)?.name || 'Aluno'}</h4>
+                                 <h4 className="font-bold text-sm">{students.find((s: any) => s.id === meal.studentId)?.name || `Aluno`}</h4>
                                  <p className="text-[9px] text-zinc-500 font-bold">{meal.meal} • {meal.time}</p>
                               </div>
                               <button 
@@ -4073,7 +4071,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                </div>
             </div>
          );
-      case 'students':
+      case `students`:
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -4114,7 +4112,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                )}
             </div>
          );
-      case 'diets':
+      case `diets`:
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -4131,7 +4129,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         Cadastre pacientes primeiro para poder criar e gerenciar planos alimentares personalizados.
                      </p>
                      <button 
-                        onClick={() => setView('students')}
+                        onClick={() => setView(`students`)}
                         className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
                      >
                         Ver Pacientes
@@ -4163,7 +4161,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                )}
             </div>
          );
-      case 'diary':
+      case `diary`:
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Diário Visual de Refeições</h2><p className="text-zinc-500 font-medium">Avalie fotos das refeições dos pacientes</p></header>
@@ -4177,7 +4175,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         Os pacientes ainda não registraram refeições no diário visual. As fotos aparecerão aqui para avaliação.
                      </p>
                      <button 
-                        onClick={() => setView('students')}
+                        onClick={() => setView(`students`)}
                         className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
                      >
                         Ver Pacientes
@@ -4186,7 +4184,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                ) : (
                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {mealDiary.map(meal => (
-                     <div key={meal.id} className={`bg-zinc-900 border-2 rounded-2xl overflow-hidden transition-all cursor-pointer hover:scale-105 ${meal.status === 'approved' ? 'border-green-500/30' : meal.status === 'warning' ? 'border-orange-500/30' : 'border-zinc-800 hover:border-lime-400/30'}`}>
+                     <div key={meal.id} className={`bg-zinc-900 border-2 rounded-2xl overflow-hidden transition-all cursor-pointer hover:scale-105 ${meal.status === `approved` ? `border-green-500/30` : meal.status === `warning` ? `border-orange-500/30` : `border-zinc-800 hover:border-lime-400/30`}`}>
                         <img src={meal.img} className="w-full aspect-square object-cover"/>
                         <div className="p-4">
                            <div className="flex justify-between items-start mb-2">
@@ -4194,11 +4192,11 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                                  <h4 className="font-black text-sm">{students.find(s => s.id === meal.studentId)?.name}</h4>
                                  <p className="text-[9px] text-zinc-500 font-bold">{meal.meal} • {meal.time}</p>
                               </div>
-                              {meal.status === 'pending' && (
+                              {meal.status === `pending` && (
                                  <span className="px-2 py-1 bg-orange-500/20 text-orange-500 text-[8px] font-black uppercase rounded">Pendente</span>
                               )}
                            </div>
-                           {meal.status === 'pending' && (
+                           {meal.status === `pending` && (
                               <div className="flex gap-2 mt-3">
                                  <button className="flex-1 bg-green-500/20 text-green-500 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-green-500/30">Aprovar</button>
                                  <button className="flex-1 bg-orange-500/20 text-orange-500 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-orange-500/30">Atenção</button>
@@ -4211,7 +4209,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                )}
             </div>
          );
-      case 'composition':
+      case `composition`:
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Análise de Composição Corporal</h2><p className="text-zinc-500 font-medium">Acompanhe a evolução dos pacientes</p></header>
@@ -4225,7 +4223,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         Cadastre pacientes primeiro para poder realizar análises de composição corporal e acompanhar a evolução.
                      </p>
                      <button 
-                        onClick={() => setView('students')}
+                        onClick={() => setView(`students`)}
                         className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
                      >
                         Ver Pacientes
@@ -4257,7 +4255,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                )}
             </div>
          );
-      case 'education':
+      case `education`:
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header className="flex flex-col md:flex-row justify-between md:items-end gap-4">
@@ -4290,7 +4288,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                            <span className="text-[9px] bg-zinc-950 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.category}</span>
                            <span className="text-[9px] bg-zinc-950 px-3 py-1 rounded-lg font-black uppercase text-zinc-500">{content.duration}</span>
                         </div>
-                        <button onClick={() => alert('Visualizando conteúdo: ' + content.title + '\n\nCategoria: ' + content.category + '\nDuração: ' + content.duration)} className="w-full bg-zinc-950 hover:bg-lime-400 hover:text-black py-3 rounded-xl font-black uppercase text-[10px] transition-all">Visualizar</button>
+                        <button onClick={() => alert(`Visualizando conteúdo: ` + content.title + `\n\nCategoria: ` + content.category + `\nDuração: ` + content.duration)} className="w-full bg-zinc-950 hover:bg-lime-400 hover:text-black py-3 rounded-xl font-black uppercase text-[10px] transition-all">Visualizar</button>
                      </div>
                   ))}
                </div>
@@ -4307,7 +4305,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         <h3 className="text-3xl font-black italic uppercase">Novo Paciente</h3>
                         <button onClick={() => setShowNewPatient(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                      </div>
-                     <form onSubmit={(e) => { e.preventDefault(); alert('Paciente cadastrado com sucesso!\n\nNome: ' + newPatientForm.name + '\nEmail: ' + newPatientForm.email + '\nObjetivo: ' + newPatientForm.goal); setNewPatientForm({ name: '', email: '', phone: '', goal: 'Emagrecimento', restrictions: '' }); setShowNewPatient(false); }} className="space-y-6">
+                     <form onSubmit={(e) => { e.preventDefault(); alert(`Paciente cadastrado com sucesso!\n\nNome: ` + newPatientForm.name + `\nEmail: ` + newPatientForm.email + `\nObjetivo: ` + newPatientForm.goal); setNewPatientForm({ name: ``, email: ``, phone: ``, goal: `Emagrecimento`, restrictions: `` }); setShowNewPatient(false); }} className="space-y-6">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input required value={newPatientForm.name} onChange={(e) => setNewPatientForm({...newPatientForm, name: e.target.value})} placeholder="Ex: Maria Silva" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div className="grid grid-cols-2 gap-4">
                            <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Email</label><input required type="email" value={newPatientForm.email} onChange={(e) => setNewPatientForm({...newPatientForm, email: e.target.value})} placeholder="maria@email.com" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -4329,7 +4327,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         <h3 className="text-3xl font-black italic uppercase">Novo Conteúdo Educacional</h3>
                         <button onClick={() => setShowNewContent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                      </div>
-                     <form onSubmit={(e) => { e.preventDefault(); alert('Conteúdo criado com sucesso!\n\nTítulo: ' + newContentForm.title + '\nCategoria: ' + newContentForm.category + '\nDuração: ' + newContentForm.duration); setNewContentForm({ title: '', category: 'Artigo', duration: '' }); setShowNewContent(false); }} className="space-y-6">
+                     <form onSubmit={(e) => { e.preventDefault(); alert(`Conteúdo criado com sucesso!\n\nTítulo: ` + newContentForm.title + `\nCategoria: ` + newContentForm.category + `\nDuração: ` + newContentForm.duration); setNewContentForm({ title: ``, category: `Artigo`, duration: `` }); setShowNewContent(false); }} className="space-y-6">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Título do Conteúdo</label><input required value={newContentForm.title} onChange={(e) => setNewContentForm({...newContentForm, title: e.target.value})} placeholder="Ex: Como montar um prato equilibrado" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div className="grid grid-cols-2 gap-4">
                            <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Categoria</label><select value={newContentForm.category} onChange={(e) => setNewContentForm({...newContentForm, category: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Artigo</option><option>Vídeo</option><option>Infográfico</option><option>Receita</option><option>Guia</option></select></div>
@@ -4346,7 +4344,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 };
 
 const AdminModule = ({ view, user, academia }: any) => {
-   const tab = view || 'dashboard';
+   const tab = view || `dashboard`;
    const [showAddLead, setShowAddLead] = useState(false);
    const [showAddTicket, setShowAddTicket] = useState(false);
    const [showAddEmployee, setShowAddEmployee] = useState(false);
@@ -4360,21 +4358,21 @@ const AdminModule = ({ view, user, academia }: any) => {
    const [estatisticas, setEstatisticas] = useState<any>({ alunosAtivos: 0, taxaRetencao: 0 });
    const [funcionariosData, setFuncionariosData] = useState<any[]>([]);
    const [showAddFuncionario, setShowAddFuncionario] = useState(false);
-   const [funcionarioForm, setFuncionarioForm] = useState({ nome: '', email: '', senha: '', funcao: 'PROFESSOR', telefone: '', cpf: '' });
-   const [leadForm, setLeadForm] = useState({ name: '', contact: '', origin: 'Instagram', value: '', notes: '' });
-   const [ticketForm, setTicketForm] = useState({ equipment: '', issue: '', priority: 'Média' });
-   const [employeeForm, setEmployeeForm] = useState({ name: '', role: 'Professor', salary: '' });
+   const [funcionarioForm, setFuncionarioForm] = useState({ nome: ``, email: ``, senha: ``, funcao: `PROFESSOR`, telefone: ``, cpf: `` });
+   const [leadForm, setLeadForm] = useState({ name: ``, contact: ``, origin: `Instagram`, value: ``, notes: `` });
+   const [ticketForm, setTicketForm] = useState({ equipment: ``, issue: ``, priority: `Média` });
+   const [employeeForm, setEmployeeForm] = useState({ name: ``, role: `Professor`, salary: `` });
    const [selectedStudent, setSelectedStudent] = useState<any>(null);
    const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
-   const [prescriptionType, setPrescriptionType] = useState<'treino' | 'dieta' | null>(null);
+   const [prescriptionType, setPrescriptionType] = useState<`treino` | `dieta` | null>(null);
    const [alunos, setAlunos] = useState<any[]>([]);
    const [historicoTreinos, setHistoricoTreinos] = useState<any[]>([]);
    const [historicoDietas, setHistoricoDietas] = useState<any[]>([]);
    const [showAddAlunoModal, setShowAddAlunoModal] = useState(false);
-   const [alunoForm, setAlunoForm] = useState({ nome: '', email: '', senha: '', telefone: '', cpf: '' });
-   const [selectedDay, setSelectedDay] = useState('segunda');
+   const [alunoForm, setAlunoForm] = useState({ nome: ``, email: ``, senha: ``, telefone: ``, cpf: `` });
+   const [selectedDay, setSelectedDay] = useState(`segunda`);
    const [planoTreino, setPlanoTreino] = useState<any>({
-      titulo: '',
+      titulo: ``,
       segunda: [],
       terca: [],
       quarta: [],
@@ -4384,8 +4382,8 @@ const AdminModule = ({ view, user, academia }: any) => {
       domingo: []
    });
    const [planoDieta, setPlanoDieta] = useState<any>({
-      titulo: '',
-      objetivoCalorico: '',
+      titulo: ``,
+      objetivoCalorico: ``,
       segunda: [],
       terca: [],
       quarta: [],
@@ -4397,9 +4395,9 @@ const AdminModule = ({ view, user, academia }: any) => {
    const [gerandoComIA, setGerandoComIA] = useState(false);
    const [showIAConfigModal, setShowIAConfigModal] = useState(false);
    const [iaConfig, setIaConfig] = useState({
-      objetivo: '',
-      nivel: '',
-      restricoes: '',
+      objetivo: ``,
+      nivel: ``,
+      restricoes: ``,
       diasTreino: 3
    });
    const [financialData, setFinancialData] = useState({
@@ -4409,12 +4407,12 @@ const AdminModule = ({ view, user, academia }: any) => {
    });
    
    const kanbanColumns = [
-      { id: 'lead', title: 'Novo Lead', color: 'zinc', icon: UserPlus },
-      { id: 'contact', title: 'Contato Inicial', color: 'blue', icon: Phone },
-      { id: 'proposal', title: 'Proposta Enviada', color: 'purple', icon: FileText },
-      { id: 'negotiation', title: 'Negociação', color: 'orange', icon: MessageCircle },
-      { id: 'won', title: 'Ganho', color: 'lime', icon: CheckCircle },
-      { id: 'lost', title: 'Perdido', color: 'red', icon: XCircle },
+      { id: `lead`, title: `Novo Lead`, color: `zinc`, icon: UserPlus },
+      { id: `contact`, title: `Contato Inicial`, color: `blue`, icon: Phone },
+      { id: `proposal`, title: `Proposta Enviada`, color: `purple`, icon: FileText },
+      { id: `negotiation`, title: `Negociação`, color: `orange`, icon: MessageCircle },
+      { id: `won`, title: `Ganho`, color: `lime`, icon: CheckCircle },
+      { id: `lost`, title: `Perdido`, color: `red`, icon: XCircle },
    ];
 
    const handleDragStart = (lead: any) => {
@@ -4428,7 +4426,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    // Carregar dados das APIs quando o componente montar
    useEffect(() => {
       const carregarDadosAdmin = async () => {
-         const token = localStorage.getItem('token');
+         const token = localStorage.getItem(`token`);
          if (!token) return;
 
          try {
@@ -4457,7 +4455,7 @@ const AdminModule = ({ view, user, academia }: any) => {
                contact: lead.telefone,
                origin: lead.origem,
                value: lead.valorEstimado,
-               notes: lead.observacoes || ''
+               notes: lead.observacoes || ``
             })));
 
             setMaintenanceTickets(tickets.map((ticket: any) => ({
@@ -4475,7 +4473,7 @@ const AdminModule = ({ view, user, academia }: any) => {
                quantity: produto.estoque,
                minStock: produto.estoqueMinimo,
                status: produto.estoque <= produto.estoqueMinimo ? 
-                  (produto.estoque <= produto.estoqueMinimo * 0.5 ? 'critical' : 'low') : 'ok',
+                  (produto.estoque <= produto.estoqueMinimo * 0.5 ? `critical` : `low`) : `ok`,
                price: produto.preco,
                category: produto.categoria
             })));
@@ -4492,7 +4490,7 @@ const AdminModule = ({ view, user, academia }: any) => {
             setRegistrosAcesso(registros);
 
          } catch (error) {
-            console.error('Erro ao carregar dados do admin:', error);
+            console.error(`Erro ao carregar dados do admin:`, error);
          }
       };
 
@@ -4509,7 +4507,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    };
    
    useEffect(() => {
-      if (tab === 'alunos') {
+      if (tab === `alunos`) {
          carregarAlunos();
       }
    }, [tab]);
@@ -4522,7 +4520,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    }, [selectedStudent]);
 
    const carregarHistoricos = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem(`token`);
       if (!token || !selectedStudent) return;
 
       try {
@@ -4537,9 +4535,9 @@ const AdminModule = ({ view, user, academia }: any) => {
             titulo: treino.titulo,
             alunoId: selectedStudent.id,
             alunoNome: selectedStudent.nome,
-            data: new Date(treino.data).toLocaleDateString('pt-BR'),
-            plano: typeof treino.exercicios === 'object' ? treino.exercicios : JSON.parse(treino.exercicios || '{}'),
-            tipo: treino.origem === 'IA' ? 'ia' : 'manual'
+            data: new Date(treino.data).toLocaleDateString(`pt-BR`),
+            plano: typeof treino.exercicios === `object` ? treino.exercicios : JSON.parse(treino.exercicios || `{}`),
+            tipo: treino.origem === `IA` ? `ia` : `manual`
          }));
 
          // Adaptar dietas para o formato esperado  
@@ -4548,56 +4546,56 @@ const AdminModule = ({ view, user, academia }: any) => {
             titulo: dieta.titulo,
             alunoId: selectedStudent.id,
             alunoNome: selectedStudent.nome,
-            data: new Date(dieta.criadoEm).toLocaleDateString('pt-BR'),
-            plano: typeof dieta.conteudo === 'object' ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || '{}'),
-            tipo: dieta.conteudo?.origem === 'IA' ? 'ia' : 'manual'
+            data: new Date(dieta.criadoEm).toLocaleDateString(`pt-BR`),
+            plano: typeof dieta.conteudo === `object` ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || `{}`),
+            tipo: dieta.conteudo?.origem === `IA` ? `ia` : `manual`
          }));
 
          setHistoricoTreinos(treinosFormatados);
          setHistoricoDietas(dietasFormatadas);
 
       } catch (error) {
-         console.error('Erro ao carregar históricos:', error);
+         console.error(`Erro ao carregar históricos:`, error);
       }
    };
 
    const carregarAlunos = async () => {
       try {
-         const token = localStorage.getItem('fitness_token');
-         console.log('🔑 Token sendo usado:', token ? 'Token presente' : 'Token ausente');
+         const token = localStorage.getItem(`fitness_token`);
+         console.log(`🔑 Token sendo usado:`, token ? `Token presente` : `Token ausente`);
          
-         const response = await fetch(`${API_BASE_URL}
-            headers: { 'Authorization': `Bearer ${token}` }
+         const response = await fetch(`${API_URL}/api/admin/usuarios`, {
+            headers: { `Authorization`: `Bearer ${token}` }
          });
          
-         console.log('📞 Response status:', response.status);
-         console.log('📞 Response headers:', response.headers);
+         console.log(`📞 Response status:`, response.status);
+         console.log(`📞 Response headers:`, response.headers);
          
          if (response.ok) {
             const data = await response.json();
-            console.log('📊 Usuários recebidos:', data);
-            console.log('📊 Total de usuários:', data.length);
+            console.log(`📊 Usuários recebidos:`, data);
+            console.log(`📊 Total de usuários:`, data.length);
             
-            const alunosFiltrados = data.filter((u: any) => u.funcao === 'ALUNO');
-            console.log('👥 Alunos filtrados:', alunosFiltrados);
-            console.log('👥 Total de alunos:', alunosFiltrados.length);
+            const alunosFiltrados = data.filter((u: any) => u.funcao === `ALUNO`);
+            console.log(`👥 Alunos filtrados:`, alunosFiltrados);
+            console.log(`👥 Total de alunos:`, alunosFiltrados.length);
             
             setAlunos(alunosFiltrados);
          } else {
-            console.error('❌ Erro na resposta:', response.status);
+            console.error(`❌ Erro na resposta:`, response.status);
             const errorText = await response.text();
-            console.error('❌ Detalhes do erro:', errorText);
+            console.error(`❌ Detalhes do erro:`, errorText);
          }
       } catch (error) {
-         console.error('❌ Erro ao carregar alunos:', error);
+         console.error(`❌ Erro ao carregar alunos:`, error);
       }
    };
 
    const carregarEstatisticas = async () => {
       try {
-         const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}
-            headers: { 'Authorization': `Bearer ${token}` }
+         const token = localStorage.getItem(`fitness_token`);
+         const response = await fetch(`${API_URL}/api/admin/estatisticas`, {
+            headers: { `Authorization`: `Bearer ${token}` }
          });
          
          if (response.ok) {
@@ -4605,37 +4603,37 @@ const AdminModule = ({ view, user, academia }: any) => {
             setEstatisticas(data);
          }
       } catch (error) {
-         console.error('Erro ao carregar estatísticas:', error);
+         console.error(`Erro ao carregar estatísticas:`, error);
       }
    };
 
    const carregarFuncionarios = async () => {
       try {
-         const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}
-            headers: { 'Authorization': `Bearer ${token}` }
+         const token = localStorage.getItem(`fitness_token`);
+         const response = await fetch(`${API_URL}/api/admin/usuarios`, {
+            headers: { `Authorization`: `Bearer ${token}` }
          });
          
          if (response.ok) {
             const data = await response.json();
-            const funcionarios = data.filter((u: any) => u.funcao === 'PROFESSOR' || u.funcao === 'NUTRI');
+            const funcionarios = data.filter((u: any) => u.funcao === `PROFESSOR` || u.funcao === `NUTRI`);
             setFuncionariosData(funcionarios);
          }
       } catch (error) {
-         console.error('Erro ao carregar funcionários:', error);
+         console.error(`Erro ao carregar funcionários:`, error);
       }
    };
 
    const carregarDadosFinanceiros = async () => {
       try {
-         const token = localStorage.getItem('fitness_token');
-         const alunosResponse = await fetch(`${API_BASE_URL}
-            headers: { 'Authorization': `Bearer ${token}` }
+         const token = localStorage.getItem(`fitness_token`);
+         const alunosResponse = await fetch(`${API_URL}/api/admin/usuarios`, {
+            headers: { `Authorization`: `Bearer ${token}` }
          });
          
          if (alunosResponse.ok) {
             const usuarios = await alunosResponse.json();
-            const alunosAtivos = usuarios.filter((u: any) => u.funcao === 'ALUNO' && u.ativo);
+            const alunosAtivos = usuarios.filter((u: any) => u.funcao === `ALUNO` && u.ativo);
             
             // Calcular receita baseada em alunos ativos (assumindo mensalidade de R$ 150)
             const mensalidadeMedia = 150;
@@ -4652,18 +4650,18 @@ const AdminModule = ({ view, user, academia }: any) => {
             });
          }
       } catch (error) {
-         console.error('Erro ao carregar dados financeiros:', error);
+         console.error(`Erro ao carregar dados financeiros:`, error);
       }
    };
 
    const aprovarFuncionario = async (funcionarioId: string, aprovar: boolean) => {
       try {
-         const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}
-            method: 'PATCH',
+         const token = localStorage.getItem(`fitness_token`);
+         const response = await fetch(`${API_URL}/api/admin/usuarios/${funcionarioId}/status`, {
+            method: `PATCH`,
             headers: {
-               'Authorization': `Bearer ${token}`,
-               'Content-Type': 'application/json'
+               `Authorization`: `Bearer ${token}`,
+               `Content-Type`: `application/json`
             },
             body: JSON.stringify({ ativo: aprovar })
          });
@@ -4672,18 +4670,18 @@ const AdminModule = ({ view, user, academia }: any) => {
             carregarFuncionarios();
          }
       } catch (error) {
-         console.error('Erro ao alterar status do funcionário:', error);
+         console.error(`Erro ao alterar status do funcionário:`, error);
       }
    };
 
    const cadastrarFuncionario = async () => {
       try {
-         const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}
-            method: 'POST',
+         const token = localStorage.getItem(`fitness_token`);
+         const response = await fetch(`${API_URL}/api/auth/registrar`, {
+            method: `POST`,
             headers: {
-               'Authorization': `Bearer ${token}`,
-               'Content-Type': 'application/json'
+               `Authorization`: `Bearer ${token}`,
+               `Content-Type`: `application/json`
             },
             body: JSON.stringify({
                ...funcionarioForm,
@@ -4693,20 +4691,20 @@ const AdminModule = ({ view, user, academia }: any) => {
 
          if (response.ok) {
             setShowAddFuncionario(false);
-            setFuncionarioForm({ nome: '', email: '', senha: '', funcao: 'PROFESSOR', telefone: '', cpf: '' });
+            setFuncionarioForm({ nome: ``, email: ``, senha: ``, funcao: `PROFESSOR`, telefone: ``, cpf: `` });
             carregarFuncionarios();
-            alert('Funcionário cadastrado com sucesso!');
+            alert(`Funcionário cadastrado com sucesso!`);
          } else {
             const error = await response.json();
-            alert(`Erro: ${error.erro || 'Não foi possível cadastrar o funcionário'}`);
+            alert(`Erro: ${error.erro || `Não foi possível cadastrar o funcionário`}`);
          }
       } catch (error) {
-         console.error('Erro ao cadastrar funcionário:', error);
-         alert('Erro ao cadastrar funcionário');
+         console.error(`Erro ao cadastrar funcionário:`, error);
+         alert(`Erro ao cadastrar funcionário`);
       }
    };
 
-   const prescrever = (aluno: any, tipo: 'treino' | 'dieta') => {
+   const prescrever = (aluno: any, tipo: `treino` | `dieta`) => {
       setSelectedStudent(aluno);
       setPrescriptionType(tipo);
       setShowPrescriptionModal(true);
@@ -4714,45 +4712,45 @@ const AdminModule = ({ view, user, academia }: any) => {
 
    const cadastrarAluno = async () => {
       try {
-         const token = localStorage.getItem('fitness_token');
-         const response = await fetch(`${API_BASE_URL}
-            method: 'POST',
+         const token = localStorage.getItem(`fitness_token`);
+         const response = await fetch(`${API_URL}/api/auth/registrar`, {
+            method: `POST`,
             headers: {
-               'Authorization': `Bearer ${token}`,
-               'Content-Type': 'application/json'
+               `Authorization`: `Bearer ${token}`,
+               `Content-Type`: `application/json`
             },
             body: JSON.stringify({
                ...alunoForm,
-               funcao: 'ALUNO',
+               funcao: `ALUNO`,
                academiaId: academia.id
             })
          });
 
          if (response.ok) {
             setShowAddAlunoModal(false);
-            setAlunoForm({ nome: '', email: '', senha: '', telefone: '', cpf: '' });
+            setAlunoForm({ nome: ``, email: ``, senha: ``, telefone: ``, cpf: `` });
             carregarAlunos();
-            alert('Aluno cadastrado com sucesso!');
+            alert(`Aluno cadastrado com sucesso!`);
          } else {
             const error = await response.json();
-            alert(`Erro: ${error.erro || 'Não foi possível cadastrar o aluno'}`);
+            alert(`Erro: ${error.erro || `Não foi possível cadastrar o aluno`}`);
          }
       } catch (error) {
-         console.error('❌ Erro ao cadastrar aluno:', error);
-         alert('Erro ao cadastrar aluno');
+         console.error(`❌ Erro ao cadastrar aluno:`, error);
+         alert(`Erro ao cadastrar aluno`);
       }
    };
 
    const gerarTreinoComIA = async () => {
       if (!iaConfig.objetivo || !iaConfig.nivel) {
-         alert('Preencha o objetivo e nível do aluno');
+         alert(`Preencha o objetivo e nível do aluno`);
          return;
       }
 
       setGerandoComIA(true);
       try {
-         console.log('🤖 Gerando treino para', iaConfig.diasTreino, 'dias da semana');
-         console.log('📋 Configurações da IA:', iaConfig);
+         console.log(`🤖 Gerando treino para`, iaConfig.diasTreino, `dias da semana`);
+         console.log(`📋 Configurações da IA:`, iaConfig);
          
          const prompt = `Você é um personal trainer expert. Crie um plano de treino completo para ${iaConfig.diasTreino} dias da semana.
 
@@ -4760,7 +4758,7 @@ Perfil do Aluno:
 - Nome: ${selectedStudent.nome}
 - Objetivo: ${iaConfig.objetivo}
 - Nível: ${iaConfig.nivel}
-- Restrições: ${iaConfig.restricoes || 'Nenhuma'}
+- Restrições: ${iaConfig.restricoes || `Nenhuma`}
 
 IMPORTANTE: 
 ${iaConfig.diasTreino === 7 ? 
@@ -4783,13 +4781,13 @@ Retorne APENAS um JSON válido no formato:
 }
 
 ${iaConfig.diasTreino === 7 ? 
-  'CERTIFIQUE-SE de incluir exercícios em TODOS os 7 dias! Sábado e domingo NÃO devem ficar vazios!' :
+  `CERTIFIQUE-SE de incluir exercícios em TODOS os 7 dias! Sábado e domingo NÃO devem ficar vazios!` :
   `Distribua os exercícios nos ${iaConfig.diasTreino} dias solicitados, deixando os outros dias vazios [].`
 }
 
-Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos para fins de semana!' : ''}`;
+Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? `Inclua treinos para fins de semana!` : ``}`;
 
-         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+         const model = genAI.getGenerativeModel({ model: `gemini-2.5-flash` });
          const result = await model.generateContent(prompt);
          const response = await result.response;
          const text = response.text();
@@ -4801,16 +4799,16 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
             setPlanoTreino(planoGerado);
             
             // Salvar no banco de dados usando a API
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem(`token`);
             if (token) {
                const dadosTreino = {
                   usuarioId: selectedStudent.id,
                   titulo: planoGerado.titulo,
-                  tipoTreino: 'Treino Personalizado IA',
+                  tipoTreino: `Treino Personalizado IA`,
                   duracao: 60,
                   exercicios: planoGerado,
                   observacoes: `Gerado pela IA - Objetivo: ${iaConfig.objetivo}, Nível: ${iaConfig.nivel}`,
-                  origem: 'IA'
+                  origem: `IA`
                };
                
                const treinoSalvo = await salvarTreino(token, dadosTreino);
@@ -4822,23 +4820,23 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
                      titulo: treinoSalvo.titulo,
                      alunoId: selectedStudent.id,
                      alunoNome: selectedStudent.nome,
-                     data: new Date(treinoSalvo.data).toLocaleDateString('pt-BR'),
+                     data: new Date(treinoSalvo.data).toLocaleDateString(`pt-BR`),
                      plano: treinoSalvo.exercicios,
-                     tipo: 'ia'
+                     tipo: `ia`
                   };
                   setHistoricoTreinos(prev => [novoTreino, ...prev]);
                }
             }
             
             setShowIAConfigModal(false);
-            setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
-            alert('Treino gerado com sucesso pela IA!');
+            setIaConfig({ objetivo: ``, nivel: ``, restricoes: ``, diasTreino: 3 });
+            alert(`Treino gerado com sucesso pela IA!`);
          } else {
-            throw new Error('Formato de resposta inválido');
+            throw new Error(`Formato de resposta inválido`);
          }
       } catch (error) {
-         console.error('Erro ao gerar treino com IA:', error);
-         alert('Erro ao gerar treino com IA. Verifique sua chave de API.');
+         console.error(`Erro ao gerar treino com IA:`, error);
+         alert(`Erro ao gerar treino com IA. Verifique sua chave de API.`);
       } finally {
          setGerandoComIA(false);
       }
@@ -4846,7 +4844,7 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
 
    const gerarDietaComIA = async () => {
       if (!iaConfig.objetivo) {
-         alert('Preencha o objetivo do aluno');
+         alert(`Preencha o objetivo do aluno`);
          return;
       }
 
@@ -4857,7 +4855,7 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
 Perfil do Aluno:
 - Nome: ${selectedStudent.nome}
 - Objetivo: ${iaConfig.objetivo}
-- Restrições Alimentares: ${iaConfig.restricoes || 'Nenhuma'}
+- Restrições Alimentares: ${iaConfig.restricoes || `Nenhuma`}
 
 Retorne APENAS um JSON válido no formato:
 {
@@ -4874,7 +4872,7 @@ Retorne APENAS um JSON válido no formato:
 
 Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para cada dia. Seja específico nas quantidades e nutrientes.`;
 
-         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+         const model = genAI.getGenerativeModel({ model: `gemini-2.5-flash` });
          const result = await model.generateContent(prompt);
          const response = await result.response;
          const text = response.text();
@@ -4886,7 +4884,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             setPlanoDieta(planoGerado);
             
             // Salvar no banco de dados usando a API
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem(`token`);
             if (token) {
                const dadosDieta = {
                   usuarioId: selectedStudent.id,
@@ -4894,7 +4892,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   objetivo: planoGerado.objetivoCalorico,
                   refeicoes: planoGerado,
                   observacoes: `Gerada pela IA - Objetivo: ${iaConfig.objetivo}, Nível: ${iaConfig.nivel}`,
-                  origem: 'IA'
+                  origem: `IA`
                };
                
                const dietaSalva = await salvarDieta(token, dadosDieta);
@@ -4906,39 +4904,39 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      titulo: dietaSalva.titulo,
                      alunoId: selectedStudent.id,
                      alunoNome: selectedStudent.nome,
-                     data: new Date(dietaSalva.criadoEm).toLocaleDateString('pt-BR'),
+                     data: new Date(dietaSalva.criadoEm).toLocaleDateString(`pt-BR`),
                      plano: dietaSalva.conteudo.refeicoes,
-                     tipo: 'ia'
+                     tipo: `ia`
                   };
                   setHistoricoDietas(prev => [novaDieta, ...prev]);
                }
             }
             
             setShowIAConfigModal(false);
-            setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
-            alert('Dieta gerada com sucesso pela IA!');
+            setIaConfig({ objetivo: ``, nivel: ``, restricoes: ``, diasTreino: 3 });
+            alert(`Dieta gerada com sucesso pela IA!`);
          } else {
-            throw new Error('Formato de resposta inválido');
+            throw new Error(`Formato de resposta inválido`);
          }
       } catch (error) {
-         console.error('Erro ao gerar dieta com IA:', error);
-         alert('Erro ao gerar dieta com IA. Verifique sua chave de API.');
+         console.error(`Erro ao gerar dieta com IA:`, error);
+         alert(`Erro ao gerar dieta com IA. Verifique sua chave de API.`);
       } finally {
          setGerandoComIA(false);
       }
    };
 
    useEffect(() => {
-      if (tab === 'dashboard') {
+      if (tab === `dashboard`) {
          carregarEstatisticas();
       }
-      if (tab === 'alunos') {
+      if (tab === `alunos`) {
          carregarAlunos();
       }
-      if (tab === 'equipe') {
+      if (tab === `equipe`) {
          carregarFuncionarios();
       }
-      if (tab === 'financial') {
+      if (tab === `financial`) {
          carregarDadosFinanceiros();
       }
    }, [tab]);
@@ -4950,9 +4948,9 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
          </header>
 
-         {tab === 'users' && <UserManagement />}
+         {tab === `users` && <UserManagement />}
 
-         {tab === 'equipe' && (
+         {tab === `equipe` && (
             <div className="space-y-8 animate-in fade-in duration-700">
                <header className="flex flex-col md:flex-row justify-between md:items-end gap-4">
                   <div>
@@ -4976,18 +4974,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 p-6 rounded-3xl border border-blue-500/30">
                      <Dumbbell size={32} className="text-blue-400 mb-2" />
-                     <p className="text-3xl font-black">{funcionariosData.filter(f => f.funcao === 'PROFESSOR').length}</p>
-                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.funcao === 'PROFESSOR').length === 1 ? 'Professor' : 'Professores'}</p>
+                     <p className="text-3xl font-black">{funcionariosData.filter(f => f.funcao === `PROFESSOR`).length}</p>
+                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.funcao === `PROFESSOR`).length === 1 ? `Professor` : `Professores`}</p>
                   </div>
                   <div className="bg-gradient-to-br from-green-500/20 to-green-600/10 p-6 rounded-3xl border border-green-500/30">
                      <Apple size={32} className="text-green-400 mb-2" />
-                     <p className="text-3xl font-black">{funcionariosData.filter(f => f.funcao === 'NUTRI').length}</p>
-                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.funcao === 'NUTRI').length === 1 ? 'Nutricionista' : 'Nutricionistas'}</p>
+                     <p className="text-3xl font-black">{funcionariosData.filter(f => f.funcao === `NUTRI`).length}</p>
+                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.funcao === `NUTRI`).length === 1 ? `Nutricionista` : `Nutricionistas`}</p>
                   </div>
                   <div className="bg-gradient-to-br from-lime-500/20 to-lime-600/10 p-6 rounded-3xl border border-lime-500/30">
                      <Users size={32} className="text-lime-400 mb-2" />
                      <p className="text-3xl font-black">{funcionariosData.filter(f => f.ativo).length}</p>
-                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.ativo).length === 1 ? 'Ativo' : 'Ativos'}</p>
+                     <p className="text-sm text-zinc-400">{funcionariosData.filter(f => f.ativo).length === 1 ? `Ativo` : `Ativos`}</p>
                   </div>
                </div>
 
@@ -5027,7 +5025,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     <td className="p-3 md:p-4">
                                        <div className="flex items-center gap-2 md:gap-3">
                                           <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-black font-black text-sm md:text-base ${
-                                             funcionario.funcao === 'PROFESSOR' ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 'bg-gradient-to-br from-green-400 to-green-600'
+                                             funcionario.funcao === `PROFESSOR` ? `bg-gradient-to-br from-blue-400 to-blue-600` : `bg-gradient-to-br from-green-400 to-green-600`
                                           }`}>
                                              {funcionario.nome.charAt(0).toUpperCase()}
                                           </div>
@@ -5037,17 +5035,17 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm">{funcionario.email}</td>
                                     <td className="p-3 md:p-4">
                                        <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase whitespace-nowrap ${
-                                          funcionario.funcao === 'PROFESSOR' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
+                                          funcionario.funcao === `PROFESSOR` ? `bg-blue-500/20 text-blue-400` : `bg-green-500/20 text-green-400`
                                        }`}>
-                                          {funcionario.funcao === 'PROFESSOR' ? 'Professor' : 'Nutricionista'}
+                                          {funcionario.funcao === `PROFESSOR` ? `Professor` : `Nutricionista`}
                                        </span>
                                     </td>
-                                    <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm whitespace-nowrap">{funcionario.telefone || '-'}</td>
+                                    <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm whitespace-nowrap">{funcionario.telefone || `-`}</td>
                                     <td className="p-3 md:p-4">
                                        <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap ${
-                                          funcionario.ativo ? 'bg-lime-500/20 text-lime-400' : 'bg-red-500/20 text-red-400'
+                                          funcionario.ativo ? `bg-lime-500/20 text-lime-400` : `bg-red-500/20 text-red-400`
                                        }`}>
-                                          {funcionario.ativo ? 'ATIVO' : 'INATIVO'}
+                                          {funcionario.ativo ? `ATIVO` : `INATIVO`}
                                        </span>
                                     </td>
                                     <td className="p-3 md:p-4">
@@ -5055,11 +5053,11 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                           onClick={() => aprovarFuncionario(funcionario.id, !funcionario.ativo)}
                                           className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl font-black uppercase text-[10px] transition-all whitespace-nowrap ${
                                              funcionario.ativo 
-                                                ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
-                                                : 'bg-lime-400 text-black hover:bg-lime-300'
+                                                ? `bg-red-500/20 text-red-400 hover:bg-red-500/30` 
+                                                : `bg-lime-400 text-black hover:bg-lime-300`
                                           }`}
                                        >
-                                          {funcionario.ativo ? 'Desativar' : 'Ativar'}
+                                          {funcionario.ativo ? `Desativar` : `Ativar`}
                                        </button>
                                     </td>
                                  </tr>
@@ -5175,7 +5173,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             </div>
          )}
 
-         {tab === 'alunos' && (
+         {tab === `alunos` && (
             <div className="space-y-8 animate-in fade-in duration-700">
                {!selectedStudent ? (
                   <>
@@ -5228,7 +5226,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     <button
                                        onClick={(e) => {
                                           e.stopPropagation();
-                                          prescrever(aluno, 'treino');
+                                          prescrever(aluno, `treino`);
                                        }}
                                        className="bg-blue-500/20 text-blue-400 py-2 rounded-xl text-xs font-black uppercase hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2"
                                     >
@@ -5238,7 +5236,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     <button
                                        onClick={(e) => {
                                           e.stopPropagation();
-                                          prescrever(aluno, 'dieta');
+                                          prescrever(aluno, `dieta`);
                                        }}
                                        className="bg-green-500/20 text-green-400 py-2 rounded-xl text-xs font-black uppercase hover:bg-green-500/30 transition-colors flex items-center justify-center gap-2"
                                     >
@@ -5249,12 +5247,12 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
                                  <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center justify-between text-xs">
                                     <span className={`px-3 py-1 rounded-full font-bold ${
-                                       aluno.ativo ? 'bg-lime-500/20 text-lime-400' : 'bg-red-500/20 text-red-400'
+                                       aluno.ativo ? `bg-lime-500/20 text-lime-400` : `bg-red-500/20 text-red-400`
                                     }`}>
-                                       {aluno.ativo ? 'ATIVO' : 'INATIVO'}
+                                       {aluno.ativo ? `ATIVO` : `INATIVO`}
                                     </span>
                                     <span className="text-zinc-500">
-                                       Desde {new Date(aluno.criadoEm).toLocaleDateString('pt-BR')}
+                                       Desde {new Date(aluno.criadoEm).toLocaleDateString(`pt-BR`)}
                                     </span>
                                  </div>
                               </div>
@@ -5309,15 +5307,15 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  <div>
                                     <p className="text-xs text-zinc-500 font-bold uppercase">Status</p>
                                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold mt-1 ${
-                                       selectedStudent.ativo ? 'bg-lime-500/20 text-lime-400' : 'bg-red-500/20 text-red-400'
+                                       selectedStudent.ativo ? `bg-lime-500/20 text-lime-400` : `bg-red-500/20 text-red-400`
                                     }`}>
-                                       {selectedStudent.ativo ? 'ATIVO' : 'INATIVO'}
+                                       {selectedStudent.ativo ? `ATIVO` : `INATIVO`}
                                     </span>
                                  </div>
                                  <div>
                                     <p className="text-xs text-zinc-500 font-bold uppercase">Cadastro</p>
                                     <p className="text-sm font-semibold">
-                                       {new Date(selectedStudent.criadoEm).toLocaleDateString('pt-BR')}
+                                       {new Date(selectedStudent.criadoEm).toLocaleDateString(`pt-BR`)}
                                     </p>
                                  </div>
                               </div>
@@ -5331,14 +5329,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               </h3>
                               <div className="space-y-3">
                                  <button
-                                    onClick={() => prescrever(selectedStudent, 'treino')}
+                                    onClick={() => prescrever(selectedStudent, `treino`)}
                                     className="w-full bg-blue-500/20 text-blue-400 py-3 rounded-xl text-sm font-black uppercase hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2"
                                  >
                                     <Dumbbell size={16} />
                                     Prescrever Treino
                                  </button>
                                  <button
-                                    onClick={() => prescrever(selectedStudent, 'dieta')}
+                                    onClick={() => prescrever(selectedStudent, `dieta`)}
                                     className="w-full bg-green-500/20 text-green-400 py-3 rounded-xl text-sm font-black uppercase hover:bg-green-500/30 transition-colors flex items-center justify-center gap-2"
                                  >
                                     <Apple size={16} />
@@ -5402,7 +5400,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     Este aluno ainda não possui histórico de treinos. Prescreva um treino para começar!
                                  </p>
                                  <button
-                                    onClick={() => prescrever(selectedStudent, 'treino')}
+                                    onClick={() => prescrever(selectedStudent, `treino`)}
                                     className="mt-6 bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase hover:bg-lime-300 transition-colors flex items-center gap-2"
                                  >
                                     <Plus size={18} />
@@ -5421,9 +5419,9 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                 <div className="flex items-center gap-4 mt-2">
                                                    <p className="text-xs text-zinc-500 font-bold uppercase">📅 {treino.data}</p>
                                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                                      treino.tipo === 'ia' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
+                                                      treino.tipo === `ia` ? `bg-purple-500/20 text-purple-400` : `bg-blue-500/20 text-blue-400`
                                                    }`}>
-                                                      {treino.tipo === 'ia' ? '🤖 IA' : '✋ Manual'}
+                                                      {treino.tipo === `ia` ? `🤖 IA` : `✋ Manual`}
                                                    </span>
                                                 </div>
                                              </div>
@@ -5438,7 +5436,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                           </div>
                                           
                                           <div className="grid grid-cols-7 gap-2">
-                                             {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
+                                             {[`segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`, `domingo`].map((dia) => {
                                                 const exercicios = treino.plano[dia] || [];
                                                 return (
                                                    <div key={dia} className="text-center">
@@ -5447,8 +5445,8 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                       </p>
                                                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black ${
                                                          exercicios.length > 0 
-                                                            ? 'bg-lime-400 text-black' 
-                                                            : 'bg-zinc-800 text-zinc-600'
+                                                            ? `bg-lime-400 text-black` 
+                                                            : `bg-zinc-800 text-zinc-600`
                                                       }`}>
                                                          {exercicios.length}
                                                       </div>
@@ -5475,7 +5473,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   <div className="flex justify-between items-center mb-6">
                      <div>
                         <h2 className="text-3xl font-black italic uppercase tracking-tighter">
-                           {prescriptionType === 'treino' ? '💪 Prescrever Treino' : '🥗 Prescrever Dieta'}
+                           {prescriptionType === `treino` ? `💪 Prescrever Treino` : `🥗 Prescrever Dieta`}
                         </h2>
                         <p className="text-zinc-500 mt-1">Para: {selectedStudent.nome}</p>
                      </div>
@@ -5491,9 +5489,9 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                            onClick={() => {
                               setShowPrescriptionModal(false);
                               setPrescriptionType(null);
-                              setSelectedDay('segunda');
-                              setPlanoTreino({ titulo: '', segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] });
-                              setPlanoDieta({ titulo: '', objetivoCalorico: '', segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] });
+                              setSelectedDay(`segunda`);
+                              setPlanoTreino({ titulo: ``, segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] });
+                              setPlanoDieta({ titulo: ``, objetivoCalorico: ``, segunda: [], terca: [], quarta: [], quinta: [], sexta: [], sabado: [], domingo: [] });
                            }}
                            className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
                         >
@@ -5502,7 +5500,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      </div>
                   </div>
 
-                  {prescriptionType === 'treino' ? (
+                  {prescriptionType === `treino` ? (
                      <div className="space-y-6">
                         {/* Título do Plano */}
                         <div>
@@ -5524,14 +5522,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               Selecione o Dia da Semana
                            </label>
                            <div className="grid grid-cols-7 gap-2">
-                              {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => (
+                              {[`segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`, `domingo`].map((dia) => (
                                  <button
                                     key={dia}
                                     onClick={() => setSelectedDay(dia)}
                                     className={`py-3 rounded-xl font-black text-xs uppercase transition-all ${
                                        selectedDay === dia
-                                          ? 'bg-lime-400 text-black'
-                                          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                          ? `bg-lime-400 text-black`
+                                          : `bg-zinc-800 text-zinc-400 hover:bg-zinc-700`
                                     }`}
                                  >
                                     {dia.substring(0, 3)}
@@ -5549,11 +5547,11 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               <button
                                  onClick={() => {
                                     const novoExercicio = {
-                                       nome: '',
-                                       series: '',
-                                       repeticoes: '',
-                                       carga: '',
-                                       descanso: ''
+                                       nome: ``,
+                                       series: ``,
+                                       repeticoes: ``,
+                                       carga: ``,
+                                       descanso: ``
                                     };
                                     setPlanoTreino({
                                        ...planoTreino,
@@ -5656,12 +5654,12 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 text-zinc-500">Resumo Semanal</h4>
                            <div className="grid grid-cols-7 gap-2">
-                              {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => (
+                              {[`segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`, `domingo`].map((dia) => (
                                  <div key={dia} className="text-center">
                                     <div className="text-[10px] uppercase font-bold text-zinc-600 mb-1">
                                        {dia.substring(0, 3)}
                                     </div>
-                                    <div className={`text-lg font-black ${planoTreino[dia].length > 0 ? 'text-lime-400' : 'text-zinc-700'}`}>
+                                    <div className={`text-lg font-black ${planoTreino[dia].length > 0 ? `text-lime-400` : `text-zinc-700`}`}>
                                        {planoTreino[dia].length}
                                     </div>
                                  </div>
@@ -5676,17 +5674,17 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  titulo: planoTreino.titulo,
                                  alunoId: selectedStudent.id,
                                  alunoNome: selectedStudent.nome,
-                                 data: new Date().toLocaleDateString('pt-BR'),
+                                 data: new Date().toLocaleDateString(`pt-BR`),
                                  plano: { ...planoTreino },
-                                 tipo: 'manual'
+                                 tipo: `manual`
                               };
                               setHistoricoTreinos(prev => [novoTreino, ...prev]);
-                              console.log('Plano de Treino:', planoTreino);
-                              alert('Treino prescrito com sucesso!');
+                              console.log(`Plano de Treino:`, planoTreino);
+                              alert(`Treino prescrito com sucesso!`);
                               setShowPrescriptionModal(false);
                               // Resetar formulário
                               setPlanoTreino({
-                                 titulo: '',
+                                 titulo: ``,
                                  segunda: [],
                                  terca: [],
                                  quarta: [],
@@ -5738,14 +5736,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               Selecione o Dia da Semana
                            </label>
                            <div className="grid grid-cols-7 gap-2">
-                              {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => (
+                              {[`segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`, `domingo`].map((dia) => (
                                  <button
                                     key={dia}
                                     onClick={() => setSelectedDay(dia)}
                                     className={`py-3 rounded-xl font-black text-xs uppercase transition-all ${
                                        selectedDay === dia
-                                          ? 'bg-green-400 text-black'
-                                          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                          ? `bg-green-400 text-black`
+                                          : `bg-zinc-800 text-zinc-400 hover:bg-zinc-700`
                                     }`}
                                  >
                                     {dia.substring(0, 3)}
@@ -5763,10 +5761,10 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               <button
                                  onClick={() => {
                                     const novaRefeicao = {
-                                       nome: '',
-                                       horario: '',
-                                       alimentos: '',
-                                       calorias: ''
+                                       nome: ``,
+                                       horario: ``,
+                                       alimentos: ``,
+                                       calorias: ``
                                     };
                                     setPlanoDieta({
                                        ...planoDieta,
@@ -5856,12 +5854,12 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                            <h4 className="text-xs font-bold uppercase tracking-wider mb-3 text-zinc-500">Resumo Semanal</h4>
                            <div className="grid grid-cols-7 gap-2">
-                              {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => (
+                              {[`segunda`, `terca`, `quarta`, `quinta`, `sexta`, `sabado`, `domingo`].map((dia) => (
                                  <div key={dia} className="text-center">
                                     <div className="text-[10px] uppercase font-bold text-zinc-600 mb-1">
                                        {dia.substring(0, 3)}
                                     </div>
-                                    <div className={`text-lg font-black ${planoDieta[dia].length > 0 ? 'text-green-400' : 'text-zinc-700'}`}>
+                                    <div className={`text-lg font-black ${planoDieta[dia].length > 0 ? `text-green-400` : `text-zinc-700`}`}>
                                        {planoDieta[dia].length}
                                     </div>
                                  </div>
@@ -5876,18 +5874,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  titulo: planoDieta.titulo,
                                  alunoId: selectedStudent.id,
                                  alunoNome: selectedStudent.nome,
-                                 data: new Date().toLocaleDateString('pt-BR'),
+                                 data: new Date().toLocaleDateString(`pt-BR`),
                                  plano: { ...planoDieta },
-                                 tipo: 'manual'
+                                 tipo: `manual`
                               };
                               setHistoricoDietas(prev => [novaDieta, ...prev]);
-                              console.log('Plano de Dieta:', planoDieta);
-                              alert('Dieta prescrita com sucesso!');
+                              console.log(`Plano de Dieta:`, planoDieta);
+                              alert(`Dieta prescrita com sucesso!`);
                               setShowPrescriptionModal(false);
                               // Resetar formulário
                               setPlanoDieta({
-                                 titulo: '',
-                                 objetivoCalorico: '',
+                                 titulo: ``,
+                                 objetivoCalorico: ``,
                                  segunda: [],
                                  terca: [],
                                  quarta: [],
@@ -5919,7 +5917,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      <button
                         onClick={() => {
                            setShowAddAlunoModal(false);
-                           setAlunoForm({ nome: '', email: '', senha: '', telefone: '', cpf: '' });
+                           setAlunoForm({ nome: ``, email: ``, senha: ``, telefone: ``, cpf: `` });
                         }}
                         className="text-zinc-400 hover:text-white transition-colors"
                      >
@@ -5998,7 +5996,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <button
                            onClick={() => {
                               setShowAddAlunoModal(false);
-                              setAlunoForm({ nome: '', email: '', senha: '', telefone: '', cpf: '' });
+                              setAlunoForm({ nome: ``, email: ``, senha: ``, telefone: ``, cpf: `` });
                            }}
                            className="flex-1 bg-zinc-800 text-white py-4 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
                         >
@@ -6017,12 +6015,12 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             </div>
          )}
 
-         {tab === 'dashboard' && (
+         {tab === `dashboard` && (
             <div className="space-y-6">
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <StatCard label="Receita Mensal" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].receita / 1000).toFixed(1) : '0'}k`} color="text-lime-400" icon={DollarSign} trend="+12%" />
-                  <StatCard label="Lucro Líquido" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].lucro / 1000).toFixed(1) : '0'}k`} color="text-green-500" icon={TrendingUp} trend="+8%" />
-                  <StatCard label="Alunos Ativos" value={estatisticas.alunosAtivos.toString()} color="text-blue-400" icon={Users} trend={estatisticas.alunosAtivos > 0 ? `${estatisticas.alunosAtivos}` : '0'} />
+                  <StatCard label="Receita Mensal" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].receita / 1000).toFixed(1) : `0`}k`} color="text-lime-400" icon={DollarSign} trend="+12%" />
+                  <StatCard label="Lucro Líquido" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].lucro / 1000).toFixed(1) : `0`}k`} color="text-green-500" icon={TrendingUp} trend="+8%" />
+                  <StatCard label="Alunos Ativos" value={estatisticas.alunosAtivos.toString()} color="text-blue-400" icon={Users} trend={estatisticas.alunosAtivos > 0 ? `${estatisticas.alunosAtivos}` : `0`} />
                   <StatCard label="Taxa Retenção" value={`${estatisticas.taxaRetencao}%`} color="text-purple-400" icon={Target} trend={`${estatisticas.taxaRetencao}%`} />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -6043,14 +6041,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Estoque Crítico</h3>
                      <div className="space-y-3">
-                        {adminProducts.filter(s => s.status !== 'ok').map(item => (
-                           <div key={item.id} className={`p-4 rounded-2xl border-2 ${item.status === 'critical' ? 'bg-red-500/10 border-red-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
+                        {adminProducts.filter(s => s.status !== `ok`).map(item => (
+                           <div key={item.id} className={`p-4 rounded-2xl border-2 ${item.status === `critical` ? `bg-red-500/10 border-red-500/30` : `bg-orange-500/10 border-orange-500/30`}`}>
                               <div className="flex justify-between items-center">
                                  <div>
                                     <h4 className="font-black text-sm">{item.name}</h4>
                                     <p className="text-[10px] text-zinc-500 font-bold">Estoque: {item.quantity} un (Min: {item.minStock})</p>
                                  </div>
-                                 <AlertTriangle size={20} className={item.status === 'critical' ? 'text-red-500' : 'text-orange-500'}/>
+                                 <AlertTriangle size={20} className={item.status === `critical` ? `text-red-500` : `text-orange-500`}/>
                               </div>
                            </div>
                         ))}
@@ -6060,7 +6058,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             </div>
          )}
 
-         {tab === 'financial' && (
+         {tab === `financial` && (
             <div className="space-y-6 animate-in fade-in duration-700">
                <header className="mb-8">
                   <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
@@ -6078,7 +6076,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                   <h3 className="text-2xl font-black italic uppercase mb-6">Pagamentos Pendentes</h3>
                   <div className="space-y-3">
-                     {alunos.filter(s => s.financialStatus === 'LATE').map(student => (
+                     {alunos.filter(s => s.financialStatus === `LATE`).map(student => (
                         <div key={student.id} className="bg-zinc-950 border-2 border-red-500/30 p-6 rounded-2xl flex justify-between items-center">
                            <div className="flex items-center gap-4">
                               <img src={student.avatar} className="size-12 rounded-xl"/>
@@ -6098,12 +6096,12 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             </div>
          )}
 
-         {tab === 'crm' && (
+         {tab === `crm` && (
             <div className="space-y-6">
                <div className="flex justify-between items-center mb-8">
                   <div>
                      <h2 className="text-3xl font-black italic uppercase mb-2">Pipeline de Vendas</h2>
-                     <p className="text-zinc-500 font-medium">{crmLeads.filter(l => !['won', 'lost'].includes(l.status)).length} leads ativos</p>
+                     <p className="text-zinc-500 font-medium">{crmLeads.filter(l => ![`won`, `lost`].includes(l.status)).length} leads ativos</p>
                   </div>
                   <button onClick={() => setShowAddLead(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Lead</button>
                </div>
@@ -6124,18 +6122,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         >
                            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-zinc-800">
                               <div className={`size-8 rounded-xl flex items-center justify-center ${
-                                 column.color === 'lime' ? 'bg-lime-400/10 text-lime-400' :
-                                 column.color === 'blue' ? 'bg-blue-500/10 text-blue-400' :
-                                 column.color === 'purple' ? 'bg-purple-500/10 text-purple-400' :
-                                 column.color === 'orange' ? 'bg-orange-500/10 text-orange-400' :
-                                 column.color === 'red' ? 'bg-red-500/10 text-red-400' :
-                                 'bg-zinc-800 text-zinc-400'
+                                 column.color === `lime` ? `bg-lime-400/10 text-lime-400` :
+                                 column.color === `blue` ? `bg-blue-500/10 text-blue-400` :
+                                 column.color === `purple` ? `bg-purple-500/10 text-purple-400` :
+                                 column.color === `orange` ? `bg-orange-500/10 text-orange-400` :
+                                 column.color === `red` ? `bg-red-500/10 text-red-400` :
+                                 `bg-zinc-800 text-zinc-400`
                               }`}>
                                  <Icon size={16}/>
                               </div>
                               <div className="flex-1">
                                  <h3 className="font-black text-xs uppercase">{column.title}</h3>
-                                 <p className="text-[9px] text-zinc-500 font-bold">{columnLeads.length} lead{columnLeads.length !== 1 ? 's' : ''}</p>
+                                 <p className="text-[9px] text-zinc-500 font-bold">{columnLeads.length} lead{columnLeads.length !== 1 ? `s` : ``}</p>
                               </div>
                            </div>
 
@@ -6216,18 +6214,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                            e.preventDefault();
                            if (leadForm.name && leadForm.contact) {
                               try {
-                                 const token = localStorage.getItem('token');
-                                 const response = await fetch('/api/admin/leads', {
-                                    method: 'POST',
+                                 const token = localStorage.getItem(`token`);
+                                 const response = await fetch(`/api/admin/leads`, {
+                                    method: `POST`,
                                     headers: {
-                                       'Content-Type': 'application/json',
-                                       'Authorization': `Bearer ${token}`
+                                       `Content-Type`: `application/json`,
+                                       `Authorization`: `Bearer ${token}`
                                     },
                                     body: JSON.stringify({
                                        nome: leadForm.name,
                                        telefone: leadForm.contact,
                                        origem: leadForm.origin,
-                                       valorEstimado: leadForm.value || 'R$ 150/mês',
+                                       valorEstimado: leadForm.value || `R$ 150/mês`,
                                        observacoes: leadForm.notes
                                     })
                                  });
@@ -6241,18 +6239,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                        contact: novoLead.telefone,
                                        origin: novoLead.origem,
                                        value: novoLead.valorEstimado,
-                                       notes: novoLead.observacoes || ''
+                                       notes: novoLead.observacoes || ``
                                     };
                                     setCrmLeads([...crmLeads, leadFormatado]);
-                                    setLeadForm({ name: '', contact: '', origin: 'Instagram', value: '', notes: '' });
+                                    setLeadForm({ name: ``, contact: ``, origin: `Instagram`, value: ``, notes: `` });
                                     setShowAddLead(false);
                                     alert(`Lead "${novoLead.nome}" adicionado com sucesso!`);
                                  } else {
-                                    alert('Erro ao criar lead. Tente novamente.');
+                                    alert(`Erro ao criar lead. Tente novamente.`);
                                  }
                               } catch (error) {
-                                 console.error('Erro ao criar lead:', error);
-                                 alert('Erro ao criar lead. Tente novamente.');
+                                 console.error(`Erro ao criar lead:`, error);
+                                 alert(`Erro ao criar lead. Tente novamente.`);
                               }
                            }
                         }} className="space-y-4">
@@ -6298,24 +6296,24 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             </div>
          )}
 
-         {tab === 'stock' && (
+         {tab === `stock` && (
             <div className="space-y-6">
                <div className="flex justify-between items-center">
                   <h2 className="text-3xl font-black italic uppercase">Controle de Estoque</h2>
-                  <button onClick={() => alert('Adicionar Novo Produto\n\nFuncionalidade em desenvolvimento.\nEm breve você poderá cadastrar novos produtos no estoque.')} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Produto</button>
+                  <button onClick={() => alert(`Adicionar Novo Produto\n\nFuncionalidade em desenvolvimento.\nEm breve você poderá cadastrar novos produtos no estoque.`)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Produto</button>
                </div>
                <div className="grid gap-4">
                   {adminProducts.length > 0 ? (
                      adminProducts.map(item => (
-                        <div key={item.id} className={`bg-zinc-900 border-2 p-6 rounded-3xl flex justify-between items-center ${item.status === 'critical' ? 'border-red-500/30' : item.status === 'low' ? 'border-orange-500/30' : 'border-zinc-800'}`}>
+                        <div key={item.id} className={`bg-zinc-900 border-2 p-6 rounded-3xl flex justify-between items-center ${item.status === `critical` ? `border-red-500/30` : item.status === `low` ? `border-orange-500/30` : `border-zinc-800`}`}>
                            <div className="flex items-center gap-6">
-                              <div className={`size-16 rounded-2xl flex items-center justify-center ${item.status === 'critical' ? 'bg-red-500/20 text-red-500' : item.status === 'low' ? 'bg-orange-500/20 text-orange-500' : 'bg-lime-400/20 text-lime-400'}`}><Package size={24}/></div>
+                              <div className={`size-16 rounded-2xl flex items-center justify-center ${item.status === `critical` ? `bg-red-500/20 text-red-500` : item.status === `low` ? `bg-orange-500/20 text-orange-500` : `bg-lime-400/20 text-lime-400`}`}><Package size={24}/></div>
                               <div>
                                  <h4 className="font-black text-lg">{item.name}</h4>
                                  <p className="text-[10px] text-zinc-500 font-bold">Quantidade: {item.quantity} un • Mínimo: {item.minStock} un</p>
                               </div>
                            </div>
-                           <button onClick={() => alert('Reposição de estoque solicitada para: ' + item.name)} className="px-6 py-3 bg-lime-400 text-black rounded-xl font-black uppercase text-[10px]">Repor</button>
+                           <button onClick={() => alert(`Reposição de estoque solicitada para: ` + item.name)} className="px-6 py-3 bg-lime-400 text-black rounded-xl font-black uppercase text-[10px]">Repor</button>
                         </div>
                      ))
                   ) : (
@@ -6325,14 +6323,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         </div>
                         <h3 className="text-xl font-black italic uppercase mb-2">Nenhum Produto Cadastrado</h3>
                         <p className="text-zinc-500 font-medium mb-6">Adicione produtos ao estoque para começar o controle</p>
-                        <button onClick={() => alert('Adicionar Novo Produto\n\nFuncionalidade em desenvolvimento.\nEm breve você poderá cadastrar novos produtos no estoque.')} className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-[10px]">Cadastrar Primeiro Produto</button>
+                        <button onClick={() => alert(`Adicionar Novo Produto\n\nFuncionalidade em desenvolvimento.\nEm breve você poderá cadastrar novos produtos no estoque.`)} className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-[10px]">Cadastrar Primeiro Produto</button>
                      </div>
                   )}
                </div>
             </div>
          )}
 
-         {tab === 'employees' && (
+         {tab === `employees` && (
             <div className="space-y-6">
                <div className="flex justify-between items-center">
                   <h2 className="text-3xl font-black italic uppercase">Equipe</h2>
@@ -6346,7 +6344,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center font-black text-2xl">{emp.name.charAt(0)}</div>
                               <div>
                                  <h4 className="font-black text-lg">{emp.name}</h4>
-                                 <p className="text-[10px] text-zinc-500 font-bold">{emp.role} • R$ {emp.salary.toLocaleString('pt-BR')}/mês</p>
+                                 <p className="text-[10px] text-zinc-500 font-bold">{emp.role} • R$ {emp.salary.toLocaleString(`pt-BR`)}/mês</p>
                               </div>
                            </div>
                            <div className="flex items-center gap-4">
@@ -6372,7 +6370,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             </div>
          )}
 
-         {tab === 'maintenance' && (
+         {tab === `maintenance` && (
             <div className="space-y-6">
                <div className="flex justify-between items-center">
                   <h2 className="text-3xl font-black italic uppercase">Manutenção de Equipamentos</h2>
@@ -6383,15 +6381,15 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      maintenanceTickets.map((ticket: any) => (
                         <div key={ticket.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-lime-400/30 transition-all">
                            <div className="flex items-center gap-6">
-                              <div className={`size-16 rounded-2xl flex items-center justify-center ${ticket.status === 'FIXED' ? 'bg-green-500/20 text-green-500' : ticket.status === 'PENDING' ? 'bg-orange-500/20 text-orange-500' : 'bg-red-500/20 text-red-500'}`}><Wrench size={24}/></div>
+                              <div className={`size-16 rounded-2xl flex items-center justify-center ${ticket.status === `FIXED` ? `bg-green-500/20 text-green-500` : ticket.status === `PENDING` ? `bg-orange-500/20 text-orange-500` : `bg-red-500/20 text-red-500`}`}><Wrench size={24}/></div>
                               <div>
                                  <h4 className="font-black text-lg">{ticket.equipment}</h4>
                                  <p className="text-[10px] text-zinc-500 font-bold">{ticket.issue} • {ticket.date}</p>
                               </div>
                            </div>
                            <div className="flex gap-2">
-                              <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.priority === 'HIGH' ? 'bg-red-500 text-white' : ticket.priority === 'MEDIUM' ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400'}`}>{ticket.priority}</span>
-                              <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.status === 'FIXED' ? 'bg-green-500/20 text-green-500' : 'bg-zinc-800 text-zinc-400'}`}>{ticket.status}</span>
+                              <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.priority === `HIGH` ? `bg-red-500 text-white` : ticket.priority === `MEDIUM` ? `bg-orange-500 text-white` : `bg-zinc-800 text-zinc-400`}`}>{ticket.priority}</span>
+                              <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase ${ticket.status === `FIXED` ? `bg-green-500/20 text-green-500` : `bg-zinc-800 text-zinc-400`}`}>{ticket.status}</span>
                            </div>
                         </div>
                      ))
@@ -6409,17 +6407,17 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             </div>
          )}
 
-         {tab === 'analytics' && (
+         {tab === `analytics` && (
             <div className="space-y-6">
                <h2 className="text-3xl font-black italic uppercase">Relatórios e Analytics</h2>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Taxa de Retenção</h3>
-                     <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={[{month: 'Jan', rate: 88}, {month: 'Fev', rate: 91}, {month: 'Mar', rate: 89}, {month: 'Abr', rate: 93}, {month: 'Mai', rate: 94}]}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="month" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="rate" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
+                     <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={[{month: `Jan`, rate: 88}, {month: `Fev`, rate: 91}, {month: `Mar`, rate: 89}, {month: `Abr`, rate: 93}, {month: `Mai`, rate: 94}]}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="month" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Line type="monotone" dataKey="rate" stroke="#D9FF00" strokeWidth={3} dot={{ fill: `#D9FF00`, r: 5 }} /></LineChart></ResponsiveContainer></div>
                   </div>
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Origem de Novos Alunos</h3>
-                     <div className="h-64"><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Pie data={[{name: 'Instagram', value: 45, fill: '#D9FF00'}, {name: 'Google', value: 25, fill: '#3b82f6'}, {name: 'Indicação', value: 20, fill: '#f97316'}, {name: 'Walk-in', value: 10, fill: '#8b5cf6'}]} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none" /></PieChart></ResponsiveContainer></div>
+                     <div className="h-64"><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip contentStyle={{ backgroundColor: `#18181b`, border: `1px solid #27272a`, borderRadius: `1rem` }} /><Pie data={[{name: `Instagram`, value: 45, fill: `#D9FF00`}, {name: `Google`, value: 25, fill: `#3b82f6`}, {name: `Indicação`, value: 20, fill: `#f97316`}, {name: `Walk-in`, value: 10, fill: `#8b5cf6`}]} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none" /></PieChart></ResponsiveContainer></div>
                   </div>
                </div>
             </div>
@@ -6450,7 +6448,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      <h3 className="text-3xl font-black italic uppercase">Novo Chamado</h3>
                      <button onClick={() => setShowAddTicket(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Chamado criado com sucesso!\n\nEquipamento: ' + ticketForm.equipment + '\nProblema: ' + ticketForm.issue + '\nPrioridade: ' + ticketForm.priority); setTicketForm({ equipment: '', issue: '', priority: 'Média' }); setShowAddTicket(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); alert(`Chamado criado com sucesso!\n\nEquipamento: ` + ticketForm.equipment + `\nProblema: ` + ticketForm.issue + `\nPrioridade: ` + ticketForm.priority); setTicketForm({ equipment: ``, issue: ``, priority: `Média` }); setShowAddTicket(false); }} className="space-y-6">
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Equipamento</label><input required value={ticketForm.equipment} onChange={(e) => setTicketForm({...ticketForm, equipment: e.target.value})} placeholder="Ex: Esteira 04" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Problema</label><input required value={ticketForm.issue} onChange={(e) => setTicketForm({...ticketForm, issue: e.target.value})} placeholder="Ex: Motor fazendo barulho" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Prioridade</label><select value={ticketForm.priority} onChange={(e) => setTicketForm({...ticketForm, priority: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Baixa</option><option>Média</option><option>Alta</option></select></div>
@@ -6467,7 +6465,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      <h3 className="text-3xl font-black italic uppercase">Novo Funcionário</h3>
                      <button onClick={() => setShowAddEmployee(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Funcionário contratado com sucesso!\n\nNome: ' + employeeForm.name + '\nCargo: ' + employeeForm.role + '\nSalário: R$ ' + employeeForm.salary); setEmployeeForm({ name: '', role: 'Professor', salary: '' }); setShowAddEmployee(false); }} className="space-y-6">
+                  <form onSubmit={(e) => { e.preventDefault(); alert(`Funcionário contratado com sucesso!\n\nNome: ` + employeeForm.name + `\nCargo: ` + employeeForm.role + `\nSalário: R$ ` + employeeForm.salary); setEmployeeForm({ name: ``, role: `Professor`, salary: `` }); setShowAddEmployee(false); }} className="space-y-6">
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Nome Completo</label><input required value={employeeForm.name} onChange={(e) => setEmployeeForm({...employeeForm, name: e.target.value})} placeholder="Ex: Carlos Silva" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Cargo</label><select value={employeeForm.role} onChange={(e) => setEmployeeForm({...employeeForm, role: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Professor</option><option>Nutricionista</option><option>Recepção</option><option>Gerente</option></select></div>
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Salário Mensal</label><input required type="number" value={employeeForm.salary} onChange={(e) => setEmployeeForm({...employeeForm, salary: e.target.value})} placeholder="Ex: 4500" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -6489,14 +6487,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <div>
                            <h2 className="text-2xl font-black">IA Fitness Assistant</h2>
                            <p className="text-sm text-zinc-400">
-                              {prescriptionType === 'treino' ? 'Criação automática de treino' : 'Criação automática de dieta'}
+                              {prescriptionType === `treino` ? `Criação automática de treino` : `Criação automática de dieta`}
                            </p>
                         </div>
                      </div>
                      <button
                         onClick={() => {
                            setShowIAConfigModal(false);
-                           setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
+                           setIaConfig({ objetivo: ``, nivel: ``, restricoes: ``, diasTreino: 3 });
                         }}
                         className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
                      >
@@ -6524,7 +6522,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         </select>
                      </div>
 
-                     {prescriptionType === 'treino' && (
+                     {prescriptionType === `treino` && (
                         <>
                            <div>
                               <label className="block text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -6555,8 +6553,8 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                        onClick={() => setIaConfig({ ...iaConfig, diasTreino: dias })}
                                        className={`py-3 rounded-xl font-black transition-all ${
                                           iaConfig.diasTreino === dias
-                                             ? 'bg-purple-500 text-white'
-                                             : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                             ? `bg-purple-500 text-white`
+                                             : `bg-zinc-800 text-zinc-400 hover:bg-zinc-700`
                                        }`}
                                     >
                                        {dias}x
@@ -6570,12 +6568,12 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      <div>
                         <label className="block text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                            <AlertTriangle size={16} className="text-purple-400" />
-                           {prescriptionType === 'treino' ? 'Restrições / Lesões' : 'Restrições Alimentares'}
+                           {prescriptionType === `treino` ? `Restrições / Lesões` : `Restrições Alimentares`}
                         </label>
                         <textarea
                            value={iaConfig.restricoes}
                            onChange={(e) => setIaConfig({ ...iaConfig, restricoes: e.target.value })}
-                           placeholder={prescriptionType === 'treino' 
+                           placeholder={prescriptionType === `treino` 
                               ? "Ex: Dor no ombro direito, evitar agachamento profundo..." 
                               : "Ex: Intolerância à lactose, vegetariano, alergia a frutos do mar..."}
                            rows={3}
@@ -6588,7 +6586,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <div className="flex-1">
                            <p className="text-sm font-bold text-purple-400 mb-1">Como funciona?</p>
                            <p className="text-xs text-zinc-400">
-                              Nossa IA analisa o perfil do aluno e cria um {prescriptionType === 'treino' ? 'plano de treino personalizado' : 'plano alimentar balanceado'} baseado em milhares de dados científicos. Você pode editar tudo depois!
+                              Nossa IA analisa o perfil do aluno e cria um {prescriptionType === `treino` ? `plano de treino personalizado` : `plano alimentar balanceado`} baseado em milhares de dados científicos. Você pode editar tudo depois!
                            </p>
                         </div>
                      </div>
@@ -6597,15 +6595,15 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <button
                            onClick={() => {
                               setShowIAConfigModal(false);
-                              setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
+                              setIaConfig({ objetivo: ``, nivel: ``, restricoes: ``, diasTreino: 3 });
                            }}
                            className="flex-1 bg-zinc-800 text-white py-4 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
                         >
                            Cancelar
                         </button>
                         <button
-                           onClick={prescriptionType === 'treino' ? gerarTreinoComIA : gerarDietaComIA}
-                           disabled={gerandoComIA || !iaConfig.objetivo || (prescriptionType === 'treino' && !iaConfig.nivel)}
+                           onClick={prescriptionType === `treino` ? gerarTreinoComIA : gerarDietaComIA}
+                           disabled={gerandoComIA || !iaConfig.objetivo || (prescriptionType === `treino` && !iaConfig.nivel)}
                            className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-black uppercase hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                            {gerandoComIA ? (
@@ -6616,7 +6614,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                            ) : (
                               <>
                                  <Sparkles size={20} />
-                                 Gerar {prescriptionType === 'treino' ? 'Treino' : 'Dieta'}
+                                 Gerar {prescriptionType === `treino` ? `Treino` : `Dieta`}
                               </>
                            )}
                         </button>
@@ -6631,7 +6629,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
 const AppContent: React.FC = () => {
   const { user, academia, logout } = useAuth();
-  const [activeView, setActiveView] = useState('dashboard');
+  const [activeView, setActiveView] = useState(`dashboard`);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -6639,9 +6637,9 @@ const AppContent: React.FC = () => {
   
   // Carregar produtos quando entrar na loja
   useEffect(() => {
-    if (activeView === 'store' && products.length === 0) {
+    if (activeView === `store` && products.length === 0) {
       const carregarProdutosLoja = async () => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem(`token`);
         if (!token) return;
         
         try {
@@ -6651,13 +6649,13 @@ const AppContent: React.FC = () => {
             name: p.nome,
             price: p.preco,
             category: p.categoria,
-            image: p.urlImagem || 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b',
+            image: p.urlImagem || `https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b`,
             rating: 4.5,
             reviews: Math.floor(Math.random() * 100) + 10
           }));
           setProducts(produtosFormatados);
         } catch (error) {
-          console.error('Erro ao carregar produtos:', error);
+          console.error(`Erro ao carregar produtos:`, error);
         }
       };
       
@@ -6668,7 +6666,7 @@ const AppContent: React.FC = () => {
   // Carrinho com persistência
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
-      const saved = localStorage.getItem('fitness_cart');
+      const saved = localStorage.getItem(`fitness_cart`);
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -6680,15 +6678,15 @@ const AppContent: React.FC = () => {
   
   // Perfil com persistência
   const [profileImage, setProfileImage] = useState(() => {
-    return localStorage.getItem('fitness_profile_img') || "https://picsum.photos/seed/fitness/300";
+    return localStorage.getItem(`fitness_profile_img`) || "https://picsum.photos/seed/fitness/300";
   });
   
   const [biometrics, setBiometrics] = useState<Biometrics>(() => {
     try {
-      const saved = localStorage.getItem('fitness_biometrics');
-      return saved ? JSON.parse(saved) : { height: '1.82', weight: '84.2', age: '26', goal: 'Hipertrofia' };
+      const saved = localStorage.getItem(`fitness_biometrics`);
+      return saved ? JSON.parse(saved) : { height: `1.82`, weight: `84.2`, age: `26`, goal: `Hipertrofia` };
     } catch {
-      return { height: '1.82', weight: '84.2', age: '26', goal: 'Hipertrofia' };
+      return { height: `1.82`, weight: `84.2`, age: `26`, goal: `Hipertrofia` };
     }
   });
   
@@ -6720,27 +6718,27 @@ const AppContent: React.FC = () => {
   // Persistir carrinho
   useEffect(() => {
     try {
-      localStorage.setItem('fitness_cart', JSON.stringify(cart));
+      localStorage.setItem(`fitness_cart`, JSON.stringify(cart));
     } catch (e) {
-      console.error('Erro ao salvar carrinho:', e);
+      console.error(`Erro ao salvar carrinho:`, e);
     }
   }, [cart]);
 
   // Persistir biometria
   useEffect(() => {
     try {
-      localStorage.setItem('fitness_biometrics', JSON.stringify(biometrics));
+      localStorage.setItem(`fitness_biometrics`, JSON.stringify(biometrics));
     } catch (e) {
-      console.error('Erro ao salvar biometria:', e);
+      console.error(`Erro ao salvar biometria:`, e);
     }
   }, [biometrics]);
 
   // Persistir foto de perfil
   useEffect(() => {
     try {
-      localStorage.setItem('fitness_profile_img', profileImage);
+      localStorage.setItem(`fitness_profile_img`, profileImage);
     } catch (e) {
-      console.error('Erro ao salvar foto:', e);
+      console.error(`Erro ao salvar foto:`, e);
     }
   }, [profileImage]);
 
@@ -6749,7 +6747,7 @@ const AppContent: React.FC = () => {
     return acc + itemTotal;
   }, 0);
   
-  const discount = paymentMethod === 'pix' ? subtotal * 0.05 : 0;
+  const discount = paymentMethod === `pix` ? subtotal * 0.05 : 0;
   const total = Math.max(0, subtotal - discount);
 
   const handleToggleWatch = (status: boolean, name: string = "") => {
@@ -6793,8 +6791,8 @@ const AppContent: React.FC = () => {
       <aside className={`
         fixed md:sticky top-0 h-screen bg-zinc-950 border-r border-zinc-900 z-[110] transition-all duration-300
         flex flex-col p-8
-        ${mobileMenuOpen ? 'left-0' : '-left-full md:left-0'}
-        ${sidebarOpen ? 'w-80' : 'w-28 md:w-28'}
+        ${mobileMenuOpen ? `left-0` : `-left-full md:left-0`}
+        ${sidebarOpen ? `w-80` : `w-28 md:w-28`}
         md:transition-all md:duration-500
       `}>
         <div className="flex items-center justify-between gap-5 shrink-0 mb-8">
@@ -6817,44 +6815,44 @@ const AppContent: React.FC = () => {
           </button>
         </div>
         <nav className="flex-1 space-y-3 overflow-y-auto min-h-0 mb-8">
-          <NavItem icon={<LayoutDashboard size={24}/>} label="Painel" active={activeView === 'dashboard'} onClick={() => { setActiveView('dashboard'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-          {user.role === 'ALUNO' && (
+          <NavItem icon={<LayoutDashboard size={24}/>} label="Painel" active={activeView === `dashboard`} onClick={() => { setActiveView(`dashboard`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+          {user.role === `ALUNO` && (
             <>
-              <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => { setActiveView('workouts'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => { setActiveView('diet'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Trophy size={24}/>} label="Metas" active={activeView === 'goals'} onClick={() => { setActiveView('goals'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === 'store'} onClick={() => { setActiveView('store'); if(activeView === 'store') setIsCartOpen(true); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} badge={cart.length} />
-              <NavItem icon={<TrendingUp size={24}/>} label="Evolução" active={activeView === 'evolution'} onClick={() => { setActiveView('evolution'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<User size={24}/>} label="Perfil" active={activeView === 'profile'} onClick={() => { setActiveView('profile'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === `workouts`} onClick={() => { setActiveView(`workouts`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === `diet`} onClick={() => { setActiveView(`diet`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Trophy size={24}/>} label="Metas" active={activeView === `goals`} onClick={() => { setActiveView(`goals`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === `store`} onClick={() => { setActiveView(`store`); if(activeView === `store`) setIsCartOpen(true); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} badge={cart.length} />
+              <NavItem icon={<TrendingUp size={24}/>} label="Evolução" active={activeView === `evolution`} onClick={() => { setActiveView(`evolution`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<User size={24}/>} label="Perfil" active={activeView === `profile`} onClick={() => { setActiveView(`profile`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
-          {user.role === 'PROFESSOR' && (
+          {user.role === `PROFESSOR` && (
             <>
-              <NavItem icon={<Users size={24}/>} label="Alunos" active={activeView === 'students'} onClick={() => { setActiveView('students'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<BookMarked size={24}/>} label="Modelos" active={activeView === 'templates'} onClick={() => { setActiveView('templates'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Calendar size={24}/>} label="Agenda" active={activeView === 'schedule'} onClick={() => { setActiveView('schedule'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<ClipboardList size={24}/>} label="Avaliações" active={activeView === 'assessments'} onClick={() => { setActiveView('assessments'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="Alunos" active={activeView === `students`} onClick={() => { setActiveView(`students`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<BookMarked size={24}/>} label="Modelos" active={activeView === `templates`} onClick={() => { setActiveView(`templates`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Calendar size={24}/>} label="Agenda" active={activeView === `schedule`} onClick={() => { setActiveView(`schedule`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<ClipboardList size={24}/>} label="Avaliações" active={activeView === `assessments`} onClick={() => { setActiveView(`assessments`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
-          {user.role === 'NUTRI' && (
+          {user.role === `NUTRI` && (
             <>
-              <NavItem icon={<Users size={24}/>} label="Pacientes" active={activeView === 'students'} onClick={() => { setActiveView('students'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Utensils size={24}/>} label="Dietas" active={activeView === 'diets'} onClick={() => { setActiveView('diets'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Camera size={24}/>} label="Diário Visual" active={activeView === 'diary'} onClick={() => { setActiveView('diary'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Scale size={24}/>} label="Composição" active={activeView === 'composition'} onClick={() => { setActiveView('composition'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<BookOpen size={24}/>} label="Educação" active={activeView === 'education'} onClick={() => { setActiveView('education'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="Pacientes" active={activeView === `students`} onClick={() => { setActiveView(`students`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Utensils size={24}/>} label="Dietas" active={activeView === `diets`} onClick={() => { setActiveView(`diets`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Camera size={24}/>} label="Diário Visual" active={activeView === `diary`} onClick={() => { setActiveView(`diary`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Scale size={24}/>} label="Composição" active={activeView === `composition`} onClick={() => { setActiveView(`composition`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<BookOpen size={24}/>} label="Educação" active={activeView === `education`} onClick={() => { setActiveView(`education`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
-          {user.role === 'ADMIN' && (
+          {user.role === `ADMIN` && (
             <>
-              <NavItem icon={<Users size={24}/>} label="Usuários" active={activeView === 'users'} onClick={() => { setActiveView('users'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Dumbbell size={24}/>} label="Alunos" active={activeView === 'alunos'} onClick={() => { setActiveView('alunos'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Briefcase size={24}/>} label="Equipe" active={activeView === 'equipe'} onClick={() => { setActiveView('equipe'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<DollarSign size={24}/>} label="Financeiro" active={activeView === 'financial'} onClick={() => { setActiveView('financial'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Users size={24}/>} label="CRM" active={activeView === 'crm'} onClick={() => { setActiveView('crm'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Package size={24}/>} label="Estoque" active={activeView === 'stock'} onClick={() => { setActiveView('stock'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<Wrench size={24}/>} label="Manutenção" active={activeView === 'maintenance'} onClick={() => { setActiveView('maintenance'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
-              <NavItem icon={<BarChart3 size={24}/>} label="Analytics" active={activeView === 'analytics'} onClick={() => { setActiveView('analytics'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="Usuários" active={activeView === `users`} onClick={() => { setActiveView(`users`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Dumbbell size={24}/>} label="Alunos" active={activeView === `alunos`} onClick={() => { setActiveView(`alunos`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Briefcase size={24}/>} label="Equipe" active={activeView === `equipe`} onClick={() => { setActiveView(`equipe`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<DollarSign size={24}/>} label="Financeiro" active={activeView === `financial`} onClick={() => { setActiveView(`financial`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="CRM" active={activeView === `crm`} onClick={() => { setActiveView(`crm`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Package size={24}/>} label="Estoque" active={activeView === `stock`} onClick={() => { setActiveView(`stock`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Wrench size={24}/>} label="Manutenção" active={activeView === `maintenance`} onClick={() => { setActiveView(`maintenance`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<BarChart3 size={24}/>} label="Analytics" active={activeView === `analytics`} onClick={() => { setActiveView(`analytics`); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
         </nav>
@@ -6864,7 +6862,7 @@ const AppContent: React.FC = () => {
             className="w-full p-4 bg-red-900/20 border border-red-800/30 rounded-3xl flex items-center justify-center gap-3 text-red-400 hover:text-red-300 hover:bg-red-900/30 transition-all font-bold text-xs uppercase"
           >
             <LogOut size={20}/>
-            {sidebarOpen && 'Sair'}
+            {sidebarOpen && `Sair`}
           </button>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)} 
@@ -6876,7 +6874,7 @@ const AppContent: React.FC = () => {
       </aside>
 
       <main className="flex-1 px-4 py-4 md:p-6 lg:p-12 lg:px-20 max-w-8xl mx-auto w-full pt-20 md:pt-6 pb-20 md:pb-32">
-        {user.role === 'ALUNO' && (
+        {user.role === `ALUNO` && (
           <StudentModule 
             view={activeView} setView={setActiveView} products={products} 
             addToCart={(p:any)=>{
@@ -6905,7 +6903,7 @@ const AppContent: React.FC = () => {
             setActiveSessionTime={setActiveSessionTime}
           />
         )}
-        {user.role === 'PROFESSOR' && (
+        {user.role === `PROFESSOR` && (
           <ProfessorModule 
             view={activeView} setView={setActiveView} students={students} 
             onAddStudent={()=>{}} templates={workoutTemplates} 
@@ -6915,13 +6913,13 @@ const AppContent: React.FC = () => {
             user={user} academia={academia}
           />
         )}
-        {user.role === 'NUTRI' && (
+        {user.role === `NUTRI` && (
           <NutriModule 
             view={activeView} setView={setActiveView} students={students}
             user={user} academia={academia}
           />
         )}
-        {user.role === 'ADMIN' && <AdminModule view={activeView} user={user} academia={academia} />}
+        {user.role === `ADMIN` && <AdminModule view={activeView} user={user} academia={academia} />}
       </main>
 
       {/* AI CHATBOT GLOBAL */}
@@ -6972,7 +6970,7 @@ const AppContent: React.FC = () => {
                     </div>
                   ))}
                </div>
-               {cart.length > 0 && (<section className="space-y-3"><h6 className="text-[10px] font-black uppercase text-zinc-600 mb-6">Pagamento</h6>{['pix', 'credit_card'].map(m=>(<button key={m} onClick={()=>setPaymentMethod(m)} className={`w-full flex items-center gap-4 p-5 rounded-3xl border transition-all ${paymentMethod === m ? 'bg-lime-400/10 border-lime-400' : 'bg-zinc-900 border-zinc-800'}`}>{m === 'pix' ? <QrCode size={24}/> : <CreditCard size={24}/>}<div><p className="font-black uppercase italic text-sm">{m === 'pix' ? 'PIX' : 'Cartão'}</p></div></button>))}</section>)}
+               {cart.length > 0 && (<section className="space-y-3"><h6 className="text-[10px] font-black uppercase text-zinc-600 mb-6">Pagamento</h6>{[`pix`, `credit_card`].map(m=>(<button key={m} onClick={()=>setPaymentMethod(m)} className={`w-full flex items-center gap-4 p-5 rounded-3xl border transition-all ${paymentMethod === m ? `bg-lime-400/10 border-lime-400` : `bg-zinc-900 border-zinc-800`}`}>{m === `pix` ? <QrCode size={24}/> : <CreditCard size={24}/>}<div><p className="font-black uppercase italic text-sm">{m === `pix` ? `PIX` : `Cartão`}</p></div></button>))}</section>)}
              </div>
              <div className="p-8 bg-zinc-900/50 border-t border-zinc-900 space-y-6">
                 <div className="space-y-3">
@@ -6995,15 +6993,15 @@ const AppContent: React.FC = () => {
                   disabled={cart.length === 0 || !paymentMethod} 
                   onClick={() => {
                     if (cart.length > 0 && paymentMethod) {
-                      alert(`Pedido finalizado! Total: R$ ${total.toFixed(2)}\nPagamento: ${paymentMethod === 'pix' ? 'PIX' : 'Cartão de Crédito'}`);
+                      alert(`Pedido finalizado! Total: R$ ${total.toFixed(2)}\nPagamento: ${paymentMethod === `pix` ? `PIX` : `Cartão de Crédito`}`);
                       setCart([]);
                       setPaymentMethod(null);
                       setIsCartOpen(false);
                     }
                   }}
-                  className={`w-full py-6 rounded-2xl font-black uppercase text-sm transition-all active:scale-95 ${cart.length === 0 || !paymentMethod ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-lime-400 text-black shadow-xl shadow-lime-400/20 hover:bg-lime-300'}`}
+                  className={`w-full py-6 rounded-2xl font-black uppercase text-sm transition-all active:scale-95 ${cart.length === 0 || !paymentMethod ? `bg-zinc-800 text-zinc-600 cursor-not-allowed` : `bg-lime-400 text-black shadow-xl shadow-lime-400/20 hover:bg-lime-300`}`}
                 >
-                  {!paymentMethod ? 'Selecione o Pagamento' : 'Finalizar Pedido'}
+                  {!paymentMethod ? `Selecione o Pagamento` : `Finalizar Pedido`}
                 </button>
              </div>
           </div>
