@@ -8,6 +8,9 @@ export default async function handler(req, res) {
   
   const { url, method } = req;
   
+  // Debug log
+  console.log('Request:', { url, method, path: req.url });
+  
   // POST /api/auth/login
   if (url?.includes('/auth/login') && method === 'POST') {
     const { email, senha } = req.body || {};
@@ -21,25 +24,27 @@ export default async function handler(req, res) {
     return res.status(401).json({ erro: 'Credenciais inválidas' });
   }
   
-  // GET /api/auth/me
-  if (method === 'GET' && url?.includes('/auth/me')) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ erro: 'Não autorizado' });
-    
-    return res.status(200).json({
-      user: {
-        id: 1,
-        email: 'admin@fitness.com',
-        nome: 'Administrador',
-        funcao: 'ADMIN',
-        academiaId: 1
-      },
-      academia: {
-        id: 1,
-        nome: 'FitnessTech Academia',
-        cnpj: '12.345.678/0001-00'
-      }
-    });
+  // GET /api/auth/me - Verificar múltiplas formas
+  if (method === 'GET') {
+    if (url?.includes('/auth/me') || url?.includes('auth/me') || req.url?.includes('/auth/me')) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) return res.status(401).json({ erro: 'Não autorizado' });
+      
+      return res.status(200).json({
+        user: {
+          id: 1,
+          email: 'admin@fitness.com',
+          nome: 'Administrador',
+          funcao: 'ADMIN',
+          academiaId: 1
+        },
+        academia: {
+          id: 1,
+          nome: 'FitnessTech Academia',
+          cnpj: '12.345.678/0001-00'
+        }
+      });
+    }
   }
   
   // GET /api - Health check
