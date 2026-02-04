@@ -1,8 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-// Handler simplificado para debug
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Configurar CORS
+// Handler Vercel sem tipos externos
+export default async function handler(req: any, res: any) {
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -12,38 +10,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   
   try {
-    // Rota raiz
-    if (req.url === '/api' || req.url === '/api/') {
+    // GET /api
+    if (req.method === 'GET' && (req.url === '/api' || req.url === '/api/')) {
       return res.status(200).json({ 
+        status: 'online',
         message: 'API FitnessTech funcionando!',
-        env: {
-          hasDatabase: !!process.env.DATABASE_URL,
-          hasJWT: !!process.env.JWT_SECRET,
-          nodeVersion: process.version
-        }
+        timestamp: new Date().toISOString()
       });
     }
     
-    // Rota de login - por enquanto mockada para testar
-    if (req.url?.includes('/api/auth/login') && req.method === 'POST') {
+    // POST /api/auth/login
+    if (req.method === 'POST' && req.url?.includes('/auth/login')) {
       const { email, senha } = req.body || {};
       
-      console.log('Login attempt:', email);
-      
-      // Mock temporário
+      // Mock para teste
       if (email === 'admin@fitness.com' && senha === '123456') {
         return res.status(200).json({
-          token: 'mock_token_123',
-          usuario: { id: 1, email, nome: 'Admin', funcao: 'ADMIN' }
+          success: true,
+          token: 'mock_token_teste',
+          usuario: { id: 1, email, nome: 'Admin' }
         });
       }
       
       return res.status(401).json({ erro: 'Credenciais inválidas' });
     }
     
-    return res.status(404).json({ erro: 'Rota não encontrada' });
+    return res.status(404).json({ erro: 'Rota não encontrada', url: req.url });
   } catch (error: any) {
-    console.error('Erro na API:', error);
-    return res.status(500).json({ erro: error.message || 'Erro interno' });
+    return res.status(500).json({ erro: error?.message || 'Erro interno' });
   }
 }
