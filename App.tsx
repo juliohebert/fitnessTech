@@ -4429,6 +4429,7 @@ const AdminModule = ({ view, user, academia }: any) => {
    const [showAddAlunoModal, setShowAddAlunoModal] = useState(false);
    const [alunoForm, setAlunoForm] = useState({ nome: '', email: '', senha: '', telefone: '', cpf: '' });
    const [selectedDay, setSelectedDay] = useState('segunda');
+   const [selectedDays, setSelectedDays] = useState<string[]>(['segunda']);
    const [planoTreino, setPlanoTreino] = useState<any>({
       titulo: '',
       segunda: [],
@@ -5576,24 +5577,48 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
                         {/* Seletor de Dias */}
                         <div>
-                           <label className="block text-sm font-bold uppercase tracking-wider mb-3">
-                              Selecione o Dia da Semana
+                           <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+                              Dias da Semana (Clique para selecionar múltiplos)
                            </label>
+                           <p className="text-xs text-zinc-500 mb-3">Dia atual para editar: <span className="text-lime-400 font-bold">{selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}</span></p>
                            <div className="grid grid-cols-7 gap-2">
                               {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => (
                                  <button
                                     key={dia}
-                                    onClick={() => setSelectedDay(dia)}
-                                    className={`py-3 rounded-xl font-black text-xs uppercase transition-all ${
-                                       selectedDay === dia
+                                    onClick={() => {
+                                       setSelectedDay(dia);
+                                       setSelectedDays(prev => {
+                                          if (prev.includes(dia)) {
+                                             return prev.filter(d => d !== dia);
+                                          } else {
+                                             return [...prev, dia];
+                                          }
+                                       });
+                                    }}
+                                    className={`py-3 rounded-xl font-black text-xs uppercase transition-all relative ${
+                                       selectedDays.includes(dia)
                                           ? 'bg-lime-400 text-black'
                                           : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                    } ${
+                                       selectedDay === dia
+                                          ? 'ring-2 ring-lime-400 ring-offset-2 ring-offset-zinc-900'
+                                          : ''
                                     }`}
                                  >
                                     {dia.substring(0, 3)}
+                                    {selectedDays.includes(dia) && (
+                                       <span className="absolute -top-1 -right-1 bg-lime-400 text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px]">✓</span>
+                                    )}
                                  </button>
                               ))}
                            </div>
+                           {selectedDays.length > 1 && (
+                              <div className="mt-3 p-3 bg-lime-400/10 border border-lime-400/30 rounded-xl">
+                                 <p className="text-xs text-lime-400 font-bold">
+                                    ⚡ {selectedDays.length} dias selecionados: {selectedDays.map(d => d.substring(0, 3).toUpperCase()).join(', ')}
+                                 </p>
+                              </div>
+                           )}
                         </div>
 
                         {/* Lista de Exercícios do Dia Selecionado */}
@@ -5727,19 +5752,29 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
                         <button
                            onClick={() => {
+                              // Copiar exercícios do dia atual para todos os dias selecionados
+                              const planoAtualizado = { ...planoTreino };
+                              selectedDays.forEach(dia => {
+                                 if (dia !== selectedDay && planoTreino[selectedDay].length > 0) {
+                                    planoAtualizado[dia] = [...planoTreino[selectedDay]];
+                                 }
+                              });
+                              
                               const novoTreino = {
                                  id: Date.now(),
                                  titulo: planoTreino.titulo,
                                  alunoId: selectedStudent.id,
                                  alunoNome: selectedStudent.nome,
                                  data: new Date().toLocaleDateString('pt-BR'),
-                                 plano: { ...planoTreino },
+                                 plano: planoAtualizado,
                                  tipo: 'manual'
                               };
                               setHistoricoTreinos(prev => [novoTreino, ...prev]);
-                              console.log('Plano de Treino:', planoTreino);
+                              console.log('Plano de Treino:', planoAtualizado);
                               alert('Treino prescrito com sucesso!');
                               setShowPrescriptionModal(false);
+                              setSelectedDays(['segunda']);
+                              setSelectedDay('segunda');
                               // Resetar formulário
                               setPlanoTreino({
                                  titulo: '',
@@ -5790,24 +5825,48 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
                         {/* Seletor de Dias */}
                         <div>
-                           <label className="block text-sm font-bold uppercase tracking-wider mb-3">
-                              Selecione o Dia da Semana
+                           <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+                              Dias da Semana (Clique para selecionar múltiplos)
                            </label>
+                           <p className="text-xs text-zinc-500 mb-3">Dia atual para editar: <span className="text-green-400 font-bold">{selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)}</span></p>
                            <div className="grid grid-cols-7 gap-2">
                               {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => (
                                  <button
                                     key={dia}
-                                    onClick={() => setSelectedDay(dia)}
-                                    className={`py-3 rounded-xl font-black text-xs uppercase transition-all ${
-                                       selectedDay === dia
+                                    onClick={() => {
+                                       setSelectedDay(dia);
+                                       setSelectedDays(prev => {
+                                          if (prev.includes(dia)) {
+                                             return prev.filter(d => d !== dia);
+                                          } else {
+                                             return [...prev, dia];
+                                          }
+                                       });
+                                    }}
+                                    className={`py-3 rounded-xl font-black text-xs uppercase transition-all relative ${
+                                       selectedDays.includes(dia)
                                           ? 'bg-green-400 text-black'
                                           : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                    } ${
+                                       selectedDay === dia
+                                          ? 'ring-2 ring-green-400 ring-offset-2 ring-offset-zinc-900'
+                                          : ''
                                     }`}
                                  >
                                     {dia.substring(0, 3)}
+                                    {selectedDays.includes(dia) && (
+                                       <span className="absolute -top-1 -right-1 bg-green-400 text-black rounded-full w-4 h-4 flex items-center justify-center text-[10px]">✓</span>
+                                    )}
                                  </button>
                               ))}
                            </div>
+                           {selectedDays.length > 1 && (
+                              <div className="mt-3 p-3 bg-green-400/10 border border-green-400/30 rounded-xl">
+                                 <p className="text-xs text-green-400 font-bold">
+                                    ⚡ {selectedDays.length} dias selecionados: {selectedDays.map(d => d.substring(0, 3).toUpperCase()).join(', ')}
+                                 </p>
+                              </div>
+                           )}
                         </div>
 
                         {/* Lista de Refeições */}
@@ -5927,19 +5986,29 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
                         <button
                            onClick={() => {
+                              // Copiar refeições do dia atual para todos os dias selecionados
+                              const planoAtualizado = { ...planoDieta };
+                              selectedDays.forEach(dia => {
+                                 if (dia !== selectedDay && planoDieta[selectedDay].length > 0) {
+                                    planoAtualizado[dia] = [...planoDieta[selectedDay]];
+                                 }
+                              });
+                              
                               const novaDieta = {
                                  id: Date.now(),
                                  titulo: planoDieta.titulo,
                                  alunoId: selectedStudent.id,
                                  alunoNome: selectedStudent.nome,
                                  data: new Date().toLocaleDateString('pt-BR'),
-                                 plano: { ...planoDieta },
+                                 plano: planoAtualizado,
                                  tipo: 'manual'
                               };
                               setHistoricoDietas(prev => [novaDieta, ...prev]);
-                              console.log('Plano de Dieta:', planoDieta);
+                              console.log('Plano de Dieta:', planoAtualizado);
                               alert('Dieta prescrita com sucesso!');
                               setShowPrescriptionModal(false);
+                              setSelectedDays(['segunda']);
+                              setSelectedDay('segunda');
                               // Resetar formulário
                               setPlanoDieta({
                                  titulo: '',
