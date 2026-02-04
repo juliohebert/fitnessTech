@@ -2,15 +2,15 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Prisma singleton para serverless - FORÇAR RECONEXÃO
-const globalForPrisma = global;
-if (!globalForPrisma.prisma || process.env.FORCE_RECONNECT === 'true') {
-  globalForPrisma.prisma = new PrismaClient({
-    log: ['query', 'error', 'warn'],
-  });
-}
-const prisma = globalForPrisma.prisma;
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+// Prisma Client - Simplificado
+const prisma = new PrismaClient({
+  log: ['error', 'warn'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fitness_tech_super_secret_key_2025';
 
@@ -23,19 +23,34 @@ export default async function handler(req, res) {
   
   const { url, method } = req;
   
-  // ENDPOINT DE DEBUG
+  // ENDPOINT DE DEBUG - TESTAR CONEXÃO
   if (url?.includes('/debug/usuarios')) {
     try {
+      console.log('🔍 Debug endpoint chamado');
+      console.log('📊 DATABASE_URL:', process.env.DATABASE_URL ? 'CONFIGURADO' : 'NÃO CONFIGURADO');
+      
       const usuarios = await prisma.usuario.findMany({
         select: { id: true, email: true, nome: true, funcao: true }
       });
+      
+      console.log('✅ Usuarios encontrados:', usuarios.length);
+      
       return res.status(200).json({
+        status: 'success',
         total: usuarios.length,
         usuarios,
-        databaseUrl: process.env.DATABASE_URL ? 'SET' : 'NOT SET'
+        env: {
+          databaseUrl: process.env.DATABASE_URL ? 'SET' : 'NOT SET',
+          nodeEnv: process.env.NODE_ENV
+        }
       });
     } catch (error) {
-      return res.status(500).json({ erro: error.message });
+      console.error('❌ Erro no debug:', error);
+      return res.status(500).json({ 
+        status: 'error',
+        erro: error.message,
+        stack: error.stack 
+      });
     }
   }
   
