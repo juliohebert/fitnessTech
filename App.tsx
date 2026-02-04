@@ -18,6 +18,11 @@ import {
 } from 'recharts';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// URL base da API - usa window.location.origin em produção
+const API_BASE_URL = import.meta.env.PROD 
+  ? window.location.origin 
+  : 'http://localhost:3002';
+
 // --- AI CONFIG ---
 // Initialize Gemini AI. Assumes API_KEY is available in import.meta.env
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY || '');
@@ -49,7 +54,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const loadUserData = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/auth/me', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -71,7 +76,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const login = async (email: string, senha: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:3002/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -96,7 +101,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 
   const register = async (userData: any): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:3002/api/auth/registrar', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/registrar`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
