@@ -2419,7 +2419,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
    // Form states
    const [newStudentForm, setNewStudentForm] = useState({ name: '', email: '', phone: '', plan: 'Básico Semanal', goal: 'Hipertrofia' });
    const [newTemplateForm, setNewTemplateForm] = useState({ title: '', category: '' });
-   const [newScheduleForm, setNewScheduleForm] = useState({ type: 'Personal Training', date: '', time: '', notes: '' });
+   const [newScheduleForm, setNewScheduleForm] = useState({ studentId: '', type: 'Personal Training', date: '', time: '', notes: '' });
    const [newAssessmentForm, setNewAssessmentForm] = useState({ weight: '', bodyFat: '', muscle: '', water: '', chest: '', waist: '', arm: '', leg: '' });
    const [showNewTemplate, setShowNewTemplate] = useState(false);
    const [showNewSchedule, setShowNewSchedule] = useState(false);
@@ -2431,15 +2431,83 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
       { id: 2, studentId: 1, date: '2024-02-01', weight: 87.2, bodyFat: 17.1, muscle: 39.2, water: 59.1, chest: 106, waist: 86, arm: 39, leg: 63 },
    ]);
    
-   const [schedules, setSchedules] = useState<any[]>([
-      { id: 1, studentId: 1, date: '2024-02-03', time: '14:00', type: 'Personal Training', status: 'confirmed' },
-      { id: 2, studentId: 2, date: '2024-02-03', time: '16:00', type: 'Avaliação Física', status: 'pending' },
-   ]);
+   const [schedules, setSchedules] = useState<any[]>([]);
+   const [loadingSchedules, setLoadingSchedules] = useState(false);
 
    const [chatMessages, setChatMessages] = useState<any[]>([
       { id: 1, from: 'teacher', text: 'Como foi o treino de hoje?', time: '10:30' },
       { id: 2, from: 'student', text: 'Muito bom! Consegui aumentar a carga no supino 💪', time: '10:35' },
    ]);
+
+   // Carregar agendamentos ao montar o componente
+   useEffect(() => {
+      loadSchedules();
+   }, []);
+
+   const loadSchedules = async () => {
+      try {
+         setLoadingSchedules(true);
+         const { scheduleAPI } = await import('./src/api');
+         const data = await scheduleAPI.getAll();
+         setSchedules(data);
+      } catch (err) {
+         console.error('Erro ao carregar agendamentos:', err);
+      } finally {
+         setLoadingSchedules(false);
+      }
+   };
+
+   const handleCreateSchedule = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      if (!newScheduleForm.studentId || !newScheduleForm.date || !newScheduleForm.time) {
+         alert('Preencha todos os campos obrigatórios');
+         return;
+      }
+
+      try {
+         const { scheduleAPI } = await import('./src/api');
+         await scheduleAPI.create({
+            alunoId: newScheduleForm.studentId,
+            data: newScheduleForm.date,
+            hora: newScheduleForm.time,
+            tipo: newScheduleForm.type,
+            observacoes: newScheduleForm.notes
+         });
+         
+         alert('Agendamento criado com sucesso!');
+         setNewScheduleForm({ studentId: '', type: 'Personal Training', date: '', time: '', notes: '' });
+         setShowNewSchedule(false);
+         loadSchedules();
+      } catch (err: any) {
+         console.error('Erro ao criar agendamento:', err);
+         alert('Erro ao criar agendamento: ' + (err.message || 'Erro desconhecido'));
+      }
+   };
+
+   const handleUpdateScheduleStatus = async (scheduleId: string, newStatus: string) => {
+      try {
+         const { scheduleAPI } = await import('./src/api');
+         await scheduleAPI.update(scheduleId, { status: newStatus });
+         loadSchedules();
+      } catch (err) {
+         console.error('Erro ao atualizar status:', err);
+         alert('Erro ao atualizar status do agendamento');
+      }
+   };
+
+   const handleDeleteSchedule = async (scheduleId: string) => {
+      if (!confirm('Tem certeza que deseja deletar este agendamento?')) return;
+      
+      try {
+         const { scheduleAPI } = await import('./src/api');
+         await scheduleAPI.delete(scheduleId);
+         loadSchedules();
+      } catch (err) {
+         console.error('Erro ao deletar agendamento:', err);
+         alert('Erro ao deletar agendamento');
+      }
+   };
 
    if (selectedStudent) {
       return (<>
@@ -2569,8 +2637,24 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                            <ClipboardList size={16}/> Nova Avaliação
                         </button>
                      </div>
-                     <div className="space-y-4">
-                        {assessments.map(assessment => (
+                     {assessments.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                           <div className="size-24 bg-blue-500/10 text-blue-400 rounded-3xl flex items-center justify-center mb-6">
+                              <ClipboardList size={48} />
+                           </div>
+                           <h2 className="text-3xl font-black italic text-white mb-3">
+                              Nenhuma Avaliação Física
+                           </h2>
+                           <p className="text-zinc-400 max-w-md mb-8">
+                              Ainda não há avaliações físicas cadastradas para este aluno. Registre a primeira avaliação para acompanhar a evolução.
+                           </p>
+                           <button onClick={() => setShowAssessment(true)} className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-black uppercase text-sm tracking-wider transition-all">
+                              Registrar Avaliação
+                           </button>
+                        </div>
+                     ) : (
+                        <div className="space-y-4">
+                           {assessments.map(assessment => (
                            <div key={assessment.id} className="bg-zinc-950 border border-zinc-800 p-6 rounded-2xl">
                               <div className="flex justify-between items-start mb-6">
                                  <div>
@@ -2592,7 +2676,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                               </div>
                            </div>
                         ))}
-                     </div>
+                        </div>
+                     )}
                   </div>
                </div>
             )}
@@ -2908,7 +2993,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      <h3 className="text-3xl font-black italic uppercase">Novo Agendamento</h3>
                      <button onClick={() => setShowNewSchedule(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); alert('Agendamento criado com sucesso!\n\nTipo: ' + newScheduleForm.type + '\nData: ' + newScheduleForm.date + '\nHorário: ' + newScheduleForm.time); setNewScheduleForm({ type: 'Personal Training', date: '', time: '', notes: '' }); setShowNewSchedule(false); }} className="space-y-6">
+                  <form onSubmit={handleCreateSchedule} className="space-y-6">
+                     <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Aluno</label><select required value={newScheduleForm.studentId} onChange={(e) => setNewScheduleForm({...newScheduleForm, studentId: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option value="">Selecione um aluno</option>{students.map((s: Student) => (<option key={s.id} value={s.id}>{s.name}</option>))}</select></div>
                      <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Tipo de Atendimento</label><select required value={newScheduleForm.type} onChange={(e) => setNewScheduleForm({...newScheduleForm, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"><option>Personal Training</option><option>Avaliação Física</option><option>Consultoria</option><option>Aula Experimental</option></select></div>
                      <div className="grid grid-cols-2 gap-4">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Data</label><input required type="date" value={newScheduleForm.date} onChange={(e) => setNewScheduleForm({...newScheduleForm, date: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -3029,6 +3115,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Meus Alunos</h2><p className="text-zinc-500 font-medium">{students.length} alunos ativos</p></div>
                   <button onClick={() => setShowNewStudent(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><UserPlus size={16}/> Novo Aluno</button>
                </header>
+               {students.length > 0 ? (
                <div className="grid gap-4">
                   {students.map((s: Student) => (
                      <div key={s.id} onClick={() => setSelectedStudent(s)} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl flex items-center justify-between cursor-pointer hover:border-lime-400/50 transition-all group">
@@ -3050,6 +3137,23 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      </div>
                   ))}
                </div>
+               ) : (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <UserPlus size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Aluno</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Cadastre seu primeiro aluno para começar a gerenciar treinos e acompanhar o progresso.
+                     </p>
+                     <button 
+                        onClick={() => setShowNewStudent(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Cadastrar Primeiro Aluno
+                     </button>
+                  </div>
+               )}
             </div>
             {renderProfessorModals()}
             </>
@@ -3106,12 +3210,19 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
                <header className="flex justify-between items-end">
-                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Agenda de Atendimentos</h2><p className="text-zinc-500 font-medium">Gerencie suas sessões</p></div>
+                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Agenda de Atendimentos</h2><p className="text-zinc-500 font-medium">{schedules.length} agendamentos</p></div>
                   <button onClick={() => setShowNewSchedule(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Agendamento</button>
                </header>
-               {schedules.length > 0 ? (
+               {loadingSchedules ? (
+                  <div className="text-center py-12 text-zinc-500">Carregando agendamentos...</div>
+               ) : schedules.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     {schedules.map(schedule => (
+                     {schedules.map(schedule => {
+                        const student = students.find(s => s.id === schedule.alunoId);
+                        const scheduleDate = new Date(schedule.data);
+                        const formattedDate = scheduleDate.toLocaleDateString('pt-BR');
+                        
+                        return (
                         <div key={schedule.id} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] hover:border-lime-400/30 transition-all">
                            <div className="flex items-start gap-6 mb-6">
                               <div className="size-20 bg-lime-400/10 text-lime-400 rounded-3xl flex items-center justify-center shrink-0">
@@ -3120,44 +3231,67 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                               <div className="flex-1">
                                  <div className="flex items-start justify-between mb-3">
                                     <div>
-                                       <h4 className="font-black text-2xl mb-1">{schedule.type}</h4>
-                                       <p className="text-sm text-zinc-500 font-bold">{schedule.date} às {schedule.time}</p>
+                                       <h4 className="font-black text-2xl mb-1">{schedule.tipo}</h4>
+                                       <p className="text-sm text-zinc-500 font-bold">{formattedDate} às {schedule.hora}</p>
+                                       {schedule.observacoes && (
+                                          <p className="text-xs text-zinc-600 mt-2">{schedule.observacoes}</p>
+                                       )}
                                     </div>
-                                    <span className={`px-4 py-1.5 rounded-xl text-[11px] font-black uppercase shrink-0 ${schedule.status === 'confirmed' ? 'bg-green-500/20 text-green-500' : 'bg-orange-500/20 text-orange-500'}`}>
-                                       {schedule.status === 'confirmed' ? 'Confirmado' : 'Pendente'}
+                                    <span className={`px-4 py-1.5 rounded-xl text-[11px] font-black uppercase shrink-0 ${
+                                       schedule.status === 'confirmed' ? 'bg-green-500/20 text-green-500' : 
+                                       schedule.status === 'completed' ? 'bg-blue-500/20 text-blue-500' :
+                                       schedule.status === 'cancelled' ? 'bg-red-500/20 text-red-500' :
+                                       'bg-orange-500/20 text-orange-500'
+                                    }`}>
+                                       {schedule.status === 'confirmed' ? 'Confirmado' : 
+                                        schedule.status === 'completed' ? 'Concluído' :
+                                        schedule.status === 'cancelled' ? 'Cancelado' :
+                                        'Pendente'}
                                     </span>
                                  </div>
-                              <div className="flex items-center gap-3 p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
-                                 <img src={students.find(s => s.id === schedule.studentId)?.avatar} className="size-12 rounded-xl object-cover"/>
-                                 <div>
-                                    <p className="font-black text-sm">{students.find(s => s.id === schedule.studentId)?.name}</p>
-                                    <p className="text-[10px] text-zinc-500 font-bold">{students.find(s => s.id === schedule.studentId)?.plan}</p>
+                              {student && (
+                                 <div className="flex items-center gap-3 p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
+                                    <img src={student.avatar} className="size-12 rounded-xl object-cover"/>
+                                    <div>
+                                       <p className="font-black text-sm">{student.name}</p>
+                                       <p className="text-[10px] text-zinc-500 font-bold">{student.plan}</p>
+                                    </div>
                                  </div>
-                              </div>
+                              )}
                            </div>
                         </div>
                         <div className="flex gap-3">
-                           <button onClick={() => alert('Agendamento confirmado!')} className="flex-1 bg-green-500/20 text-green-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
-                              <Check size={16}/> Confirmar
-                           </button>
-                           <button onClick={() => alert('Agendamento cancelado!')} className="flex-1 bg-red-500/20 text-red-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500/30 transition-all flex items-center justify-center gap-2">
-                              <X size={16}/> Cancelar
-                           </button>
-                           <button onClick={() => alert('Editar agendamento')} className="bg-blue-500/20 text-blue-500 py-3 px-5 rounded-2xl hover:bg-blue-500/30 transition-all flex items-center justify-center">
-                              <Pencil size={16}/>
+                           {schedule.status === 'pending' && (
+                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, 'confirmed')} className="flex-1 bg-green-500/20 text-green-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-500/30 transition-all flex items-center justify-center gap-2">
+                                 <Check size={16}/> Confirmar
+                              </button>
+                           )}
+                           {(schedule.status === 'pending' || schedule.status === 'confirmed') && (
+                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, 'completed')} className="flex-1 bg-blue-500/20 text-blue-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-blue-500/30 transition-all flex items-center justify-center gap-2">
+                                 <Check size={16}/> Concluir
+                              </button>
+                           )}
+                           {schedule.status !== 'cancelled' && schedule.status !== 'completed' && (
+                              <button onClick={() => handleUpdateScheduleStatus(schedule.id, 'cancelled')} className="flex-1 bg-red-500/20 text-red-500 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500/30 transition-all flex items-center justify-center gap-2">
+                                 <X size={16}/> Cancelar
+                              </button>
+                           )}
+                           <button onClick={() => handleDeleteSchedule(schedule.id)} className="bg-zinc-950 text-zinc-600 py-3 px-5 rounded-2xl hover:text-red-500 transition-all flex items-center justify-center">
+                              <Trash2 size={16}/>
                            </button>
                         </div>
                      </div>
-                  ))}
-               </div>
+                     );
+                     })}
+                  </div>
                ) : (
                   <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Calendar size={40} className="text-zinc-600"/>
                      </div>
-                     <h3 className="text-3xl font-black italic uppercase mb-4">Agenda Vazia</h3>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Agendamento</h3>
                      <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
-                        Nenhum atendimento agendado. Organize suas sessões com os alunos aqui.
+                        Crie seu primeiro agendamento para organizar suas sessões com os alunos.
                      </p>
                      <button 
                         onClick={() => setShowNewSchedule(true)}
@@ -3179,8 +3313,25 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Avaliações Físicas</h2><p className="text-zinc-500 font-medium">Histórico completo de avaliações</p></div>
                   <button onClick={() => setShowAssessment(true)} className="bg-blue-500 text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><ClipboardList size={16}/> Nova Avaliação</button>
                </header>
-               <div className="grid gap-6">
-                  {students.map((s: Student) => (
+               {students.length === 0 ? (
+                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <ClipboardList size={40} className="text-zinc-600"/>
+                     </div>
+                     <h3 className="text-3xl font-black italic uppercase mb-4">Nenhuma Avaliação</h3>
+                     <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+                        Você ainda não possui alunos cadastrados. Adicione seu primeiro aluno para começar a registrar avaliações físicas.
+                     </p>
+                     <button 
+                        onClick={() => setShowNewStudent(true)}
+                        className="bg-lime-400 hover:bg-lime-300 text-black py-4 px-8 rounded-2xl font-black uppercase tracking-widest text-sm transition-all active:scale-95"
+                     >
+                        Cadastrar Primeiro Aluno
+                     </button>
+                  </div>
+               ) : (
+                  <div className="grid gap-6">
+                     {students.map((s: Student) => (
                      <div key={s.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl">
                         <div className="flex items-center justify-between mb-6">
                            <div className="flex items-center gap-4">
@@ -3200,7 +3351,8 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                         </div>
                      </div>
                   ))}
-               </div>
+                  </div>
+               )}
             </div>
             {renderProfessorModals()}
             </>

@@ -514,3 +514,23 @@ model RegistroAcesso {
   @@index([academiaId])
   @@index([data])
 }
+
+// Agendamentos de Atendimento
+model Agendamento {
+  id          String   @id @default(cuid())
+  instrutorId String   // Professor ou Nutricionista
+  alunoId     String   // Aluno que será atendido
+  data        DateTime
+  hora        String   // "14:00", "16:30"
+  tipo        String   // "Personal Training", "Avaliação Física", "Consulta Nutricional"
+  status      String   @default("pending") // pending, confirmed, completed, cancelled
+  observacoes String?
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  @@map("agendamentos")
+  @@index([instrutorId])
+  @@index([alunoId])
+  @@index([data])
+  @@index([status])
+}

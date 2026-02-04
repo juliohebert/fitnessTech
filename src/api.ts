@@ -425,6 +425,62 @@ export const cartAPI = {
   },
 };
 
+// ===== AGENDAMENTOS =====
+
+export const scheduleAPI = {
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/schedules`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  getByStudent: async (studentId: string) => {
+    const response = await fetch(`${API_URL}/schedules/student/${studentId}`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  create: async (data: {
+    alunoId: string;
+    data: string;
+    hora: string;
+    tipo: string;
+    observacoes?: string;
+  }) => {
+    const response = await fetch(`${API_URL}/schedules`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  update: async (id: string, data: {
+    data?: string;
+    hora?: string;
+    tipo?: string;
+    status?: string;
+    observacoes?: string;
+  }) => {
+    const response = await fetch(`${API_URL}/schedules/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/schedules/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+};
+
 // ===== HEALTH CHECK =====
 
 export const checkHealth = async () => {

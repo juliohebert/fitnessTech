@@ -1898,6 +1898,143 @@ app.patch('/api/notificacoes/:notifId/marcar-lida', autenticar, async (req: Auth
   }
 });
 
+// ===== AGENDAMENTOS =====
+
+// Listar agendamentos do instrutor logado
+app.get('/api/schedules', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const instrutorId = req.usuario?.id;
+    
+    const agendamentos = await prisma.agendamento.findMany({
+      where: { instrutorId },
+      orderBy: [
+        { data: 'desc' },
+        { hora: 'asc' }
+      ]
+    });
+    
+    res.json(agendamentos);
+  } catch (err) {
+    console.error('Erro ao listar agendamentos:', err);
+    res.status(500).json({ erro: 'Erro ao listar agendamentos' });
+  }
+});
+
+// Listar agendamentos de um aluno específico
+app.get('/api/schedules/student/:studentId', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { studentId } = req.params;
+    const instrutorId = req.usuario?.id;
+    
+    const agendamentos = await prisma.agendamento.findMany({
+      where: { 
+        instrutorId,
+        alunoId: studentId 
+      },
+      orderBy: [
+        { data: 'desc' },
+        { hora: 'asc' }
+      ]
+    });
+    
+    res.json(agendamentos);
+  } catch (err) {
+    console.error('Erro ao listar agendamentos do aluno:', err);
+    res.status(500).json({ erro: 'Erro ao listar agendamentos do aluno' });
+  }
+});
+
+// Criar novo agendamento
+app.post('/api/schedules', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const instrutorId = req.usuario?.id;
+    const { alunoId, data, hora, tipo, observacoes } = req.body;
+    
+    // Validações
+    if (!alunoId || !data || !hora || !tipo) {
+      return res.status(400).json({ erro: 'Dados obrigatórios faltando' });
+    }
+    
+    const agendamento = await prisma.agendamento.create({
+      data: {
+        instrutorId,
+        alunoId,
+        data: new Date(data),
+        hora,
+        tipo,
+        status: 'pending',
+        observacoes
+      }
+    });
+    
+    res.json(agendamento);
+  } catch (err) {
+    console.error('Erro ao criar agendamento:', err);
+    res.status(500).json({ erro: 'Erro ao criar agendamento' });
+  }
+});
+
+// Atualizar agendamento
+app.put('/api/schedules/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const instrutorId = req.usuario?.id;
+    const { data, hora, tipo, status, observacoes } = req.body;
+    
+    // Verificar se o agendamento pertence ao instrutor
+    const agendamentoExistente = await prisma.agendamento.findFirst({
+      where: { id, instrutorId }
+    });
+    
+    if (!agendamentoExistente) {
+      return res.status(404).json({ erro: 'Agendamento não encontrado' });
+    }
+    
+    const updateData: any = {};
+    if (data) updateData.data = new Date(data);
+    if (hora) updateData.hora = hora;
+    if (tipo) updateData.tipo = tipo;
+    if (status) updateData.status = status;
+    if (observacoes !== undefined) updateData.observacoes = observacoes;
+    
+    const agendamento = await prisma.agendamento.update({
+      where: { id },
+      data: updateData
+    });
+    
+    res.json(agendamento);
+  } catch (err) {
+    console.error('Erro ao atualizar agendamento:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar agendamento' });
+  }
+});
+
+// Deletar agendamento
+app.delete('/api/schedules/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const instrutorId = req.usuario?.id;
+    
+    // Verificar se o agendamento pertence ao instrutor
+    const agendamentoExistente = await prisma.agendamento.findFirst({
+      where: { id, instrutorId }
+    });
+    
+    if (!agendamentoExistente) {
+      return res.status(404).json({ erro: 'Agendamento não encontrado' });
+    }
+    
+    await prisma.agendamento.delete({
+      where: { id }
+    });
+    
+    res.json({ mensagem: 'Agendamento deletado com sucesso' });
+  } catch (err) {
+    console.error('Erro ao deletar agendamento:', err);
+    res.status(500).json({ erro: 'Erro ao deletar agendamento' });
+  }
+});
+
 // ===== INICIAR SERVIDOR =====
 
 app.listen(PORT, () => {
