@@ -1885,7 +1885,7 @@ const GoalsView = () => {
   );
 };
 
-const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChange, watchConnected, toggleWatch, deviceName }: any) => {
+const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometricsChange, watchConnected, toggleWatch, deviceName }: any) => {
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tempBiometrics, setTempBiometrics] = useState({...biometrics});
@@ -1925,7 +1925,7 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12 max-w-4xl mx-auto">
       <header className="flex flex-col md:flex-row items-center gap-10">
         <div className="relative group"><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) { const r = new FileReader(); r.onloadend = () => onImageChange(r.result as string); r.readAsDataURL(f); } }}/><div onClick={() => fileInputRef.current?.click()} className="size-40 rounded-[4rem] border-[10px] border-zinc-900 shadow-2xl overflow-hidden relative cursor-pointer"><img src={profileImage} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"/><div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity"><Camera size={32} className="text-lime-400 mb-1" /><span className="text-[9px] font-black uppercase text-lime-400">Trocar Foto</span></div></div><div className="absolute -bottom-2 -right-2 size-14 bg-lime-400 text-black rounded-3xl flex items-center justify-center shadow-2xl border-[6px] border-zinc-950"><Trophy size={28} strokeWidth={3} /></div></div>
-        <div className="text-center md:text-left"><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-4">Alex Rivers</h1><div className="flex flex-wrap justify-center md:justify-start gap-3"><span className="bg-zinc-900 border border-zinc-800 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-zinc-400 tracking-widest">Aluno VIP</span><span className="bg-lime-400/10 border border-lime-400/30 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-lime-400 tracking-widest">Nível 28</span></div></div>
+        <div className="text-center md:text-left"><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-4">{user?.name || 'Usuário'}</h1><div className="flex flex-wrap justify-center md:justify-start gap-3"><span className="bg-zinc-900 border border-zinc-800 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-zinc-400 tracking-widest">Aluno VIP</span><span className="bg-lime-400/10 border border-lime-400/30 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-lime-400 tracking-widest">Nível 28</span></div></div>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-10">
@@ -2252,7 +2252,7 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 
 // --- MODULES ---
 
-const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime }: any) => {
+const StudentModule = ({ user, view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime }: any) => {
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(new Date().getDay());
   const [selectedDayDiet, setSelectedDayDiet] = useState(new Date().getDay());
   
@@ -2494,7 +2494,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
        return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
     case 'evolution': return <EvolutionView />;
     case 'goals': return <GoalsView />;
-    case 'profile': return <ProfileView profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={toggleWatch} deviceName={deviceName} />;
+    case 'profile': return <ProfileView user={user} profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={toggleWatch} deviceName={deviceName} />;
     default: return null;
           }
         })()}
@@ -6933,6 +6933,7 @@ const AppContent: React.FC = () => {
       <main className="flex-1 px-4 py-4 md:p-6 lg:p-12 lg:px-20 max-w-8xl mx-auto w-full pt-20 md:pt-6 pb-20 md:pb-32">
         {user.role === 'ALUNO' && (
           <StudentModule 
+            user={user}
             view={activeView} setView={setActiveView} products={products} 
             addToCart={(p:any)=>{
               const existingIndex = cart.findIndex(item => item.id === p.id);
