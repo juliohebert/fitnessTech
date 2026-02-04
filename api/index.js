@@ -302,6 +302,107 @@ export default async function handler(req, res) {
       });
     }
     
+    // GET /api/treinos
+    if (method === 'GET' && url?.includes('/treinos') && !url.includes('/historico-treinos')) {
+      const decoded = verificarToken();
+      const treinos = await prisma.historicoTreino.findMany({
+        where: { usuarioId: decoded.usuarioId },
+        orderBy: { data: 'desc' }
+      });
+      return res.status(200).json(treinos);
+    }
+    
+    // POST /api/treinos
+    if (method === 'POST' && url?.includes('/treinos') && !url.includes('/historico-treinos')) {
+      const decoded = verificarToken();
+      const { tituloTreino, exercicios, duracao, calorias, observacoes } = req.body || {};
+      
+      const treino = await prisma.historicoTreino.create({
+        data: {
+          usuarioId: decoded.usuarioId,
+          tituloTreino,
+          exercicios,
+          duracao,
+          calorias,
+          observacoes
+        }
+      });
+      return res.status(201).json(treino);
+    }
+    
+    // GET /api/historico-treinos
+    if (method === 'GET' && url?.includes('/historico-treinos')) {
+      const decoded = verificarToken();
+      const historico = await prisma.historicoTreino.findMany({
+        where: { usuarioId: decoded.usuarioId },
+        orderBy: { data: 'desc' }
+      });
+      return res.status(200).json(historico);
+    }
+    
+    // POST /api/historico-treinos
+    if (method === 'POST' && url?.includes('/historico-treinos')) {
+      const decoded = verificarToken();
+      const { tituloTreino, exercicios, duracao, calorias, observacoes } = req.body || {};
+      
+      const historico = await prisma.historicoTreino.create({
+        data: {
+          usuarioId: decoded.usuarioId,
+          tituloTreino,
+          exercicios,
+          duracao: duracao || 0,
+          calorias: calorias || 0,
+          observacoes
+        }
+      });
+      return res.status(201).json(historico);
+    }
+    
+    // GET /api/notificacoes
+    if (method === 'GET' && url?.includes('/notificacoes')) {
+      const decoded = verificarToken();
+      const notificacoes = await prisma.notificacao.findMany({
+        where: { usuarioId: decoded.usuarioId },
+        orderBy: { criadoEm: 'desc' },
+        take: 50
+      });
+      return res.status(200).json(notificacoes);
+    }
+    
+    // PUT /api/notificacoes/:id/ler
+    if (method === 'PUT' && url?.match(/\/notificacoes\/([^\/]+)\/ler/)) {
+      const decoded = verificarToken();
+      const id = url.match(/\/notificacoes\/([^\/]+)\/ler/)?.[1];
+      
+      await prisma.notificacao.update({
+        where: { id },
+        data: { lida: true }
+      });
+      return res.status(200).json({ sucesso: true });
+    }
+    
+    // GET /api/usuario/perfil
+    if (method === 'GET' && url?.includes('/usuario/perfil')) {
+      const decoded = verificarToken();
+      const usuario = await prisma.usuario.findUnique({
+        where: { id: decoded.usuarioId },
+        include: { academia: true }
+      });
+      return res.status(200).json({ ...usuario, senha: undefined });
+    }
+    
+    // PUT /api/usuario/perfil
+    if (method === 'PUT' && url?.includes('/usuario/perfil')) {
+      const decoded = verificarToken();
+      const { nome, telefone, imagemPerfil } = req.body || {};
+      
+      const usuario = await prisma.usuario.update({
+        where: { id: decoded.usuarioId },
+        data: { nome, telefone, imagemPerfil }
+      });
+      return res.status(200).json({ ...usuario, senha: undefined });
+    }
+    
     // GET /api/refeicoes-diario
     if (method === 'GET' && url?.includes('/refeicoes-diario')) {
       verificarToken();
@@ -336,6 +437,131 @@ export default async function handler(req, res) {
         message: 'FitnessTech API v1.0',
         timestamp: new Date().toISOString()
       });
+    }
+    
+    // GET /api/metas
+    if (method === 'GET' && url === '/api/metas') {
+      const decoded = verificarToken();
+      const metas = await prisma.meta.findMany({
+        where: { usuarioId: decoded.usuarioId },
+        orderBy: { criadoEm: 'desc' }
+      });
+      return res.status(200).json(metas);
+    }
+    
+    // POST /api/metas
+    if (method === 'POST' && url === '/api/metas') {
+      const decoded = verificarToken();
+      const { tipo, valorAlvo, prazo, descricao } = req.body || {};
+      
+      const meta = await prisma.meta.create({
+        data: {
+          usuarioId: decoded.usuarioId,
+          tipo,
+          valorAlvo,
+          valorAtual: 0,
+          prazo: prazo ? new Date(prazo) : undefined,
+          descricao,
+          atingida: false
+        }
+      });
+      return res.status(201).json(meta);
+    }
+    
+    // GET /api/schedules
+    if (method === 'GET' && url?.includes('/schedules') && !url.includes('/student')) {
+      const decoded = verificarToken();
+      
+      // Se for professor, pega agendamentos dos seus alunos
+      if (decoded.funcao === 'PROFESSOR') {
+        const vinculos = await prisma.vinculoAlunoInstrutor.findMany({
+          where: { instrutorId: decoded.usuarioId, ativo: true },
+          select: { alunoId: true }
+        });
+        const alunoIds = vinculos.map(v => v.alunoId);
+        
+        const agendamentos = await prisma.agendamento.findMany({
+          where: { 
+            OR: [
+              { usuarioId: decoded.usuarioId },
+              { usuarioId: { in: alunoIds } }
+            ]
+          },
+          include: {
+            usuario: { select: { id: true, nome: true, email: true } }
+          },
+          orderBy: { dataHora: 'asc' }
+        });
+        return res.status(200).json(agendamentos);
+      }
+      
+      // Outros usuários veem apenas seus agendamentos
+      const agendamentos = await prisma.agendamento.findMany({
+        where: { usuarioId: decoded.usuarioId },
+        orderBy: { dataHora: 'asc' }
+      });
+      return res.status(200).json(agendamentos);
+    }
+    
+    // POST /api/schedules
+    if (method === 'POST' && url === '/api/schedules') {
+      const decoded = verificarToken();
+      const { titulo, dataHora, tipo, duracao, observacoes, alunoId } = req.body || {};
+      
+      const agendamento = await prisma.agendamento.create({
+        data: {
+          usuarioId: alunoId || decoded.usuarioId,
+          titulo,
+          dataHora: new Date(dataHora),
+          tipo,
+          duracao,
+          observacoes,
+          status: 'PENDENTE'
+        }
+      });
+      return res.status(201).json(agendamento);
+    }
+    
+    // GET /api/grupos
+    if (method === 'GET' && url === '/api/grupos') {
+      verificarToken();
+      const grupos = await prisma.grupo.findMany({
+        include: {
+          _count: { select: { membros: true } }
+        },
+        orderBy: { criadoEm: 'desc' }
+      });
+      return res.status(200).json(grupos);
+    }
+    
+    // GET /api/instrutor/alunos
+    if (method === 'GET' && url?.includes('/instrutor/alunos')) {
+      const decoded = verificarToken();
+      
+      if (decoded.funcao !== 'PROFESSOR' && decoded.funcao !== 'NUTRICIONISTA') {
+        return res.status(403).json({ erro: 'Acesso negado' });
+      }
+      
+      const vinculos = await prisma.vinculoAlunoInstrutor.findMany({
+        where: { 
+          instrutorId: decoded.usuarioId,
+          ativo: true
+        },
+        include: {
+          aluno: {
+            select: {
+              id: true,
+              nome: true,
+              email: true,
+              telefone: true,
+              imagemPerfil: true
+            }
+          }
+        }
+      });
+      
+      const alunos = vinculos.map(v => v.aluno);
+      return res.status(200).json(alunos);
     }
     
     // Rotas que retornam arrays/objetos vazios
