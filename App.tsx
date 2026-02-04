@@ -9,7 +9,7 @@ import {
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, Shield, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
-  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown
+  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
@@ -575,12 +575,6 @@ const ASSESSMENT_RADAR_DATA = [
 const DEFAULT_DIET = { title: 'Padrão', kcal: 2500, meals: [{ n: 'Café', t: '08:00', kcal: 500, icon: <Coffee />, items: [{ name: 'Pão c/ Ovo', kcal: 500 }] }] };
 const DAYS_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
-const MACRO_DISTRIBUTION = [
-  { name: 'Proteínas', value: 30, fill: '#D9FF00' },
-  { name: 'Carboidratos', value: 50, fill: '#3b82f6' },
-  { name: 'Gorduras', value: 20, fill: '#f97316' },
-];
-
 const WEIGHT_HISTORY = [
   { date: '01/10', weight: 88.5 },
   { date: '08/10', weight: 87.2 },
@@ -695,7 +689,7 @@ const StatCard = ({ label, value, trend, color, icon: Icon }: any) => (
   </div>
 );
 
-const LoginForm = () => {
+const LoginForm = ({ setActiveView }: { setActiveView: (view: string) => void }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -716,6 +710,8 @@ const LoginForm = () => {
         const success = await login(email, senha);
         if (!success) {
           setError('Credenciais inválidas');
+        } else {
+          setActiveView('dashboard');
         }
       } else {
         const success = await register({
@@ -727,6 +723,8 @@ const LoginForm = () => {
         });
         if (!success) {
           setError('Erro ao criar conta');
+        } else {
+          setActiveView('dashboard');
         }
       }
     } catch (err) {
@@ -739,7 +737,7 @@ const LoginForm = () => {
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl">
           <div className="text-center mb-10">
             <div className="size-20 bg-lime-400 text-black rounded-[2rem] flex items-center justify-center mx-auto mb-6 rotate-3 border-[4px] border-zinc-950 shadow-xl">
               <Dumbbell size={40} strokeWidth={3} />
@@ -973,7 +971,7 @@ const UserManagement: React.FC = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
-        <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
+        <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
           Gerenciar Usuários
         </h2>
         <p className="text-zinc-500 font-medium">
@@ -998,7 +996,7 @@ const UserManagement: React.FC = () => {
           <p className="text-3xl font-black">{nutricionistas.length}</p>
           <p className="text-sm text-zinc-400">{nutricionistas.length === 1 ? 'Nutricionista' : 'Nutricionistas'}</p>
         </div>
-        <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 p-6 rounded-3xl border border-purple-500/30">
+        <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-purple-500/30">
           <Shield size={32} className="text-purple-400 mb-2" />
           <p className="text-3xl font-black">{admins.length}</p>
           <p className="text-sm text-zinc-400">{admins.length === 1 ? 'Administrador' : 'Administradores'}</p>
@@ -1006,33 +1004,32 @@ const UserManagement: React.FC = () => {
       </div>
 
       {/* Lista de Usuários */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-3xl overflow-x-auto">
+        <table className="w-full min-w-[800px]">
             <thead className="bg-zinc-800/50">
               <tr>
-                <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Nome</th>
-                <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Email</th>
-                <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Função</th>
-                <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Status</th>
-                <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Cadastro</th>
-                <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Ações</th>
+                <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Nome</th>
+                <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Email</th>
+                <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Função</th>
+                <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Status</th>
+                <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Cadastro</th>
+                <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Ações</th>
               </tr>
             </thead>
             <tbody>
               {usuarios.map((usuario) => (
                 <tr key={usuario.id} className="border-t border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-lime-400 to-lime-600 flex items-center justify-center text-black font-black">
+                  <td className="p-3 md:p-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-lime-400 to-lime-600 flex items-center justify-center text-black font-black text-sm md:text-base">
                         {usuario.nome.charAt(0).toUpperCase()}
                       </div>
-                      <span className="font-semibold">{usuario.nome}</span>
+                      <span className="font-semibold text-sm md:text-base">{usuario.nome}</span>
                     </div>
                   </td>
-                  <td className="p-4 text-zinc-400 text-sm">{usuario.email}</td>
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                  <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm">{usuario.email}</td>
+                  <td className="p-3 md:p-4">
+                    <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase whitespace-nowrap ${
                       usuario.funcao === 'ADMIN' ? 'bg-purple-500/20 text-purple-400' :
                       usuario.funcao === 'PROFESSOR' ? 'bg-blue-500/20 text-blue-400' :
                       usuario.funcao === 'NUTRI' ? 'bg-green-500/20 text-green-400' :
@@ -1041,21 +1038,21 @@ const UserManagement: React.FC = () => {
                       {usuario.funcao}
                     </span>
                   </td>
-                  <td className="p-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  <td className="p-3 md:p-4">
+                    <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap ${
                       usuario.ativo ? 'bg-lime-500/20 text-lime-400' : 'bg-red-500/20 text-red-400'
                     }`}>
                       {usuario.ativo ? 'ATIVO' : 'INATIVO'}
                     </span>
                   </td>
-                  <td className="p-4 text-zinc-400 text-sm">
+                  <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm whitespace-nowrap">
                     {new Date(usuario.criadoEm).toLocaleDateString('pt-BR')}
                   </td>
-                  <td className="p-4">
+                  <td className="p-3 md:p-4">
                     <div className="flex gap-2">
                       <button
                         onClick={() => alternarStatus(usuario.id, usuario.ativo)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        className={`px-2 md:px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold transition-colors whitespace-nowrap ${
                           usuario.ativo 
                             ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
                             : 'bg-lime-500/20 text-lime-400 hover:bg-lime-500/30'
@@ -1069,7 +1066,7 @@ const UserManagement: React.FC = () => {
                             setSelectedAluno(usuario);
                             setShowVinculoModal(true);
                           }}
-                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors"
+                          className="px-2 md:px-3 py-1.5 rounded-lg text-[10px] md:text-xs font-bold bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors whitespace-nowrap"
                         >
                           Vincular
                         </button>
@@ -1080,7 +1077,6 @@ const UserManagement: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
       </div>
 
       {/* Modal de Vínculo */}
@@ -1518,7 +1514,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 
       {showPostureModal && (
         <div className="fixed inset-0 z-[150] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowPostureModal(false)}>
-           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-[3rem] p-10 animate-in zoom-in duration-300 relative" onClick={e => e.stopPropagation()}>
+           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300 relative" onClick={e => e.stopPropagation()}>
               <button onClick={() => setShowPostureModal(false)} className="absolute top-8 right-8 text-zinc-500 hover:text-white"><X size={24}/></button>
               <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Análise de Postura</h3>
               <p className="text-zinc-500 text-sm font-bold mb-8">Envie um vídeo curto do seu exercício. A IA analisará sua biomecânica frame a frame.</p>
@@ -1612,7 +1608,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 const FinishedSessionView = ({ totalTime, reset }: any) => (
   <div className="flex flex-col items-center justify-center min-h-[70vh] text-center animate-in zoom-in duration-700 p-6">
     <div className="size-40 bg-lime-400 text-black rounded-[4rem] flex items-center justify-center mb-10 shadow-2xl rotate-6 border-[8px] border-zinc-950"><Award size={80} strokeWidth={2} /></div>
-    <h2 className="text-7xl font-black italic uppercase tracking-tighter mb-4 leading-none">DOMINADO!</h2>
+    <h2 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter mb-4 leading-none">DOMINADO!</h2>
     <p className="text-zinc-500 text-xl font-medium mb-12 max-w-sm">Você destruiu a sessão de hoje em <span className="text-white font-black">{formatTime(totalTime)}</span>.</p>
     <button onClick={reset} className="bg-white text-black px-16 py-6 rounded-3xl font-black uppercase tracking-widest text-lg flex items-center gap-4 hover:scale-105 transition-all shadow-2xl">IR PARA O PAINEL <ArrowRight size={24} /></button>
   </div>
@@ -1620,7 +1616,7 @@ const FinishedSessionView = ({ totalTime, reset }: any) => (
 
 const WorkoutDetailCard = ({ workout, onStart }: any) => {
   if (!workout) return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-20 text-center shadow-2xl">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center shadow-2xl">
       <div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
         <Dumbbell size={48} className="text-zinc-700"/>
       </div>
@@ -1630,11 +1626,11 @@ const WorkoutDetailCard = ({ workout, onStart }: any) => {
       </p>
     </div>
   );
-  if (!workout.exercises || workout.exercises.length === 0) return (<div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-20 text-center shadow-2xl"><div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700"><RotateCcw size={48} /></div><h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3><p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Foque na recuperação.</p></div>);
+  if (!workout.exercises || workout.exercises.length === 0) return (<div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center shadow-2xl"><div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700"><RotateCcw size={48} /></div><h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3><p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Foque na recuperação.</p></div>);
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl">
       <div className="flex items-center gap-4 mb-10"><span className="bg-lime-400 text-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Série {workout.category}</span><span className="text-zinc-500 text-sm font-bold flex items-center gap-2"><Clock size={16} /> {workout.duration}</span></div>
-      <h3 className="text-5xl font-black italic uppercase tracking-tighter mb-12 leading-none">{workout.title}</h3>
+      <h3 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-12 leading-none">{workout.title}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">{workout.exercises.map((ex: any, i: number) => (<div key={i} className="flex items-center justify-between p-6 bg-zinc-950/60 rounded-3xl border border-zinc-800"><div className="flex items-center gap-4"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-lime-400 font-black italic">{i+1}</div><div className="min-w-0"><p className="font-bold text-sm truncate uppercase tracking-tight italic">{ex.n}</p><p className="text-[10px] text-zinc-500 font-bold uppercase">{ex.s}X {ex.r} • {ex.w} • {ex.rest}s descanso</p></div></div></div>))}</div>
       <button onClick={onStart} className="w-full bg-lime-400 text-black py-7 rounded-[2rem] font-black uppercase tracking-widest text-xl flex items-center justify-center gap-4 shadow-xl active:scale-[0.98] transition-all shadow-lime-400/20"><Play size={28} fill="currentColor" /> COMEÇAR AGORA</button>
     </div>
@@ -1668,16 +1664,16 @@ const EvolutionView = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
+            <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] shadow-2xl">
               <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Peso Corporal (kg)</p><h4 className="text-3xl font-black italic text-white">-4.3kg este mês</h4></div><div className="size-12 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center"><Scale size={24} /></div></div>
               <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><AreaChart data={weightHistory}><defs><linearGradient id="colorW" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={4} fill="url(#colorW)" /></AreaChart></ResponsiveContainer></div>
             </div>
-            <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-2xl">
+            <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] shadow-2xl">
               <div className="flex justify-between items-start mb-10"><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-1">Progressão de Carga (kg)</p><h4 className="text-3xl font-black italic text-blue-400">+22kg total</h4></div><div className="size-12 bg-blue-400/10 text-blue-400 rounded-2xl flex items-center justify-center"><Zap size={24} /></div></div>
               <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><BarChart data={liftProgress}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
             </div>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 p-10 rounded-[3rem] shadow-2xl">
+          <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-10 rounded-2xl md:rounded-[3rem] shadow-2xl">
             <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Trophy size={20} className="text-orange-400"/> Recordes Pessoais</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {personalRecords.map((record, i) => (
@@ -1722,33 +1718,33 @@ const GoalsView = () => {
   return (
     <div className="animate-in fade-in duration-700 space-y-8 min-h-screen text-white">
       <header className="mb-8">
-        <h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2 text-white">Metas & Conquistas</h1>
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter mb-2 text-white">Metas & Conquistas</h1>
         <p className="text-zinc-500 font-medium">Acompanhe seu progresso e desbloqueie conquistas</p>
       </header>
       
-      <div className="flex gap-4">
+      <div className="flex gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-2">
         <button 
           onClick={() => setActiveGoalTab('badges')} 
-          className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all ${activeGoalTab === 'badges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'badges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
         >
           BADGES
         </button>
         <button 
           onClick={() => setActiveGoalTab('streaks')} 
-          className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all ${activeGoalTab === 'streaks' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'streaks' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
         >
           SEQUÊNCIAS
         </button>
         <button 
           onClick={() => setActiveGoalTab('challenges')} 
-          className={`px-6 py-3 rounded-2xl font-bold text-sm transition-all ${activeGoalTab === 'challenges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'challenges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
         >
           DESAFIOS
         </button>
       </div>
 
       {activeGoalTab === 'badges' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {BADGES.map((badge) => (
             <div key={badge.id} className={`p-6 rounded-[2rem] border transition-all ${badge.earned ? 'bg-zinc-900 border-lime-400/30' : 'bg-zinc-950 border-zinc-800'}`}>
               <div className="flex justify-between items-start mb-4">
@@ -1870,10 +1866,10 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
     <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12 max-w-4xl mx-auto">
       <header className="flex flex-col md:flex-row items-center gap-10">
         <div className="relative group"><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) { const r = new FileReader(); r.onloadend = () => onImageChange(r.result as string); r.readAsDataURL(f); } }}/><div onClick={() => fileInputRef.current?.click()} className="size-40 rounded-[4rem] border-[10px] border-zinc-900 shadow-2xl overflow-hidden relative cursor-pointer"><img src={profileImage} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"/><div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity"><Camera size={32} className="text-lime-400 mb-1" /><span className="text-[9px] font-black uppercase text-lime-400">Trocar Foto</span></div></div><div className="absolute -bottom-2 -right-2 size-14 bg-lime-400 text-black rounded-3xl flex items-center justify-center shadow-2xl border-[6px] border-zinc-950"><Trophy size={28} strokeWidth={3} /></div></div>
-        <div className="text-center md:text-left"><h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none mb-4">Alex Rivers</h1><div className="flex flex-wrap justify-center md:justify-start gap-3"><span className="bg-zinc-900 border border-zinc-800 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-zinc-400 tracking-widest">Aluno VIP</span><span className="bg-lime-400/10 border border-lime-400/30 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-lime-400 tracking-widest">Nível 28</span></div></div>
+        <div className="text-center md:text-left"><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-4">Alex Rivers</h1><div className="flex flex-wrap justify-center md:justify-start gap-3"><span className="bg-zinc-900 border border-zinc-800 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-zinc-400 tracking-widest">Aluno VIP</span><span className="bg-lime-400/10 border border-lime-400/30 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-lime-400 tracking-widest">Nível 28</span></div></div>
       </header>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl space-y-10">
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-10">
            <div className="flex items-center justify-between"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><User size={20} className="text-lime-400"/> Biometria</h4>{!isEditing ? (<button onClick={() => setIsEditing(true)} className="text-[10px] font-black uppercase text-lime-400 hover:underline">Editar</button>) : (<div className="flex gap-4"><button onClick={handleCancel} className="text-[10px] font-black uppercase text-zinc-500 hover:text-white">Cancelar</button><button onClick={handleSave} className="text-[10px] font-black uppercase text-lime-400 flex items-center gap-1"><Save size={12}/> Salvar</button></div>)}</div>
            <div className="grid grid-cols-2 gap-6">
               <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Altura</p>{isEditing ? (<input type="number" step="0.01" value={tempBiometrics.height} onChange={(e) => setTempBiometrics({...tempBiometrics, height: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic" />) : (<p className="text-2xl font-black italic text-white">{biometrics.height}m</p>)}</div>
@@ -1882,9 +1878,9 @@ const ProfileView = ({ profileImage, onImageChange, biometrics, onBiometricsChan
               <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Meta</p>{isEditing ? (<select value={tempBiometrics.goal} onChange={(e) => setTempBiometrics({...tempBiometrics, goal: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none appearance-none"><option value="Hipertrofia">Hipertrofia</option><option value="Cutting">Cutting</option><option value="Bulking">Bulking</option></select>) : (<p className="text-xl font-black italic text-lime-400 uppercase tracking-tighter break-words">{biometrics.goal}</p>)}</div>
            </div>
         </section>
-        <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl space-y-8"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-10 opacity-5"><Trophy size={140} className="text-lime-400" /></div><div className="relative z-10"><p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-4 mb-8"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div><div><p className="text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-6 border-t border-zinc-900 flex justify-between items-end"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-sm font-black italic text-white">15 de Nov, 2024</p></div><button onClick={() => alert('Gerenciar Assinatura\n\nPlano Atual: BLACK VIP\nPróxima cobrança: 15 de Nov, 2024\n\nOpções:\n• Alterar plano\n• Alterar forma de pagamento\n• Cancelar assinatura')} className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 transition-all">Gerenciar</button></div></div></div></section>
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-8"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-10 opacity-5"><Trophy size={140} className="text-lime-400" /></div><div className="relative z-10"><p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-4 mb-8"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div><div><p className="text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-6 border-t border-zinc-900 flex justify-between items-end"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-sm font-black italic text-white">15 de Nov, 2024</p></div><button onClick={() => alert('Gerenciar Assinatura\n\nPlano Atual: BLACK VIP\nPróxima cobrança: 15 de Nov, 2024\n\nOpções:\n• Alterar plano\n• Alterar forma de pagamento\n• Cancelar assinatura')} className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 transition-all">Gerenciar</button></div></div></div></section>
       </div>
-      <section className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 shadow-2xl">
+      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl">
          <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Settings size={20} className="text-orange-400"/> Configurações</h4>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
             <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
@@ -1940,9 +1936,9 @@ const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
 
   return (
     <div className="animate-in fade-in duration-700 space-y-10 relative">
-      <header className="flex flex-col lg:row justify-between lg:items-end gap-6">
-        <div><h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">Marketplace</h2><p className="text-zinc-500 font-medium">Equipamentos de elite.</p></div>
-        <div className="flex items-center gap-4">
+      <header className="flex flex-col lg:flex-row justify-between lg:items-end gap-4 md:gap-6">
+        <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">Marketplace</h2><p className="text-zinc-500 font-medium">Equipamentos de elite.</p></div>
+        <div className="flex items-center gap-2 md:gap-4">
           <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-3xl gap-1 overflow-x-auto no-scrollbar">
             {categories.map((c) => (<button key={c} onClick={() => setFilter(c)} className={`min-w-[6rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-6 ${filter === c ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-800'}`}>{c}</button>))}
           </div>
@@ -1965,7 +1961,7 @@ const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
             </div>
           ))
         ) : (
-          <div className="col-span-full bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+          <div className="col-span-full bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
             <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <ShoppingBag size={40} className="text-zinc-600"/>
             </div>
@@ -2072,12 +2068,12 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500 relative">
-      <header className="flex justify-between items-end">
-         <div className="flex-1 mr-6">
-            <h2 className="text-5xl font-black italic uppercase mb-2">Nutrição</h2>
-            <p className="text-zinc-500 font-medium">Combustível para o corpo.</p>
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+         <div className="flex-1">
+            <h2 className="text-3xl md:text-5xl font-black italic uppercase mb-2">Nutrição</h2>
+            <p className="text-sm md:text-base text-zinc-500 font-medium">Combustível para o corpo.</p>
          </div>
-         <button onClick={() => setShowAI(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl hover:scale-105 transition-all">
+         <button onClick={() => setShowAI(true)} className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl hover:scale-105 transition-all whitespace-nowrap">
             <Sparkles size={16}/> Gerar Dieta AI
          </button>
       </header>
@@ -2101,11 +2097,11 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
            {diet.meals.map((meal: any, idx: number) => {
              const isDone = completedMeals.includes(idx);
              return (
-               <div key={idx} onClick={() => toggleMeal(idx)} className={`group relative bg-zinc-900 border cursor-pointer rounded-[2.5rem] p-8 flex gap-6 transition-all duration-300 active:scale-[0.98] ${isDone ? 'border-lime-400/30 bg-lime-400/5' : 'border-zinc-800 hover:border-zinc-700 hover:shadow-lg hover:shadow-lime-400/10'}`}>
+               <div key={idx} onClick={() => toggleMeal(idx)} className={`group relative bg-zinc-900 border cursor-pointer rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 transition-all duration-300 active:scale-[0.98] ${isDone ? 'border-lime-400/30 bg-lime-400/5' : 'border-zinc-800 hover:border-zinc-700 hover:shadow-lg hover:shadow-lime-400/10'}`}>
                   <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 shadow-lg border transition-all duration-500 ${isDone ? 'bg-lime-400 border-lime-400 text-black rotate-12' : 'bg-zinc-950 border-zinc-800 text-blue-400 group-hover:border-lime-400/30 group-hover:text-lime-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : meal.icon}</div>
                   <div className="flex-1">
-                     <div className="flex justify-between items-center mb-4"><h4 className={`text-xl font-black italic uppercase tracking-tight ${isDone ? 'text-zinc-500 line-through' : 'text-white group-hover:text-lime-400 transition-colors'}`}>{meal.n} {!isDone && <span className="text-[9px] text-zinc-600 group-hover:text-lime-400/50 font-normal ml-2">· Clique para marcar</span>}</h4><div className="flex gap-3"><span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{meal.t}</span><span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? 'bg-lime-400 text-black' : 'bg-blue-500/20 text-blue-400'}`}>{meal.kcal} kcal</span></div></div>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">{meal.items.map((item: any, i: number) => (
+                     <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-2"><h4 className={`text-lg md:text-xl font-black italic uppercase tracking-tight ${isDone ? 'text-zinc-500 line-through' : 'text-white group-hover:text-lime-400 transition-colors'}`}>{meal.n} {!isDone && <span className="text-[9px] text-zinc-600 group-hover:text-lime-400/50 font-normal ml-2">· Clique para marcar</span>}</h4><div className="flex gap-3"><span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{meal.t}</span><span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? 'bg-lime-400 text-black' : 'bg-blue-500/20 text-blue-400'}`}>{meal.kcal} kcal</span></div></div>
+                     <div className="grid grid-cols-1 gap-3">{meal.items.map((item: any, i: number) => (
                        <div key={i} onClick={(e) => handleFoodClick(e, item.name)} className={`p-4 rounded-2xl flex justify-between items-center border hover:border-lime-400/50 transition-colors ${isDone ? 'bg-zinc-950/30 border-zinc-800/50 opacity-60' : 'bg-zinc-950 border-zinc-800'}`}>
                          <span className="text-xs font-bold text-zinc-300 flex items-center gap-2">{item.name} {Object.keys(FOOD_SUBSTITUTIONS).some(k => item.name.includes(k)) && <RefreshCw size={10} className="text-lime-400"/>}</span>
                          <span className="text-[9px] font-black uppercase text-zinc-600">{item.kcal} kcal</span>
@@ -2116,10 +2112,45 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
              );
            })}
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] shadow-xl h-fit">
+        <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] shadow-xl h-fit">
           <h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-8">Macros</h4>
-          <div className="h-64 w-full"><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} /><Pie data={MACRO_DISTRIBUTION} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">{MACRO_DISTRIBUTION.map((e, i) => <Cell key={i} fill={e.fill} />)}</Pie></PieChart></ResponsiveContainer></div>
-          <div className="w-full mt-6 space-y-4">{MACRO_DISTRIBUTION.map((macro, idx) => (<div key={idx} className="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl"><div className="flex items-center gap-3"><div className="size-3 rounded-full" style={{ backgroundColor: macro.fill }} /><span className="text-xs font-black uppercase text-zinc-300">{macro.name}</span></div><span className="text-xs font-black italic text-white">{macro.value}%</span></div>))}</div>
+          {(() => {
+            const macros = diet.macros ? [
+              { name: 'Proteínas', value: diet.macros.protein || 30, fill: '#D9FF00' },
+              { name: 'Carboidratos', value: diet.macros.carbs || 50, fill: '#3b82f6' },
+              { name: 'Gorduras', value: diet.macros.fat || 20, fill: '#f97316' }
+            ] : [
+              { name: 'Proteínas', value: 30, fill: '#D9FF00' },
+              { name: 'Carboidratos', value: 50, fill: '#3b82f6' },
+              { name: 'Gorduras', value: 20, fill: '#f97316' }
+            ];
+            
+            return (
+              <>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem', fontSize: '12px', fontWeight: 'bold' }} itemStyle={{ color: '#fff' }} />
+                      <Pie data={macros} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">
+                        {macros.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="w-full mt-6 space-y-4">
+                  {macros.map((macro, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        <div className="size-3 rounded-full" style={{ backgroundColor: macro.fill }} />
+                        <span className="text-xs font-black uppercase text-zinc-300">{macro.name}</span>
+                      </div>
+                      <span className="text-xs font-black italic text-white">{macro.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
 
@@ -2142,7 +2173,7 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 
       {showAI && (
         <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAI(false)}>
-            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                <div className="flex justify-between items-center mb-8"><h3 className="text-3xl font-black italic uppercase">Gerador Nutri AI</h3><button onClick={() => setShowAI(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 transition-all"><X size={20}/></button></div>
                <div className="space-y-6">
                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Calorias Diárias</label><input type="number" value={aiPrompt.kcal} onChange={e => setAiPrompt({...aiPrompt, kcal: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none focus:border-lime-400" /></div>
@@ -2261,12 +2292,12 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
       };
       return (
         <div className="space-y-12 animate-in fade-in duration-700">
-           <header><h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, Atleta</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
+           <header><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, Atleta</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
            
            {/* Banner de treino ativo */}
            {activeSession && (
-             <div className="bg-gradient-to-r from-lime-400/20 to-lime-500/10 border-2 border-lime-400/50 p-8 rounded-[3rem] shadow-xl shadow-lime-400/10 animate-in slide-in-from-top duration-500">
-               <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+             <div className="bg-gradient-to-r from-lime-400/20 to-lime-500/10 border-2 border-lime-400/50 p-4 md:p-8 rounded-2xl md:rounded-[3rem] shadow-xl shadow-lime-400/10 animate-in slide-in-from-top duration-500">
+               <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
                  <div className="flex items-center gap-6">
                    <div className="size-16 bg-lime-400 rounded-2xl flex items-center justify-center text-black animate-pulse">
                      <Timer size={32} strokeWidth={3} />
@@ -2274,7 +2305,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
                    <div>
                      <div className="flex items-center gap-3 mb-2">
                        <div className="size-3 bg-red-500 rounded-full animate-pulse" />
-                       <h3 className="text-2xl font-black italic uppercase tracking-tight text-lime-400">Treino em Andamento</h3>
+                       <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-tight text-lime-400">Treino em Andamento</h3>
                      </div>
                      <p className="text-zinc-400 font-bold">{activeSession.title}</p>
                    </div>
@@ -2296,17 +2327,17 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
              </div>
            )}
 
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
              <StatCard label="Treinos" value={historicoTreinos.length || "0"} trend={historicoTreinos.length > 0 ? `+${historicoTreinos.length} essa semana` : "Sem dados"} color="text-lime-400" icon={Dumbbell} />
              <StatCard label="Calorias" value={historicoDietas.length > 0 ? "2450" : "0"} trend={historicoDietas.length > 0 ? "Na meta" : "Sem dados"} color="text-orange-400" icon={Flame} />
              <StatCard label="Peso" value={medicoes.length > 0 ? biometrics.weight : "0"} trend={medicoes.length > 0 ? "-1.2kg" : "Sem dados"} color="text-blue-400" icon={Scale} />
            </div>
            <section>
-              <div className="flex items-center justify-between mb-8">
-                 <h3 className="text-3xl font-black italic uppercase tracking-tighter">Treino de Hoje</h3>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-3">
+                 <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter">Treino de Hoje</h3>
                  <button 
                     onClick={() => setView('workouts')} 
-                    className="text-lime-400 hover:text-lime-300 font-black uppercase text-xs flex items-center gap-2"
+                    className="text-lime-400 hover:text-lime-300 font-black uppercase text-[10px] md:text-xs flex items-center gap-2"
                  >
                     Ver Todos <ChevronRight size={16}/>
                  </button>
@@ -2314,7 +2345,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
               {todayWorkout ? (
                  <WorkoutDetailCard workout={todayWorkout} onStart={() => handleStartWorkout(todayWorkout)} />
               ) : (
-                 <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-20 text-center">
+                 <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center">
                     <div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700">
                        <RotateCcw size={48} />
                     </div>
@@ -2345,7 +2376,7 @@ const StudentModule = ({ view, setView, products, addToCart, cartCount, setIsCar
          <>
            {/* Banner de treino ativo */}
            {activeSession && (
-             <div className="bg-gradient-to-r from-lime-400/20 to-lime-500/10 border-2 border-lime-400/50 p-6 rounded-[2.5rem] shadow-xl shadow-lime-400/10 mb-8 animate-in slide-in-from-top duration-500">
+             <div className="bg-gradient-to-r from-lime-400/20 to-lime-500/10 border-2 border-lime-400/50 p-4 md:p-6 rounded-2xl md:rounded-[2.5rem] shadow-xl shadow-lime-400/10 mb-8 animate-in slide-in-from-top duration-500">
                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                  <div className="flex items-center gap-4">
                    <div className="size-3 bg-red-500 rounded-full animate-pulse" />
@@ -2562,7 +2593,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   </div>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><Scale size={20} className="text-blue-400"/> Última Avaliação</h3>
                         {assessments.length > 0 && (
                            <div className="grid grid-cols-2 gap-4">
@@ -2574,7 +2605,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                         )}
                      </div>
 
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><Calendar size={20} className="text-lime-400"/> Próximas Sessões</h3>
                         <div className="space-y-3">
                            {schedules.filter(s => s.studentId === selectedStudent.id).map(schedule => (
@@ -2594,7 +2625,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
 
             {subView === 'workouts' && (
                <div className="space-y-6">
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-2xl font-black italic uppercase mb-6">Treinos Prescritos</h3>
                      <div className="grid gap-4">
                         {DAYS_SHORT.map((day, idx) => {
@@ -2634,7 +2665,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
 
             {subView === 'assessments' && (
                <div className="space-y-6">
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <div className="flex justify-between items-center mb-6">
                         <h3 className="text-2xl font-black italic uppercase">Histórico de Avaliações</h3>
                         <button onClick={() => setShowAssessment(true)} className="bg-blue-500 text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2">
@@ -2689,7 +2720,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {subView === 'historico' && (
                <div className="space-y-6">
                   {/* Histórico de Treinos */}
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-2xl font-black italic uppercase mb-6">💪 Histórico de Treinos</h3>
                      {historicoTreinos.filter(t => t.alunoId === selectedStudent?.id).length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -2742,7 +2773,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   </div>
 
                   {/* Histórico de Dietas */}
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-2xl font-black italic uppercase mb-6">🥗 Histórico de Dietas</h3>
                      {historicoDietas.filter(d => d.alunoId === selectedStudent?.id).length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -2797,16 +2828,16 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {subView === 'performance' && (
                <div className="space-y-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Evolução de Peso</h3>
                         <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}), peso: a.weight }))}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="peso" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
                      </div>
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Composição Corporal</h3>
                         <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={assessments.map(a => ({ date: new Date(a.date).toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit'}), gordura: a.bodyFat, musculo: a.muscle }))}><defs><linearGradient id="colorFat" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient><linearGradient id="colorMuscle" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="gordura" stroke="#f97316" strokeWidth={2} fill="url(#colorFat)" /><Area type="monotone" dataKey="musculo" stroke="#D9FF00" strokeWidth={2} fill="url(#colorMuscle)" /></AreaChart></ResponsiveContainer></div>
                      </div>
                   </div>
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Progressão de Carga (Supino Reto)</h3>
                      <div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={LIFT_PROGRESS}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} /><XAxis dataKey="week" stroke="#52525b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Bar dataKey="load" fill="#3b82f6" radius={[10, 10, 0, 0]} /></BarChart></ResponsiveContainer></div>
                   </div>
@@ -2815,7 +2846,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
 
             {subView === 'schedule' && (
                <div className="space-y-6">
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <div className="flex justify-between items-center mb-6">
                         <h3 className="text-2xl font-black italic uppercase flex items-center gap-3">
                            <Calendar size={24} className="text-lime-400"/>
@@ -2895,7 +2926,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {/* Modal Criar Treino */}
             {showCreateWorkout && (
                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowCreateWorkout(false)}>
-                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-[3rem] p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                      <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-black italic uppercase">Prescrever Treino</h3>
                         <button onClick={() => setShowCreateWorkout(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -2920,12 +2951,12 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {/* Modal Nova Avaliação */}
             {showAssessment && (
                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAssessment(false)}>
-                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-[3rem] p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                      <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-black italic uppercase">Nova Avaliação Física</h3>
                         <button onClick={() => setShowAssessment(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
                      </div>
-                     <form onSubmit={(e) => { e.preventDefault(); alert('Avaliação salva com sucesso!\n\nPeso: ' + newAssessmentForm.weight + 'kg\n% Gordura: ' + newAssessmentForm.bodyFat + '%'); setNewAssessmentForm({ weight: '', bodyFat: '', muscle: '', water: '', chest: '', waist: '', arm: '', leg: '' }); setShowAssessment(false); }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <form onSubmit={(e) => { e.preventDefault(); alert('Avaliação salva com sucesso!\n\nPeso: ' + newAssessmentForm.weight + 'kg\n% Gordura: ' + newAssessmentForm.bodyFat + '%'); setNewAssessmentForm({ weight: '', bodyFat: '', muscle: '', water: '', chest: '', waist: '', arm: '', leg: '' }); setShowAssessment(false); }} className="grid grid-cols-1 gap-4 md:gap-6">
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Peso (kg)</label><input required type="number" step="0.1" value={newAssessmentForm.weight} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, weight: e.target.value})} placeholder="Ex: 84.5" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">% Gordura</label><input required type="number" step="0.1" value={newAssessmentForm.bodyFat} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, bodyFat: e.target.value})} placeholder="Ex: 18.2" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
                         <div><label className="text-[10px] font-black uppercase text-zinc-600 ml-4 block mb-2">Massa Magra (kg)</label><input type="number" step="0.1" value={newAssessmentForm.muscle} onChange={(e) => setNewAssessmentForm({...newAssessmentForm, muscle: e.target.value})} placeholder="Ex: 38.1" className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none"/></div>
@@ -2943,7 +2974,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
             {/* Modal Novo Agendamento */}
             {showNewSchedule && (
                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewSchedule(false)}>
-                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                      <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-black italic uppercase">Novo Agendamento</h3>
                         <button onClick={() => setShowNewSchedule(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -2970,7 +3001,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          {/* Modal Novo Aluno */}
          {showNewStudent && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewStudent(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Aluno</h3>
                      <button onClick={() => setShowNewStudent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -2992,7 +3023,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          {/* Modal Novo Agendamento */}
          {showNewSchedule && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewSchedule(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Agendamento</h3>
                      <button onClick={() => setShowNewSchedule(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3014,7 +3045,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          {/* Modal Nova Avaliação */}
          {showAssessment && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAssessment(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-3xl rounded-[3rem] p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-3xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Nova Avaliação Física</h3>
                      <button onClick={() => setShowAssessment(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3044,7 +3075,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          {/* Modal Novo Modelo */}
          {showNewTemplate && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewTemplate(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-[3rem] p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-4xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Modelo de Treino</h3>
                      <button onClick={() => setShowNewTemplate(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3073,7 +3104,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
       case 'dashboard':
          return (
             <div className="space-y-10 animate-in fade-in duration-700">
-               <header><h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Painel do Treinador</h1><p className="text-zinc-500 font-medium">Gerencie seus alunos e treinos</p></header>
+               <header><h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Painel do Treinador</h1><p className="text-zinc-500 font-medium">Gerencie seus alunos e treinos</p></header>
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <StatCard label="Total Alunos" value={students.length} color="text-white" icon={Users} />
                   <StatCard label="Em Risco" value={students.filter((s: Student) => s.risk).length} color="text-red-500" icon={AlertTriangle} />
@@ -3081,7 +3112,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   <StatCard label="Avaliações Mês" value="12" color="text-blue-400" icon={ClipboardList} />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><Users size={20} className="text-lime-400"/> Alunos Recentes</h3>
                      <div className="space-y-3">
                         {students.slice(0, 5).map(s => (
@@ -3095,7 +3126,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                         ))}
                      </div>
                   </div>
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><Calendar size={20} className="text-blue-400"/> Agenda de Hoje</h3>
                      <div className="space-y-3">
                         {schedules.map(s => (
@@ -3115,9 +3146,9 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
-                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Meus Alunos</h2><p className="text-zinc-500 font-medium">{students.length} alunos ativos</p></div>
-                  <button onClick={() => setShowNewStudent(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><UserPlus size={16}/> Novo Aluno</button>
+               <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Meus Alunos</h2><p className="text-sm md:text-base text-zinc-500 font-medium">{students.length} alunos ativos</p></div>
+                  <button onClick={() => setShowNewStudent(true)} className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 whitespace-nowrap"><UserPlus size={16}/> Novo Aluno</button>
                </header>
                {students.length > 0 ? (
                <div className="grid gap-4">
@@ -3142,7 +3173,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                   ))}
                </div>
                ) : (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <UserPlus size={40} className="text-zinc-600"/>
                      </div>
@@ -3166,9 +3197,9 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
-                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Modelos de Treino</h2><p className="text-zinc-500 font-medium">Templates reutilizáveis</p></div>
-                  <button onClick={() => setShowNewTemplate(true)} className="bg-lime-400 text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase flex items-center gap-2"><Plus size={16}/> Novo Modelo</button>
+               <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Modelos de Treino</h2><p className="text-sm md:text-base text-zinc-500 font-medium">Templates reutilizáveis</p></div>
+                  <button onClick={() => setShowNewTemplate(true)} className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl text-[10px] font-black uppercase flex items-center gap-2 whitespace-nowrap"><Plus size={16}/> Novo Modelo</button>
                </header>
                {templates.length > 0 ? (
                   <div className="grid gap-4">
@@ -3189,7 +3220,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      ))}
                   </div>
                ) : (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Dumbbell size={40} className="text-zinc-600"/>
                      </div>
@@ -3213,9 +3244,9 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
-                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Agenda de Atendimentos</h2><p className="text-zinc-500 font-medium">{schedules.length} agendamentos</p></div>
-                  <button onClick={() => setShowNewSchedule(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Agendamento</button>
+               <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Agenda de Atendimentos</h2><p className="text-sm md:text-base text-zinc-500 font-medium">{schedules.length} agendamentos</p></div>
+                  <button onClick={() => setShowNewSchedule(true)} className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 whitespace-nowrap"><Plus size={16}/> Novo Agendamento</button>
                </header>
                {loadingSchedules ? (
                   <div className="text-center py-12 text-zinc-500">Carregando agendamentos...</div>
@@ -3227,7 +3258,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                         const formattedDate = scheduleDate.toLocaleDateString('pt-BR');
                         
                         return (
-                        <div key={schedule.id} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem] hover:border-lime-400/30 transition-all">
+                        <div key={schedule.id} className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] hover:border-lime-400/30 transition-all">
                            <div className="flex items-start gap-6 mb-6">
                               <div className="size-20 bg-lime-400/10 text-lime-400 rounded-3xl flex items-center justify-center shrink-0">
                                  <Calendar size={32}/>
@@ -3289,7 +3320,7 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                      })}
                   </div>
                ) : (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Calendar size={40} className="text-zinc-600"/>
                      </div>
@@ -3313,12 +3344,12 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
          return (
             <>
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
-                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Avaliações Físicas</h2><p className="text-zinc-500 font-medium">Histórico completo de avaliações</p></div>
-                  <button onClick={() => setShowAssessment(true)} className="bg-blue-500 text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><ClipboardList size={16}/> Nova Avaliação</button>
+               <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Avaliações Físicas</h2><p className="text-sm md:text-base text-zinc-500 font-medium">Histórico completo de avaliações</p></div>
+                  <button onClick={() => setShowAssessment(true)} className="bg-blue-500 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 whitespace-nowrap"><ClipboardList size={16}/> Nova Avaliação</button>
                </header>
                {students.length === 0 ? (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <ClipboardList size={40} className="text-zinc-600"/>
                      </div>
@@ -3613,7 +3644,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   </div>
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><TrendingUp size={20} className="text-lime-400"/> Evolução de Peso</h3>
                         {compositionHistory.length > 0 ? (
                            <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={compositionHistory}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="weight" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
@@ -3624,7 +3655,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                            </div>
                         )}
                      </div>
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-3"><Camera size={20} className="text-blue-400"/> Refeições Recentes</h3>
                         {mealDiary.length > 0 ? (
                         <div className="space-y-3">
@@ -3657,7 +3688,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {subView === 'diet' && (
                <div className="space-y-6">
                   {historicoDietas.length === 0 ? (
-                     <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                         <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                            <Utensils size={40} className="text-zinc-600"/>
                         </div>
@@ -3693,7 +3724,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         meals: []
                      };
                      return (
-                        <div key={idx} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                        <div key={idx} className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                            <div className="flex justify-between items-start mb-6">
                               <div>
                                  <h3 className="text-2xl font-black italic uppercase">{day} - {diet.title}</h3>
@@ -3723,15 +3754,15 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             )}
 
             {subView === 'diary' && (
-               <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
-                  <h3 className="text-2xl font-black italic uppercase mb-6">Diário Alimentar Visual</h3>
+               <div className="bg-zinc-900 border border-zinc-800 p-4 md:p-8 rounded-2xl md:rounded-[3rem]">
+                  <h3 className="text-xl md:text-2xl font-black italic uppercase mb-6">Diário Alimentar Visual</h3>
                   {mealDiary.length > 0 ? (
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div className="grid grid-cols-1 gap-6">
                         {mealDiary.map(meal => (
                            <div key={meal.id} className={`bg-zinc-950 border-2 rounded-2xl overflow-hidden transition-all ${meal.status === 'approved' ? 'border-green-500/30' : meal.status === 'warning' ? 'border-orange-500/30' : 'border-zinc-800'}`}>
                               <img src={meal.img} className="w-full aspect-video object-cover"/>
-                              <div className="p-6">
-                                 <div className="flex justify-between items-start mb-3">
+                              <div className="p-4 md:p-6">
+                                 <div className="flex flex-col md:flex-row justify-between md:items-start mb-3 gap-3">
                                     <div>
                                        <h4 className="font-black text-lg">{meal.meal}</h4>
                                        <p className="text-[10px] text-zinc-500 font-bold">{meal.time}</p>
@@ -3780,7 +3811,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {subView === 'composition' && (
                <div className="space-y-6">
                   {compositionHistory.length === 0 ? (
-                     <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                     <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                         <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                            <Scale size={40} className="text-zinc-600"/>
                         </div>
@@ -3798,17 +3829,17 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   ) : (
                   <>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">% Gordura Corporal</h3>
                         <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={compositionHistory}><defs><linearGradient id="colorFat2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/><stop offset="95%" stopColor="#f97316" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="bodyFat" stroke="#f97316" strokeWidth={3} fill="url(#colorFat2)" /></AreaChart></ResponsiveContainer></div>
                      </div>
-                     <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                     <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                         <h3 className="text-xl font-black italic uppercase mb-6">Massa Magra</h3>
                         <div className="h-64"><ResponsiveContainer width="100%" height="100%"><AreaChart data={compositionHistory}><defs><linearGradient id="colorMuscle2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#D9FF00" stopOpacity={0.3}/><stop offset="95%" stopColor="#D9FF00" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="date" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Area type="monotone" dataKey="muscleMass" stroke="#D9FF00" strokeWidth={3} fill="url(#colorMuscle2)" /></AreaChart></ResponsiveContainer></div>
                      </div>
                   </div>
                   {compositionHistory.length > 0 && (
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Última Análise</h3>
                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="bg-zinc-950 p-6 rounded-2xl text-center"><p className="text-[10px] text-zinc-600 font-black uppercase mb-2">Peso</p><p className="text-3xl font-black italic text-white">{compositionHistory[compositionHistory.length - 1].weight}kg</p></div>
@@ -3824,7 +3855,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             )}
 
             {subView === 'education' && (
-               <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+               <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                   <h3 className="text-2xl font-black italic uppercase mb-6">Conteúdos Educacionais</h3>
                   {educationalContent.length > 0 ? (
                      <div className="grid gap-4">
@@ -3867,7 +3898,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {/* Modal Criar Dieta */}
             {showCreateDiet && (
                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowCreateDiet(false)}>
-                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                      <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-black italic uppercase">Novo Plano Alimentar</h3>
                         <button onClick={() => setShowCreateDiet(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3885,7 +3916,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {/* Modal Análise de Composição */}
             {showCompositionAnalysis && (
                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowCompositionAnalysis(false)}>
-                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                      <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-black italic uppercase">Nova Análise de Composição</h3>
                         <button onClick={() => setShowCompositionAnalysis(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3905,7 +3936,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
          {/* Modais do NutriModule quando aluno selecionado */}
          {showCreateDiet && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowCreateDiet(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Plano Alimentar</h3>
                      <button onClick={() => setShowCreateDiet(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3922,7 +3953,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 
          {showCompositionAnalysis && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowCompositionAnalysis(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Nova Análise de Composição</h3>
                      <button onClick={() => setShowCompositionAnalysis(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3942,7 +3973,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 
          {showNewPatient && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewPatient(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Paciente</h3>
                      <button onClick={() => setShowNewPatient(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3963,7 +3994,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
 
          {showNewContent && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewContent(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Conteúdo Educacional</h3>
                      <button onClick={() => setShowNewContent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -3987,7 +4018,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       case 'dashboard':
          return (
             <div className="space-y-10 animate-in fade-in duration-700">
-               <header><h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Painel Nutricional</h1><p className="text-zinc-500 font-medium">Gestão completa de nutrição</p></header>
+               <header><h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Painel Nutricional</h1><p className="text-zinc-500 font-medium">Gestão completa de nutrição</p></header>
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <StatCard label="Pacientes Ativos" value={students.length} color="text-white" icon={Users} />
                   <StatCard label="Dietas Criadas" value={totalDietas} color="text-lime-400" icon={Utensils} />
@@ -3995,7 +4026,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                   <StatCard label="Refeições Hoje" value={refeicoesHoje} color="text-orange-400" icon={Camera} />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Pacientes Recentes</h3>
                      <div className="space-y-3">
                         {students.slice(0, 5).map(s => (
@@ -4009,7 +4040,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                         ))}
                      </div>
                   </div>
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Refeições Pendentes</h3>
                      <div className="space-y-3">
                         {refeicoesPendentes.length > 0 ? refeicoesPendentes.map(meal => (
@@ -4040,12 +4071,12 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       case 'students':
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
-                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Meus Pacientes</h2><p className="text-zinc-500 font-medium">{students.length} pacientes ativos</p></div>
-                  <button onClick={() => setShowNewPatient(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><UserPlus size={16}/> Novo Paciente</button>
+               <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Meus Pacientes</h2><p className="text-sm md:text-base text-zinc-500 font-medium">{students.length} pacientes ativos</p></div>
+                  <button onClick={() => setShowNewPatient(true)} className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 whitespace-nowrap"><UserPlus size={16}/> Novo Paciente</button>
                </header>
                {students.length === 0 ? (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Users size={40} className="text-zinc-600"/>
                      </div>
@@ -4081,12 +4112,12 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       case 'diets':
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
-                  <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Planos Alimentares</h2><p className="text-zinc-500 font-medium">Gerencie dietas personalizadas</p></div>
-                  <button className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Nova Dieta</button>
+               <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                  <div><h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Planos Alimentares</h2><p className="text-sm md:text-base text-zinc-500 font-medium">Gerencie dietas personalizadas</p></div>
+                  <button className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 whitespace-nowrap"><Plus size={16}/> Nova Dieta</button>
                </header>
                {students.length === 0 ? (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Utensils size={40} className="text-zinc-600"/>
                      </div>
@@ -4132,7 +4163,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             <div className="space-y-8 animate-in fade-in duration-700">
                <header><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Diário Visual de Refeições</h2><p className="text-zinc-500 font-medium">Avalie fotos das refeições dos pacientes</p></header>
                {mealDiary.length === 0 ? (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Camera size={40} className="text-zinc-600"/>
                      </div>
@@ -4148,7 +4179,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      </button>
                   </div>
                ) : (
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {mealDiary.map(meal => (
                      <div key={meal.id} className={`bg-zinc-900 border-2 rounded-2xl overflow-hidden transition-all cursor-pointer hover:scale-105 ${meal.status === 'approved' ? 'border-green-500/30' : meal.status === 'warning' ? 'border-orange-500/30' : 'border-zinc-800 hover:border-lime-400/30'}`}>
                         <img src={meal.img} className="w-full aspect-square object-cover"/>
@@ -4180,7 +4211,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             <div className="space-y-8 animate-in fade-in duration-700">
                <header><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Análise de Composição Corporal</h2><p className="text-zinc-500 font-medium">Acompanhe a evolução dos pacientes</p></header>
                {students.length === 0 ? (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Scale size={40} className="text-zinc-600"/>
                      </div>
@@ -4224,12 +4255,12 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
       case 'education':
          return (
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
+               <header className="flex flex-col md:flex-row justify-between md:items-end gap-4">
                   <div><h2 className="text-4xl font-black italic uppercase tracking-tighter mb-2">Conteúdos Educacionais</h2><p className="text-zinc-500 font-medium">Biblioteca de materiais para pacientes</p></div>
-                  <button onClick={() => setShowNewContent(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2"><Plus size={16}/> Novo Conteúdo</button>
+                  <button onClick={() => setShowNewContent(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 whitespace-nowrap"><Plus size={16}/> Novo Conteúdo</button>
                </header>
                {educationalContent.length === 0 ? (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-2xl md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <BookOpen size={40} className="text-zinc-600"/>
                      </div>
@@ -4245,7 +4276,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      </button>
                   </div>
                ) : (
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   {educationalContent.map(content => (
                      <div key={content.id} className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl hover:border-lime-400/30 transition-all cursor-pointer group">
                         <div className="size-16 bg-lime-400/10 text-lime-400 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">{content.icon}</div>
@@ -4266,7 +4297,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {/* Modal Novo Paciente */}
             {showNewPatient && (
                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewPatient(false)}>
-                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                      <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-black italic uppercase">Novo Paciente</h3>
                         <button onClick={() => setShowNewPatient(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -4288,7 +4319,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             {/* Modal Novo Conteúdo */}
             {showNewContent && (
                <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowNewContent(false)}>
-                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+                  <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                      <div className="flex justify-between items-center mb-8">
                         <h3 className="text-3xl font-black italic uppercase">Novo Conteúdo Educacional</h3>
                         <button onClick={() => setShowNewContent(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -4365,6 +4396,11 @@ const AdminModule = ({ view, user, academia }: any) => {
       nivel: '',
       restricoes: '',
       diasTreino: 3
+   });
+   const [financialData, setFinancialData] = useState({
+      revenue: 0,
+      expenses: 0,
+      profit: 0
    });
    
    const kanbanColumns = [
@@ -4582,6 +4618,36 @@ const AdminModule = ({ view, user, academia }: any) => {
          }
       } catch (error) {
          console.error('Erro ao carregar funcionários:', error);
+      }
+   };
+
+   const carregarDadosFinanceiros = async () => {
+      try {
+         const token = localStorage.getItem('fitness_token');
+         const alunosResponse = await fetch('http://localhost:3002/api/admin/usuarios', {
+            headers: { 'Authorization': `Bearer ${token}` }
+         });
+         
+         if (alunosResponse.ok) {
+            const usuarios = await alunosResponse.json();
+            const alunosAtivos = usuarios.filter((u: any) => u.funcao === 'ALUNO' && u.ativo);
+            
+            // Calcular receita baseada em alunos ativos (assumindo mensalidade de R$ 150)
+            const mensalidadeMedia = 150;
+            const receitaMensal = alunosAtivos.length * mensalidadeMedia;
+            
+            // Despesas estimadas (pode ser ajustado conforme necessário)
+            const despesasMensais = Math.round(receitaMensal * 0.6); // 60% da receita
+            const lucroMensal = receitaMensal - despesasMensais;
+            
+            setFinancialData({
+               revenue: receitaMensal,
+               expenses: despesasMensais,
+               profit: lucroMensal
+            });
+         }
+      } catch (error) {
+         console.error('Erro ao carregar dados financeiros:', error);
       }
    };
 
@@ -4867,12 +4933,15 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
       if (tab === 'equipe') {
          carregarFuncionarios();
       }
+      if (tab === 'financial') {
+         carregarDadosFinanceiros();
+      }
    }, [tab]);
 
    return (
       <div className="space-y-10 animate-in fade-in duration-700">
          <header className="flex flex-col md:flex-row justify-between items-end gap-6">
-            <div><h1 className="text-5xl font-black italic uppercase tracking-tighter mb-2">Administração</h1><p className="text-zinc-500 font-medium">Gestão completa da academia</p></div>
+            <div><h1 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">Administração</h1><p className="text-zinc-500 font-medium">Gestão completa da academia</p></div>
 
          </header>
 
@@ -4880,18 +4949,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
          {tab === 'equipe' && (
             <div className="space-y-8 animate-in fade-in duration-700">
-               <header className="flex justify-between items-end">
+               <header className="flex flex-col md:flex-row justify-between md:items-end gap-4">
                   <div>
-                     <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
+                     <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
                         Gerenciar Equipe
                      </h2>
-                     <p className="text-zinc-500 font-medium">
+                     <p className="text-zinc-500 font-medium text-sm md:text-base">
                         Administre professores e nutricionistas da academia
                      </p>
                   </div>
                   <button
                      onClick={() => setShowAddFuncionario(true)}
-                     className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 hover:bg-lime-300 transition-all"
+                     className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] flex items-center gap-2 hover:bg-lime-300 transition-all whitespace-nowrap"
                   >
                      <UserPlus size={16} />
                      Adicionar Funcionário
@@ -4919,7 +4988,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
                {/* Lista de Funcionários */}
                {funcionariosData.length === 0 ? (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Users size={40} className="text-zinc-600"/>
                      </div>
@@ -4935,52 +5004,51 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      </button>
                   </div>
                ) : (
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-                     <div className="overflow-x-auto">
-                        <table className="w-full">
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-x-auto">
+                     <table className="w-full min-w-[800px]">
                            <thead className="bg-zinc-800/50">
                               <tr>
-                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Nome</th>
-                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Email</th>
-                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Função</th>
-                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Telefone</th>
-                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Status</th>
-                                 <th className="text-left p-4 font-black uppercase text-xs tracking-wider">Ações</th>
+                                 <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Nome</th>
+                                 <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Email</th>
+                                 <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Função</th>
+                                 <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Telefone</th>
+                                 <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Status</th>
+                                 <th className="text-left p-3 md:p-4 font-black uppercase text-[10px] md:text-xs tracking-wider">Ações</th>
                               </tr>
                            </thead>
                            <tbody>
                               {funcionariosData.map((funcionario) => (
                                  <tr key={funcionario.id} className="border-t border-zinc-800/50 hover:bg-zinc-800/30 transition-colors">
-                                    <td className="p-4">
-                                       <div className="flex items-center gap-3">
-                                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-black font-black ${
+                                    <td className="p-3 md:p-4">
+                                       <div className="flex items-center gap-2 md:gap-3">
+                                          <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-black font-black text-sm md:text-base ${
                                              funcionario.funcao === 'PROFESSOR' ? 'bg-gradient-to-br from-blue-400 to-blue-600' : 'bg-gradient-to-br from-green-400 to-green-600'
                                           }`}>
                                              {funcionario.nome.charAt(0).toUpperCase()}
                                           </div>
-                                          <span className="font-semibold">{funcionario.nome}</span>
+                                          <span className="font-semibold text-sm md:text-base">{funcionario.nome}</span>
                                        </div>
                                     </td>
-                                    <td className="p-4 text-zinc-400 text-sm">{funcionario.email}</td>
-                                    <td className="p-4">
-                                       <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                                    <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm">{funcionario.email}</td>
+                                    <td className="p-3 md:p-4">
+                                       <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold uppercase whitespace-nowrap ${
                                           funcionario.funcao === 'PROFESSOR' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
                                        }`}>
                                           {funcionario.funcao === 'PROFESSOR' ? 'Professor' : 'Nutricionista'}
                                        </span>
                                     </td>
-                                    <td className="p-4 text-zinc-400 text-sm">{funcionario.telefone || '-'}</td>
-                                    <td className="p-4">
-                                       <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                    <td className="p-3 md:p-4 text-zinc-400 text-xs md:text-sm whitespace-nowrap">{funcionario.telefone || '-'}</td>
+                                    <td className="p-3 md:p-4">
+                                       <span className={`px-2 md:px-3 py-1 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap ${
                                           funcionario.ativo ? 'bg-lime-500/20 text-lime-400' : 'bg-red-500/20 text-red-400'
                                        }`}>
                                           {funcionario.ativo ? 'ATIVO' : 'INATIVO'}
                                        </span>
                                     </td>
-                                    <td className="p-4">
+                                    <td className="p-3 md:p-4">
                                        <button
                                           onClick={() => aprovarFuncionario(funcionario.id, !funcionario.ativo)}
-                                          className={`px-4 py-2 rounded-xl font-black uppercase text-[10px] transition-all ${
+                                          className={`px-3 md:px-4 py-1.5 md:py-2 rounded-xl font-black uppercase text-[10px] transition-all whitespace-nowrap ${
                                              funcionario.ativo 
                                                 ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' 
                                                 : 'bg-lime-400 text-black hover:bg-lime-300'
@@ -4993,7 +5061,6 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               ))}
                            </tbody>
                         </table>
-                     </div>
                   </div>
                )}
 
@@ -5107,18 +5174,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             <div className="space-y-8 animate-in fade-in duration-700">
                {!selectedStudent ? (
                   <>
-                     <header className="flex justify-between items-start gap-6">
+                     <header className="flex flex-col md:flex-row justify-between md:items-start gap-4">
                         <div>
-                           <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
+                           <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
                               Gerenciar Alunos
                            </h2>
-                           <p className="text-zinc-500 font-medium">
+                           <p className="text-zinc-500 font-medium text-sm md:text-base">
                               Visualize perfis, prescreva treinos e dietas, e acompanhe a evolução
                            </p>
                         </div>
                         <button
                            onClick={() => setShowAddAlunoModal(true)}
-                           className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase hover:bg-lime-300 transition-all flex items-center gap-2 shadow-lg shadow-lime-400/20"
+                           className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-xs md:text-sm hover:bg-lime-300 transition-all flex items-center gap-2 shadow-lg shadow-lime-400/20 whitespace-nowrap"
                         >
                            <UserPlus size={20} />
                            Cadastrar Aluno
@@ -5132,7 +5199,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                            <p className="text-zinc-500">Aguarde enquanto carregamos os dados...</p>
                         </div>
                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                            {alunos.map((aluno) => (
                               <div 
                                  key={aluno.id}
@@ -5954,7 +6021,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   <StatCard label="Taxa Retenção" value={`${estatisticas.taxaRetencao}%`} color="text-purple-400" icon={Target} trend={`${estatisticas.taxaRetencao}%`} />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Acessos de Hoje</h3>
                      <div className="space-y-3">
                         {registrosAcesso.map((registro, index) => (
@@ -5968,7 +6035,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         )}
                      </div>
                   </div>
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Estoque Crítico</h3>
                      <div className="space-y-3">
                         {adminProducts.filter(s => s.status !== 'ok').map(item => (
@@ -5989,13 +6056,21 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
          )}
 
          {tab === 'financial' && (
-            <div className="space-y-6">
+            <div className="space-y-6 animate-in fade-in duration-700">
+               <header className="mb-8">
+                  <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
+                     Financeiro
+                  </h2>
+                  <p className="text-zinc-500 font-medium text-sm md:text-base">
+                     Controle de receitas, despesas e pagamentos
+                  </p>
+               </header>
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <StatCard label="Receita Total" value={`R$ ${(financialData.revenue / 1000).toFixed(1)}k`} color="text-lime-400" icon={DollarSign} />
                   <StatCard label="Despesas" value={`R$ ${(financialData.expenses / 1000).toFixed(1)}k`} color="text-red-400" icon={Flame} />
                   <StatCard label="Lucro" value={`R$ ${(financialData.profit / 1000).toFixed(1)}k`} color="text-green-500" icon={TrendingUp} />
                </div>
-               <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+               <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                   <h3 className="text-2xl font-black italic uppercase mb-6">Pagamentos Pendentes</h3>
                   <div className="space-y-3">
                      {alunos.filter(s => s.financialStatus === 'LATE').map(student => (
@@ -6103,7 +6178,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   })}
                </div>
                ) : (
-                  <div className="bg-zinc-900 border border-zinc-800 p-16 rounded-[3rem] text-center">
+                  <div className="bg-zinc-900 border border-zinc-800 p-8 md:p-16 rounded-[2rem] md:rounded-[3rem] text-center">
                      <div className="size-24 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
                         <Users size={40} className="text-zinc-600"/>
                      </div>
@@ -6333,11 +6408,11 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
             <div className="space-y-6">
                <h2 className="text-3xl font-black italic uppercase">Relatórios e Analytics</h2>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Taxa de Retenção</h3>
                      <div className="h-64"><ResponsiveContainer width="100%" height="100%"><LineChart data={[{month: 'Jan', rate: 88}, {month: 'Fev', rate: 91}, {month: 'Mar', rate: 89}, {month: 'Abr', rate: 93}, {month: 'Mai', rate: 94}]}><CartesianGrid strokeDasharray="3 3" stroke="#27272a" /><XAxis dataKey="month" stroke="#52525b" fontSize={10} fontWeight="bold" /><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Line type="monotone" dataKey="rate" stroke="#D9FF00" strokeWidth={3} dot={{ fill: '#D9FF00', r: 5 }} /></LineChart></ResponsiveContainer></div>
                   </div>
-                  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[3rem]">
+                  <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Origem de Novos Alunos</h3>
                      <div className="h-64"><ResponsiveContainer width="100%" height="100%"><PieChart><Tooltip contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '1rem' }} /><Pie data={[{name: 'Instagram', value: 45, fill: '#D9FF00'}, {name: 'Google', value: 25, fill: '#3b82f6'}, {name: 'Indicação', value: 20, fill: '#f97316'}, {name: 'Walk-in', value: 10, fill: '#8b5cf6'}]} innerRadius={60} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none" /></PieChart></ResponsiveContainer></div>
                   </div>
@@ -6348,7 +6423,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
          {/* Modals */}
          {showAddLead && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAddLead(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Lead</h3>
                      <button onClick={() => setShowAddLead(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -6365,7 +6440,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
          
          {showAddTicket && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAddTicket(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Chamado</h3>
                      <button onClick={() => setShowAddTicket(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -6382,7 +6457,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
          {showAddEmployee && (
             <div className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAddEmployee(false)}>
-               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-[3rem] p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+               <div className="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
                   <div className="flex justify-between items-center mb-8">
                      <h3 className="text-3xl font-black italic uppercase">Novo Funcionário</h3>
                      <button onClick={() => setShowAddEmployee(false)} className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><X size={24}/></button>
@@ -6553,6 +6628,7 @@ const AppContent: React.FC = () => {
   const { user, academia, logout } = useAuth();
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   
@@ -6678,67 +6754,106 @@ const AppContent: React.FC = () => {
 
   // Verificar autenticação após todos os hooks
   if (!user || !academia) {
-    return <LoginForm />;
+    return <LoginForm setActiveView={setActiveView} />;
   }
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans">
-
-      <aside className={`hidden md:flex flex-col border-r border-zinc-900 p-8 space-y-12 sticky top-0 h-screen bg-zinc-950 transition-all duration-500 ${sidebarOpen ? 'w-80' : 'w-28'}`}>
-        <div className="flex items-center gap-5 text-lime-400 font-black text-xl italic uppercase shrink-0">
-          <div className="size-14 bg-lime-400 text-black rounded-[1.5rem] flex items-center justify-center rotate-3 border-[4px] border-zinc-950 shadow-xl">
-            <Dumbbell size={32} strokeWidth={3} />
+      {/* Header Mobile */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-zinc-900 px-4 py-3 flex items-center justify-between">
+        <button 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2 hover:bg-zinc-900 rounded-xl transition-colors"
+        >
+          <Menu size={24} className="text-lime-400" />
+        </button>
+        <div className="flex items-center gap-2 text-lime-400 font-black text-sm italic uppercase">
+          <div className="size-8 bg-lime-400 text-black rounded-xl flex items-center justify-center rotate-3">
+            <Dumbbell size={18} strokeWidth={3} />
           </div>
-          {sidebarOpen && (
-            <div>
-              <span className="block leading-none">{academia.name}</span>
-              <span className="text-xs text-zinc-500 font-normal normal-case">{user.name}</span>
-            </div>
-          )}
+          <span>{academia.name}</span>
         </div>
-        <nav className="flex-1 space-y-3">
-          <NavItem icon={<LayoutDashboard size={24}/>} label="Painel" active={activeView === 'dashboard'} onClick={() => setActiveView('dashboard')} collapsed={!sidebarOpen} />
+        <div className="w-10" /> {/* Spacer para centralizar */}
+      </header>
+
+      {/* Overlay para mobile menu */}
+      {mobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/70 z-[100] animate-in fade-in duration-200"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Desktop e Mobile Drawer */}
+      <aside className={`
+        fixed md:sticky top-0 h-screen bg-zinc-950 border-r border-zinc-900 z-[110] transition-all duration-300
+        flex flex-col p-8
+        ${mobileMenuOpen ? 'left-0' : '-left-full md:left-0'}
+        ${sidebarOpen ? 'w-80' : 'w-28 md:w-28'}
+        md:transition-all md:duration-500
+      `}>
+        <div className="flex items-center justify-between gap-5 shrink-0 mb-8">
+          <div className="flex items-center gap-5 text-lime-400 font-black text-xl italic uppercase">
+            <div className="size-14 bg-lime-400 text-black rounded-[1.5rem] flex items-center justify-center rotate-3 border-[4px] border-zinc-950 shadow-xl">
+              <Dumbbell size={32} strokeWidth={3} />
+            </div>
+            {sidebarOpen && (
+              <div>
+                <span className="block leading-none">{academia.name}</span>
+                <span className="text-xs text-zinc-500 font-normal normal-case">{user.name}</span>
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden p-2 hover:bg-zinc-900 rounded-xl transition-colors"
+          >
+            <X size={24} className="text-zinc-500" />
+          </button>
+        </div>
+        <nav className="flex-1 space-y-3 overflow-y-auto min-h-0 mb-8">
+          <NavItem icon={<LayoutDashboard size={24}/>} label="Painel" active={activeView === 'dashboard'} onClick={() => { setActiveView('dashboard'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
           {user.role === 'ALUNO' && (
             <>
-              <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => setActiveView('workouts')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => setActiveView('diet')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Trophy size={24}/>} label="Metas" active={activeView === 'goals'} onClick={() => setActiveView('goals')} collapsed={!sidebarOpen} />
-              <NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === 'store'} onClick={() => { setActiveView('store'); if(activeView === 'store') setIsCartOpen(true); }} collapsed={!sidebarOpen} badge={cart.length} />
-              <NavItem icon={<TrendingUp size={24}/>} label="Evolução" active={activeView === 'evolution'} onClick={() => setActiveView('evolution')} collapsed={!sidebarOpen} />
-              <NavItem icon={<User size={24}/>} label="Perfil" active={activeView === 'profile'} onClick={() => setActiveView('profile')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => { setActiveView('workouts'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => { setActiveView('diet'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Trophy size={24}/>} label="Metas" active={activeView === 'goals'} onClick={() => { setActiveView('goals'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === 'store'} onClick={() => { setActiveView('store'); if(activeView === 'store') setIsCartOpen(true); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} badge={cart.length} />
+              <NavItem icon={<TrendingUp size={24}/>} label="Evolução" active={activeView === 'evolution'} onClick={() => { setActiveView('evolution'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<User size={24}/>} label="Perfil" active={activeView === 'profile'} onClick={() => { setActiveView('profile'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
           {user.role === 'PROFESSOR' && (
             <>
-              <NavItem icon={<Users size={24}/>} label="Alunos" active={activeView === 'students'} onClick={() => setActiveView('students')} collapsed={!sidebarOpen} />
-              <NavItem icon={<BookMarked size={24}/>} label="Modelos" active={activeView === 'templates'} onClick={() => setActiveView('templates')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Calendar size={24}/>} label="Agenda" active={activeView === 'schedule'} onClick={() => setActiveView('schedule')} collapsed={!sidebarOpen} />
-              <NavItem icon={<ClipboardList size={24}/>} label="Avaliações" active={activeView === 'assessments'} onClick={() => setActiveView('assessments')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="Alunos" active={activeView === 'students'} onClick={() => { setActiveView('students'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<BookMarked size={24}/>} label="Modelos" active={activeView === 'templates'} onClick={() => { setActiveView('templates'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Calendar size={24}/>} label="Agenda" active={activeView === 'schedule'} onClick={() => { setActiveView('schedule'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<ClipboardList size={24}/>} label="Avaliações" active={activeView === 'assessments'} onClick={() => { setActiveView('assessments'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
           {user.role === 'NUTRI' && (
             <>
-              <NavItem icon={<Users size={24}/>} label="Pacientes" active={activeView === 'students'} onClick={() => setActiveView('students')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Utensils size={24}/>} label="Dietas" active={activeView === 'diets'} onClick={() => setActiveView('diets')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Camera size={24}/>} label="Diário Visual" active={activeView === 'diary'} onClick={() => setActiveView('diary')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Scale size={24}/>} label="Composição" active={activeView === 'composition'} onClick={() => setActiveView('composition')} collapsed={!sidebarOpen} />
-              <NavItem icon={<BookOpen size={24}/>} label="Educação" active={activeView === 'education'} onClick={() => setActiveView('education')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="Pacientes" active={activeView === 'students'} onClick={() => { setActiveView('students'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Utensils size={24}/>} label="Dietas" active={activeView === 'diets'} onClick={() => { setActiveView('diets'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Camera size={24}/>} label="Diário Visual" active={activeView === 'diary'} onClick={() => { setActiveView('diary'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Scale size={24}/>} label="Composição" active={activeView === 'composition'} onClick={() => { setActiveView('composition'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<BookOpen size={24}/>} label="Educação" active={activeView === 'education'} onClick={() => { setActiveView('education'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
           {user.role === 'ADMIN' && (
             <>
-              <NavItem icon={<Users size={24}/>} label="Usuários" active={activeView === 'users'} onClick={() => setActiveView('users')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Dumbbell size={24}/>} label="Alunos" active={activeView === 'alunos'} onClick={() => setActiveView('alunos')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Briefcase size={24}/>} label="Equipe" active={activeView === 'equipe'} onClick={() => setActiveView('equipe')} collapsed={!sidebarOpen} />
-              <NavItem icon={<DollarSign size={24}/>} label="Financeiro" active={activeView === 'financial'} onClick={() => setActiveView('financial')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Users size={24}/>} label="CRM" active={activeView === 'crm'} onClick={() => setActiveView('crm')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Package size={24}/>} label="Estoque" active={activeView === 'stock'} onClick={() => setActiveView('stock')} collapsed={!sidebarOpen} />
-              <NavItem icon={<Wrench size={24}/>} label="Manutenção" active={activeView === 'maintenance'} onClick={() => setActiveView('maintenance')} collapsed={!sidebarOpen} />
-              <NavItem icon={<BarChart3 size={24}/>} label="Analytics" active={activeView === 'analytics'} onClick={() => setActiveView('analytics')} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="Usuários" active={activeView === 'users'} onClick={() => { setActiveView('users'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Dumbbell size={24}/>} label="Alunos" active={activeView === 'alunos'} onClick={() => { setActiveView('alunos'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Briefcase size={24}/>} label="Equipe" active={activeView === 'equipe'} onClick={() => { setActiveView('equipe'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<DollarSign size={24}/>} label="Financeiro" active={activeView === 'financial'} onClick={() => { setActiveView('financial'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="CRM" active={activeView === 'crm'} onClick={() => { setActiveView('crm'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Package size={24}/>} label="Estoque" active={activeView === 'stock'} onClick={() => { setActiveView('stock'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Wrench size={24}/>} label="Manutenção" active={activeView === 'maintenance'} onClick={() => { setActiveView('maintenance'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<BarChart3 size={24}/>} label="Analytics" active={activeView === 'analytics'} onClick={() => { setActiveView('analytics'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
             </>
           )}
         </nav>
-        <div className="space-y-3">
+        <div className="space-y-3 shrink-0">
           <button
             onClick={logout}
             className="w-full p-4 bg-red-900/20 border border-red-800/30 rounded-3xl flex items-center justify-center gap-3 text-red-400 hover:text-red-300 hover:bg-red-900/30 transition-all font-bold text-xs uppercase"
@@ -6748,14 +6863,14 @@ const AppContent: React.FC = () => {
           </button>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)} 
-            className="w-full p-4 bg-zinc-900 border border-zinc-800 rounded-3xl flex justify-center text-zinc-400 hover:text-white transition-all"
+            className="hidden md:flex w-full p-4 bg-zinc-900 border border-zinc-800 rounded-3xl justify-center text-zinc-400 hover:text-white transition-all"
           >
             {sidebarOpen ? <ArrowLeft size={24}/> : <ArrowRight size={24}/>}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 p-6 md:p-12 lg:px-20 max-w-8xl mx-auto w-full pb-32">
+      <main className="flex-1 px-4 py-4 md:p-6 lg:p-12 lg:px-20 max-w-8xl mx-auto w-full pt-20 md:pt-6 pb-20 md:pb-32">
         {user.role === 'ALUNO' && (
           <StudentModule 
             view={activeView} setView={setActiveView} products={products} 
@@ -6889,13 +7004,6 @@ const AppContent: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* MOBILE NAV */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-24 bg-zinc-950/90 backdrop-blur-3xl border-t border-zinc-900 flex items-center justify-around z-50 px-8 pb-4">
-        <button onClick={() => setActiveView('dashboard')} className={activeView === 'dashboard' ? 'text-lime-400' : 'text-zinc-600'}><LayoutDashboard size={28}/></button>
-        <button onClick={() => setActiveView(user.role === 'ALUNO' ? 'workouts' : 'students')} className={activeView === (user.role === 'ALUNO' ? 'workouts' : 'students') ? 'text-lime-400' : 'text-zinc-600'}>{user.role === 'ALUNO' ? <Dumbbell size={28}/> : <Users size={28}/>}</button>
-        <button onClick={() => setActiveView('profile')} className={activeView === 'profile' ? 'text-lime-400' : 'text-zinc-600'}><User size={28}/></button>
-      </nav>
     </div>
   );
 };
