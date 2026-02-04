@@ -2308,21 +2308,30 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
         console.log('📥 Treinos recebidos para o aluno:', treinos);
         console.log('📥 Quantidade de treinos:', Array.isArray(treinos) ? treinos.length : 'N/A');
         
-        // Log detalhado de cada treino
-        if (Array.isArray(treinos) && treinos.length > 0) {
-          treinos.forEach((t, index) => {
-            console.log(`📋 Treino ${index + 1}:`, {
+        // Formatar treinos para o formato esperado pelo frontend
+        const treinosFormatados = Array.isArray(treinos) ? treinos.map((treino: any) => ({
+          id: treino.id,
+          titulo: treino.tituloTreino || treino.titulo || 'Treino',
+          alunoId: usuario?.id,
+          alunoNome: usuario?.nome,
+          data: new Date(treino.data).toLocaleDateString('pt-BR'),
+          plano: typeof treino.exercicios === 'object' ? treino.exercicios : JSON.parse(treino.exercicios || '{}'),
+          tipo: treino.origem === 'IA' ? 'ia' : 'manual'
+        })) : [];
+        
+        // Log detalhado de cada treino formatado
+        if (treinosFormatados.length > 0) {
+          treinosFormatados.forEach((t, index) => {
+            console.log(`📋 Treino ${index + 1} formatado:`, {
               id: t.id,
-              titulo: t.tituloTreino || t.titulo,
-              data: t.data,
-              exercicios: t.exercicios,
-              tipoExercicios: typeof t.exercicios,
-              diasComExercicios: t.exercicios ? Object.keys(t.exercicios) : []
+              titulo: t.titulo,
+              plano: t.plano,
+              diasComExercicios: Object.keys(t.plano || {})
             });
           });
         }
         
-        setHistoricoTreinos(treinos);
+        setHistoricoTreinos(treinosFormatados);
         setHistoricoDietas(dietas);
         setMedicoes(medicoesData);
         setFotosProgresso(fotos);
