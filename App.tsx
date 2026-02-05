@@ -9,7 +9,7 @@ import {
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, Shield, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
-  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu, Edit3
+  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu, Edit3, CalendarCheck
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
@@ -316,76 +316,33 @@ const FOOD_SUBSTITUTIONS: Record<string, string[]> = {
 
 // Funções para carregar dados do módulo administrativo
 const carregarLeads = async (token: string) => {
-  try {
-    const response = await fetch('/api/admin/leads', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    return response.ok ? await response.json() : [];
-  } catch (error) {
-    console.error('Erro ao carregar leads:', error);
-    return [];
-  }
+  // Endpoint não implementado - retornar vazio
+  return [];
 };
 
 const carregarTicketsManutencao = async (token: string) => {
-  try {
-    const response = await fetch('/api/admin/manutencao', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    return response.ok ? await response.json() : [];
-  } catch (error) {
-    console.error('Erro ao carregar tickets:', error);
-    return [];
-  }
+  // Endpoint não implementado - retornar vazio
+  return [];
 };
 
 const carregarProdutos = async (token: string) => {
-  try {
-    const response = await fetch('/api/admin/produtos', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    return response.ok ? await response.json() : [];
-  } catch (error) {
-    console.error('Erro ao carregar produtos:', error);
-    return [];
-  }
+  // Endpoint não implementado - retornar vazio
+  return [];
 };
 
 const carregarFuncionarios = async (token: string) => {
-  try {
-    const response = await fetch('/api/admin/funcionarios', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    return response.ok ? await response.json() : [];
-  } catch (error) {
-    console.error('Erro ao carregar funcionários:', error);
-    return [];
-  }
+  // Endpoint não implementado - retornar vazio
+  return [];
 };
 
 const carregarRelatoriosFinanceiros = async (token: string) => {
-  try {
-    const response = await fetch('/api/admin/financeiro', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    return response.ok ? await response.json() : [];
-  } catch (error) {
-    console.error('Erro ao carregar relatórios:', error);
-    return [];
-  }
+  // Endpoint não implementado - retornar vazio
+  return [];
 };
 
 const carregarRegistrosAcesso = async (token: string, data?: string) => {
-  try {
-    const url = data ? `/api/admin/acessos?data=${data}` : '/api/admin/acessos';
-    const response = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    return response.ok ? await response.json() : [];
-  } catch (error) {
-    console.error('Erro ao carregar registros de acesso:', error);
-    return [];
-  }
+  // Endpoint não implementado - retornar vazio
+  return [];
 };
 
 // Funções para os módulos aluno/professor/nutricionista
@@ -583,7 +540,8 @@ const atualizarDieta = async (token: string, dietaId: string, dadosDieta: any) =
 
 const salvarDieta = async (token: string, dadosDieta: any) => {
   try {
-    const response = await fetch('/api/historico-dietas', {
+    console.log('📤 Enviando dieta para API:', dadosDieta);
+    const response = await fetch(`${API_URL}/api/historico-dietas`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -591,10 +549,65 @@ const salvarDieta = async (token: string, dadosDieta: any) => {
       },
       body: JSON.stringify(dadosDieta)
     });
-    return response.ok ? await response.json() : null;
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro na resposta da API:', response.status, errorText);
+      return null;
+    }
+    
+    const result = await response.json();
+    console.log('✅ Dieta salva com sucesso:', result);
+    return result;
   } catch (error) {
-    console.error('Erro ao salvar dieta:', error);
+    console.error('❌ Erro ao salvar dieta:', error);
     return null;
+  }
+};
+
+const removerTreino = async (token: string, treinoId: string) => {
+  try {
+    const response = await fetch(`${API_URL}/api/historico-treinos/${treinoId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro ao remover treino:', response.status, errorText);
+      return false;
+    }
+    
+    console.log('✅ Treino removido com sucesso');
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao remover treino:', error);
+    return false;
+  }
+};
+
+const removerDieta = async (token: string, dietaId: string) => {
+  try {
+    const response = await fetch(`${API_URL}/api/historico-dietas/${dietaId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro ao remover dieta:', response.status, errorText);
+      return false;
+    }
+    
+    console.log('✅ Dieta removida com sucesso');
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao remover dieta:', error);
+    return false;
   }
 };
 
@@ -841,12 +854,12 @@ const NavItem = ({ icon, label, active, onClick, collapsed, badge }: any) => (
 );
 
 const StatCard = ({ label, value, trend, color, icon: Icon }: any) => (
-  <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2.5rem] relative overflow-hidden group transition-all hover:translate-y-[-4px] shadow-xl">
-    <div className={`absolute top-0 right-0 p-6 opacity-5 group-hover:scale-125 transition-transform duration-700 ${color}`}>{Icon && <Icon size={80} />}</div>
-    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em] mb-2">{label}</p>
-    <div className="flex items-baseline gap-3">
-      <p className={`text-3xl font-black italic tracking-tighter ${color}`}>{value}</p>
-      {trend && <span className="text-[10px] font-black ml-auto bg-zinc-950 px-3 py-1.5 rounded-xl border border-zinc-800">{trend}</span>}
+  <div className="bg-zinc-900 border border-zinc-800 p-4 md:p-6 rounded-2xl relative overflow-hidden group active:translate-y-[-2px] transition-all shadow-xl">
+    <div className={`absolute top-0 right-0 p-3 md:p-4 opacity-5 group-hover:scale-125 transition-transform duration-700 ${color}`}>{Icon && <Icon size={48} className="md:size-16" />}</div>
+    <p className="text-[9px] text-zinc-600 font-black uppercase tracking-[0.15em] mb-1">{label}</p>
+    <div className="flex flex-col gap-1">
+      <p className={`text-2xl md:text-3xl font-black italic tracking-tighter ${color}`}>{value}</p>
+      {trend && <span className="text-[8px] md:text-[9px] font-bold bg-zinc-950 px-2 py-1 rounded-lg border border-zinc-800 w-fit">{trend}</span>}
     </div>
   </div>
 );
@@ -1314,15 +1327,18 @@ const UserManagement: React.FC = () => {
   );
 };
 
-const CalendarBase = ({ title, sub, selectedDay, setSelectedDay, days, children }: any) => (
-  <div className="animate-in fade-in duration-700 space-y-10">
-    <header className="flex flex-col lg:flex-row justify-between lg:items-end gap-6">
-      <div><h2 className="text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">{title}</h2><p className="text-zinc-500 font-medium">{sub}</p></div>
-      <div className="flex bg-zinc-900 border border-zinc-800 p-1.5 rounded-3xl gap-1 shadow-xl overflow-x-auto no-scrollbar">
-        {days.map((day: string, idx: number) => (<button key={idx} onClick={() => setSelectedDay(idx)} className={`min-w-[4.5rem] h-12 flex items-center justify-center rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest px-4 ${selectedDay === idx ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 hover:bg-zinc-800'}`}>{day}</button>))}
+const CalendarBase = ({ title, sub, selectedDay, setSelectedDay, days, children, headerButton }: any) => (
+  <div className="animate-in fade-in duration-700 space-y-6">
+    <header className="flex flex-col gap-4">
+      <div><h2 className="text-3xl md:text-4xl lg:text-5xl font-black italic uppercase tracking-tighter mb-1 leading-none">{title}</h2><p className="text-xs md:text-sm text-zinc-500 font-medium">{sub}</p></div>
+      <div className="flex flex-col gap-3">
+        {headerButton}
+        <div className="flex bg-zinc-900 border border-zinc-800 p-1 rounded-2xl gap-1 shadow-xl overflow-x-auto no-scrollbar">
+          {days.map((day: string, idx: number) => (<button key={idx} onClick={() => setSelectedDay(idx)} className={`min-w-[3.5rem] h-11 flex items-center justify-center rounded-xl transition-all text-[9px] font-black uppercase tracking-widest px-2 active:scale-95 ${selectedDay === idx ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20' : 'text-zinc-500 active:bg-zinc-800'}`}>{day}</button>))}
+        </div>
       </div>
     </header>
-    <div className="min-h-[50vh]">{children}</div>
+    <div className="min-h-[40vh]">{children}</div>
   </div>
 );
 
@@ -1788,16 +1804,25 @@ const FinishedSessionView = ({ totalTime, reset }: any) => (
   </div>
 );
 
-const WorkoutDetailCard = ({ workout, onStart }: any) => {
+const WorkoutDetailCard = ({ workout, onStart, onGenerateAI }: any) => {
   if (!workout) return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center shadow-2xl">
-      <div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8">
-        <Dumbbell size={48} className="text-zinc-700"/>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-12 text-center shadow-2xl">
+      <div className="size-16 md:size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Dumbbell size={32} className="text-zinc-700 md:size-12"/>
       </div>
-      <h3 className="text-3xl font-black italic uppercase mb-4">Nenhum Treino Prescrito</h3>
-      <p className="text-zinc-500 font-medium mb-8 max-w-md mx-auto">
+      <h3 className="text-xl md:text-3xl font-black italic uppercase mb-3">Nenhum Treino Prescrito</h3>
+      <p className="text-zinc-500 text-sm font-medium mb-6 max-w-md mx-auto">
         Seu instrutor ainda não prescreveu treinos. Entre em contato com ele para receber seu plano de treinos personalizado!
       </p>
+      {onGenerateAI && (
+        <button
+          onClick={onGenerateAI}
+          className="bg-lime-400 active:bg-lime-300 text-black px-6 py-3.5 rounded-2xl font-black uppercase text-[11px] flex items-center gap-2 mx-auto shadow-xl active:scale-95 transition-all"
+        >
+          <Sparkles size={16} />
+          Gerar Treino com IA
+        </button>
+      )}
     </div>
   );
   
@@ -1806,22 +1831,25 @@ const WorkoutDetailCard = ({ workout, onStart }: any) => {
   
   if (exercises.length === 0) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center shadow-2xl">
-        <div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700">
-          <RotateCcw size={48} />
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-12 text-center shadow-2xl">
+        <div className="size-16 md:size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-700">
+          <RotateCcw size={32} className="md:size-12" />
         </div>
-        <h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3>
-        <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Foque na recuperação.</p>
+        <h3 className="text-xl md:text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3>
+        <p className="text-zinc-500 text-xs md:text-sm font-bold uppercase tracking-widest">Foque na recuperação.</p>
       </div>
     );
   }
   
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl">
-      <div className="flex items-center gap-4 mb-10"><span className="bg-lime-400 text-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Série {workout.category}</span><span className="text-zinc-500 text-sm font-bold flex items-center gap-2"><Clock size={16} /> {workout.duration}</span></div>
-      <h3 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-12 leading-none">{workout.title}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">{exercises.map((ex: any, i: number) => (<div key={i} className="flex items-center justify-between p-6 bg-zinc-950/60 rounded-3xl border border-zinc-800"><div className="flex items-center gap-4"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-lime-400 font-black italic">{i+1}</div><div className="min-w-0"><p className="font-bold text-sm truncate uppercase tracking-tight italic">{ex.n}</p><p className="text-[10px] text-zinc-500 font-bold uppercase">{ex.s}X {ex.r} • {ex.w} • {ex.rest}s descanso</p></div></div></div>))}</div>
-      <button onClick={onStart} className="w-full bg-lime-400 text-black py-7 rounded-[2rem] font-black uppercase tracking-widest text-xl flex items-center justify-center gap-4 shadow-xl active:scale-[0.98] transition-all shadow-lime-400/20"><Play size={28} fill="currentColor" /> COMEÇAR AGORA</button>
+    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 md:p-6 lg:p-10 shadow-2xl">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <span className="bg-lime-400 text-black px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">Série {workout.category}</span>
+        <span className="text-zinc-500 text-xs font-bold flex items-center gap-1.5"><Clock size={14} /> {workout.duration}</span>
+      </div>
+      <h3 className="text-2xl md:text-3xl lg:text-4xl font-black italic uppercase tracking-tighter mb-6 md:mb-8 leading-tight">{workout.title}</h3>
+      <div className="grid grid-cols-1 gap-3 mb-6">{exercises.map((ex: any, i: number) => (<div key={i} className="flex items-center justify-between p-4 bg-zinc-950/60 rounded-2xl border border-zinc-800 active:bg-zinc-950 active:scale-[0.98] transition-all"><div className="flex items-center gap-3 min-w-0 flex-1"><div className="size-9 bg-zinc-900 rounded-xl flex items-center justify-center text-lime-400 font-black italic text-sm shrink-0">{i+1}</div><div className="min-w-0"><p className="font-bold text-sm truncate uppercase tracking-tight italic">{ex.nome || ex.exercicio || ex.n}</p><p className="text-[10px] text-zinc-500 font-bold uppercase">{ex.s}X {ex.r} • {ex.w} • {ex.rest}s</p></div></div></div>))}</div>
+      <button onClick={onStart} className="w-full bg-lime-400 text-black py-5 md:py-6 rounded-2xl font-black uppercase tracking-widest text-base md:text-lg flex items-center justify-center gap-3 shadow-xl active:scale-[0.98] transition-all shadow-lime-400/20"><Play size={24} fill="currentColor" /> COMEÇAR AGORA</button>
     </div>
   );
 };
@@ -1881,7 +1909,102 @@ const EvolutionView = () => {
 };
 
 const GoalsView = () => {
-  const [activeGoalTab, setActiveGoalTab] = useState('badges');
+  const [activeGoalTab, setActiveGoalTab] = useState('personal');
+  const [metas, setMetas] = useState<any[]>([]);
+  const [showNewGoalModal, setShowNewGoalModal] = useState(false);
+  const [newGoal, setNewGoal] = useState({
+    titulo: '',
+    descricao: '',
+    valorAlvo: '',
+    valorAtual: '',
+    unidade: 'kg',
+    prazo: ''
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Carregar metas do banco
+  useEffect(() => {
+    carregarMetas();
+  }, []);
+
+  const carregarMetas = async () => {
+    const token = localStorage.getItem('fitness_token');
+    if (!token) return;
+
+    try {
+      setIsLoading(true);
+      const { metaAPI } = await import('./src/api');
+      const data = await metaAPI.getAll();
+      setMetas(data);
+    } catch (error) {
+      console.error('Erro ao carregar metas:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const salvarMeta = async () => {
+    if (!newGoal.titulo || !newGoal.valorAlvo) {
+      alert('Preencha pelo menos o título e valor alvo');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const { metaAPI } = await import('./src/api');
+      await metaAPI.create({
+        titulo: newGoal.titulo,
+        descricao: newGoal.descricao,
+        valorAlvo: parseFloat(newGoal.valorAlvo),
+        valorAtual: parseFloat(newGoal.valorAtual) || 0,
+        unidade: newGoal.unidade,
+        prazo: newGoal.prazo || undefined
+      });
+      
+      alert('✅ Meta criada com sucesso!');
+      setShowNewGoalModal(false);
+      setNewGoal({ titulo: '', descricao: '', valorAlvo: '', valorAtual: '', unidade: 'kg', prazo: '' });
+      await carregarMetas();
+    } catch (error) {
+      console.error('Erro ao salvar meta:', error);
+      alert('❌ Erro ao salvar meta');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const atualizarProgresso = async (metaId: string, novoValor: number) => {
+    try {
+      const { metaAPI } = await import('./src/api');
+      await metaAPI.update(metaId, { valorAtual: novoValor });
+      await carregarMetas();
+    } catch (error) {
+      console.error('Erro ao atualizar progresso:', error);
+    }
+  };
+
+  const excluirMeta = async (metaId: string) => {
+    if (!confirm('Deseja realmente excluir esta meta?')) return;
+
+    try {
+      const { metaAPI } = await import('./src/api');
+      await metaAPI.delete(metaId);
+      await carregarMetas();
+    } catch (error) {
+      console.error('Erro ao excluir meta:', error);
+    }
+  };
+
+  const marcarConcluida = async (metaId: string, completada: boolean) => {
+    try {
+      const { metaAPI } = await import('./src/api');
+      await metaAPI.update(metaId, { completada });
+      await carregarMetas();
+    } catch (error) {
+      console.error('Erro ao atualizar meta:', error);
+    }
+  };
   
   const BADGES = [
     { id: 1, name: 'Primeiro Treino', desc: 'Complete seu primeiro treino', icon: <Star />, earned: true, earnedDate: '15/Jan' },
@@ -1898,52 +2021,146 @@ const GoalsView = () => {
     { type: 'Meta Calórica', current: 5, best: 14, color: 'text-blue-400', bg: 'bg-blue-400/10' }
   ];
 
-  const CHALLENGES = [
-    { name: 'Desafio Fevereiro', desc: '20 treinos este mês', progress: 12, total: 20, daysLeft: 8, prize: '1 mês grátis' },
-    { name: 'Mega Transformação', desc: 'Perca 5kg em 2 meses', progress: 2.3, total: 5, daysLeft: 45, prize: 'Kit suplementos' },
-    { name: 'Força Máxima', desc: 'Aumente 15kg no supino', progress: 8, total: 15, daysLeft: 30, prize: 'Consulta nutricional' }
-  ];
-
   return (
-    <div className="animate-in fade-in duration-700 space-y-8 min-h-screen text-white">
-      <header className="mb-8">
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-black italic uppercase tracking-tighter mb-2 text-white">Metas & Conquistas</h1>
-        <p className="text-zinc-500 font-medium">Acompanhe seu progresso e desbloqueie conquistas</p>
+    <div className="animate-in fade-in duration-700 space-y-6 md:space-y-8 min-h-screen text-white">
+      <header className="mb-6 md:mb-8">
+        <h1 className="text-3xl md:text-4xl lg:text-6xl font-black italic uppercase tracking-tighter mb-1 md:mb-2 text-white leading-tight">Metas & Conquistas</h1>
+        <p className="text-xs md:text-sm text-zinc-500 font-medium">Acompanhe seu progresso e desbloqueie conquistas</p>
       </header>
       
       <div className="flex gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-2">
         <button 
+          onClick={() => setActiveGoalTab('personal')} 
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'personal' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+        >
+          MINHAS METAS
+        </button>
+        <button 
           onClick={() => setActiveGoalTab('badges')} 
-          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'badges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'badges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
         >
           BADGES
         </button>
         <button 
           onClick={() => setActiveGoalTab('streaks')} 
-          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'streaks' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'streaks' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
         >
           SEQUÊNCIAS
         </button>
-        <button 
-          onClick={() => setActiveGoalTab('challenges')} 
-          className={`px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeGoalTab === 'challenges' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
-        >
-          DESAFIOS
-        </button>
       </div>
+
+      {activeGoalTab === 'personal' && (
+        <div className="space-y-4 md:space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg md:text-xl font-black italic uppercase">Metas Pessoais</h3>
+            <button
+              onClick={() => setShowNewGoalModal(true)}
+              className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest flex items-center gap-2 shadow-xl active:scale-95 transition-all"
+            >
+              <Plus size={16} />
+              Nova Meta
+            </button>
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <Loader2 className="animate-spin mx-auto mb-4" size={32} />
+              <p className="text-zinc-500">Carregando metas...</p>
+            </div>
+          ) : metas.length === 0 ? (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 md:p-12 text-center">
+              <Target size={48} className="mx-auto mb-4 text-zinc-700" />
+              <h3 className="text-xl font-black italic uppercase mb-2">Nenhuma Meta Cadastrada</h3>
+              <p className="text-zinc-500 text-sm mb-6">Crie sua primeira meta e comece a acompanhar seu progresso!</p>
+              <button
+                onClick={() => setShowNewGoalModal(true)}
+                className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-xs"
+              >
+                Criar Primeira Meta
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              {metas.map((meta) => {
+                const progresso = (meta.valorAtual / meta.valorAlvo) * 100;
+                return (
+                  <div key={meta.id} className={`p-5 md:p-6 rounded-2xl border transition-all ${meta.completada ? 'bg-lime-400/10 border-lime-400/30' : 'bg-zinc-900 border-zinc-800'}`}>
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h4 className="font-black text-base md:text-lg mb-1 text-white">{meta.titulo}</h4>
+                        {meta.descricao && <p className="text-xs md:text-sm text-zinc-400">{meta.descricao}</p>}
+                      </div>
+                      <button onClick={() => excluirMeta(meta.id)} className="text-zinc-500 hover:text-red-400 ml-2">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs md:text-sm mb-2">
+                        <span className="text-zinc-400">Progresso</span>
+                        <span className="font-bold text-white">{meta.valorAtual} / {meta.valorAlvo} {meta.unidade}</span>
+                      </div>
+                      <div className="w-full bg-zinc-800 rounded-full h-2 md:h-3">
+                        <div 
+                          className={`h-2 md:h-3 rounded-full transition-all ${meta.completada ? 'bg-lime-400' : 'bg-blue-400'}`}
+                          style={{width: `${Math.min(progresso, 100)}%`}}
+                        ></div>
+                      </div>
+                      <div className="text-xs text-zinc-500 mt-1">{progresso.toFixed(1)}%</div>
+                    </div>
+
+                    {meta.prazo && (
+                      <div className="text-xs text-zinc-500 mb-3">
+                        ⏰ Prazo: {new Date(meta.prazo).toLocaleDateString('pt-BR')}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      {!meta.completada && (
+                        <>
+                          <button
+                            onClick={() => {
+                              const novo = prompt(`Atualizar progresso (${meta.unidade}):`, meta.valorAtual);
+                              if (novo) atualizarProgresso(meta.id, parseFloat(novo));
+                            }}
+                            className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded-xl text-xs font-bold active:bg-zinc-700 transition-all"
+                          >
+                            Atualizar
+                          </button>
+                          <button
+                            onClick={() => marcarConcluida(meta.id, true)}
+                            className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-xl text-xs font-bold active:bg-lime-300 transition-all"
+                          >
+                            Concluir
+                          </button>
+                        </>
+                      )}
+                      {meta.completada && (
+                        <div className="w-full bg-lime-400/20 text-lime-400 px-3 py-2 rounded-xl text-xs font-bold text-center">
+                          ✓ Concluída
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {activeGoalTab === 'badges' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {BADGES.map((badge) => (
-            <div key={badge.id} className={`p-6 rounded-[2rem] border transition-all ${badge.earned ? 'bg-zinc-900 border-lime-400/30' : 'bg-zinc-950 border-zinc-800'}`}>
+            <div key={badge.id} className={`p-5 md:p-6 rounded-2xl border transition-all ${badge.earned ? 'bg-zinc-900 border-lime-400/30' : 'bg-zinc-950 border-zinc-800'}`}>
               <div className="flex justify-between items-start mb-4">
                 <div className={`p-3 rounded-xl ${badge.earned ? 'bg-lime-400/20 text-lime-400' : 'bg-zinc-800 text-zinc-500'}`}>
                   {badge.icon}
                 </div>
                 {badge.earned && <span className="text-xs font-bold text-lime-400 bg-lime-400/10 px-2 py-1 rounded-full">{badge.earnedDate}</span>}
               </div>
-              <h3 className="font-bold text-white mb-2">{badge.name}</h3>
-              <p className="text-sm text-zinc-400 mb-4">{badge.desc}</p>
+              <h3 className="font-bold text-sm md:text-base text-white mb-2">{badge.name}</h3>
+              <p className="text-xs md:text-sm text-zinc-400 mb-4">{badge.desc}</p>
               {!badge.earned && badge.progress && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-xs">
@@ -1961,16 +2178,16 @@ const GoalsView = () => {
       )}
 
       {activeGoalTab === 'streaks' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {STREAKS.map((streak, i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem]">
-              <div className={`size-12 ${streak.bg} ${streak.color} rounded-xl flex items-center justify-center mb-6`}>
-                <Flame size={24} />
+            <div key={i} className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl">
+              <div className={`size-10 md:size-12 ${streak.bg} ${streak.color} rounded-xl flex items-center justify-center mb-4 md:mb-6`}>
+                <Flame size={20} className="md:size-6" />
               </div>
-              <h3 className="font-bold text-white mb-2">{streak.type}</h3>
+              <h3 className="font-bold text-sm md:text-base text-white mb-2">{streak.type}</h3>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className={`text-3xl font-black ${streak.color}`}>{streak.current}</span>
-                <span className="text-sm text-zinc-500">dias</span>
+                <span className={`text-2xl md:text-3xl font-black ${streak.color}`}>{streak.current}</span>
+                <span className="text-xs md:text-sm text-zinc-500">dias</span>
               </div>
               <p className="text-xs text-zinc-500">Melhor: {streak.best} dias</p>
             </div>
@@ -1978,37 +2195,117 @@ const GoalsView = () => {
         </div>
       )}
 
-      {activeGoalTab === 'challenges' && (
-        <div className="space-y-6">
-          {CHALLENGES.map((challenge, i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 p-8 rounded-[2rem]">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h3 className="font-bold text-white text-lg mb-2">{challenge.name}</h3>
-                  <p className="text-sm text-zinc-400 mb-4">{challenge.desc}</p>
-                  <div className="flex items-center gap-4 text-xs text-zinc-500">
-                    <span>🎁 Prêmio: {challenge.prize}</span>
-                    <span>⏰ {challenge.daysLeft} dias restantes</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-black text-lime-400 mb-1">
-                    {typeof challenge.progress === 'number' ? challenge.progress.toFixed(1) : challenge.progress}
-                  </div>
-                  <div className="text-xs text-zinc-500">de {challenge.total}</div>
-                </div>
+      {/* Modal Nova Meta */}
+      {showNewGoalModal && (
+        <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setShowNewGoalModal(false)}>
+          <div className="bg-zinc-900 border-t-2 border-lime-400 sm:border sm:border-zinc-800 w-full max-w-xl rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-6 sm:mb-8">
+              <div className="flex-1">
+                <h3 className="text-2xl sm:text-3xl font-black italic uppercase leading-tight text-white mb-1">
+                  🎯 Nova Meta
+                </h3>
+                <p className="text-xs text-zinc-500 font-medium">Defina e acompanhe seu objetivo</p>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-zinc-500">Progresso</span>
-                  <span className="text-zinc-400">{Math.round((challenge.progress / challenge.total) * 100)}%</span>
-                </div>
-                <div className="w-full bg-zinc-800 rounded-full h-3">
-                  <div className="bg-gradient-to-r from-lime-400 to-green-400 h-3 rounded-full transition-all" style={{width: `${(challenge.progress / challenge.total) * 100}%`}}></div>
-                </div>
-              </div>
+              <button onClick={() => setShowNewGoalModal(false)} className="size-10 sm:size-11 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 active:bg-zinc-800 active:text-white transition-all shrink-0 ml-4">
+                <X size={18} className="sm:size-5"/>
+              </button>
             </div>
-          ))}
+            
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-zinc-300 block">📝 Título da Meta</label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Perder 5kg"
+                  value={newGoal.titulo} 
+                  onChange={e => setNewGoal({...newGoal, titulo: e.target.value})} 
+                  className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none focus:border-lime-400 active:border-lime-400 placeholder:text-zinc-600 transition-colors" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-zinc-300 block">💭 Descrição <span className="text-zinc-600 font-normal">(opcional)</span></label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Chegar a 80kg até março"
+                  value={newGoal.descricao} 
+                  onChange={e => setNewGoal({...newGoal, descricao: e.target.value})} 
+                  className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none focus:border-lime-400 active:border-lime-400 placeholder:text-zinc-600 transition-colors" 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold text-zinc-300 block">🎯 Valor Alvo</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    placeholder="5"
+                    value={newGoal.valorAlvo} 
+                    onChange={e => setNewGoal({...newGoal, valorAlvo: e.target.value})} 
+                    className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white font-bold outline-none focus:border-lime-400 active:border-lime-400 placeholder:text-zinc-600 transition-colors" 
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold text-zinc-300 block">📊 Valor Atual</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    placeholder="0"
+                    value={newGoal.valorAtual} 
+                    onChange={e => setNewGoal({...newGoal, valorAtual: e.target.value})} 
+                    className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white font-bold outline-none focus:border-lime-400 active:border-lime-400 placeholder:text-zinc-600 transition-colors" 
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold text-zinc-300 block">📏 Unidade</label>
+                  <select 
+                    value={newGoal.unidade} 
+                    onChange={e => setNewGoal({...newGoal, unidade: e.target.value})}
+                    className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none appearance-none focus:border-lime-400 active:border-lime-400 transition-colors"
+                  >
+                    <option value="kg">kg (peso)</option>
+                    <option value="cm">cm (medida)</option>
+                    <option value="%">% (percentual)</option>
+                    <option value="treinos">treinos (qtd)</option>
+                    <option value="dias">dias (período)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold text-zinc-300 block">📅 Prazo</label>
+                  <input 
+                    type="date" 
+                    value={newGoal.prazo} 
+                    onChange={e => setNewGoal({...newGoal, prazo: e.target.value})} 
+                    className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none focus:border-lime-400 active:border-lime-400 transition-colors" 
+                  />
+                </div>
+              </div>
+              
+              <button 
+                onClick={salvarMeta} 
+                disabled={isSaving} 
+                className="w-full bg-lime-400 text-black py-5 rounded-2xl font-black uppercase tracking-widest text-sm sm:text-base shadow-2xl shadow-lime-400/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-6"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin"/> 
+                    <span>Salvando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Target size={20}/> 
+                    <span>Criar Meta</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -2018,6 +2315,7 @@ const GoalsView = () => {
 const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometricsChange, watchConnected, toggleWatch, deviceName }: any) => {
   console.log('🔍 ProfileView - user recebido:', user);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tempBiometrics, setTempBiometrics] = useState({...biometrics});
   const [notif, setNotif] = useState(true);
@@ -2025,7 +2323,28 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
   const [showDeviceList, setShowDeviceList] = useState(false);
 
   useEffect(() => { if (!isEditing) setTempBiometrics({...biometrics}); }, [biometrics, isEditing]);
-  const handleSave = () => { onBiometricsChange({...tempBiometrics}); setIsEditing(false); };
+  
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const { userAPI } = await import('./src/api');
+      await userAPI.updateProfile({
+        altura: tempBiometrics.height,
+        peso: tempBiometrics.weight,
+        idade: tempBiometrics.age,
+        objetivo: tempBiometrics.goal
+      });
+      onBiometricsChange({...tempBiometrics});
+      setIsEditing(false);
+      alert('✅ Perfil atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar perfil:', error);
+      alert('❌ Erro ao salvar perfil. Tente novamente.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
   const handleCancel = () => { setTempBiometrics({...biometrics}); setIsEditing(false); };
 
   const mockDevices = [
@@ -2053,35 +2372,36 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-12 max-w-4xl mx-auto">
-      <header className="flex flex-col md:flex-row items-center gap-10">
-        <div className="relative group"><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) { const r = new FileReader(); r.onloadend = () => onImageChange(r.result as string); r.readAsDataURL(f); } }}/><div onClick={() => fileInputRef.current?.click()} className="size-40 rounded-[4rem] border-[10px] border-zinc-900 shadow-2xl overflow-hidden relative cursor-pointer"><img src={profileImage} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"/><div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity"><Camera size={32} className="text-lime-400 mb-1" /><span className="text-[9px] font-black uppercase text-lime-400">Trocar Foto</span></div></div><div className="absolute -bottom-2 -right-2 size-14 bg-lime-400 text-black rounded-3xl flex items-center justify-center shadow-2xl border-[6px] border-zinc-950"><Trophy size={28} strokeWidth={3} /></div></div>
-        <div className="text-center md:text-left"><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-4">{user?.nome || user?.name || 'Usuário'}</h1><div className="flex flex-wrap justify-center md:justify-start gap-3"><span className="bg-zinc-900 border border-zinc-800 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-zinc-400 tracking-widest">Aluno VIP</span><span className="bg-lime-400/10 border border-lime-400/30 px-5 py-2 rounded-2xl text-[10px] font-black uppercase text-lime-400 tracking-widest">Nível 28</span></div></div>
+    <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 space-y-8 md:space-y-12 max-w-4xl mx-auto">
+      <header className="flex flex-col items-center gap-6 md:gap-10">
+        <div className="relative group"><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if(f) { const r = new FileReader(); r.onloadend = () => onImageChange(r.result as string); r.readAsDataURL(f); } }}/><div onClick={() => fileInputRef.current?.click()} className="size-28 md:size-40 rounded-3xl md:rounded-[4rem] border-[6px] md:border-[10px] border-zinc-900 shadow-2xl overflow-hidden relative cursor-pointer"><img src={profileImage} className="w-full h-full object-cover transition-transform group-hover:scale-110 active:scale-110 duration-500"/><div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 active:opacity-100 flex flex-col items-center justify-center transition-opacity"><Camera size={24} className="md:size-8 text-lime-400 mb-1" /><span className="text-[8px] md:text-[9px] font-black uppercase text-lime-400">Trocar Foto</span></div></div><div className="absolute -bottom-2 -right-2 size-10 md:size-14 bg-lime-400 text-black rounded-2xl md:rounded-3xl flex items-center justify-center shadow-2xl border-4 md:border-[6px] border-zinc-950"><Trophy size={20} className="md:size-7" strokeWidth={3} /></div></div>
+        <div className="text-center"><h1 className="text-3xl md:text-4xl lg:text-6xl font-black italic uppercase tracking-tighter leading-none mb-3 md:mb-4">{user?.nome || user?.name || 'Usuário'}</h1><div className="flex flex-wrap justify-center gap-2 md:gap-3"><span className="bg-zinc-900 border border-zinc-800 px-4 md:px-5 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase text-zinc-400 tracking-widest">Aluno VIP</span><span className="bg-lime-400/10 border border-lime-400/30 px-4 md:px-5 py-1.5 md:py-2 rounded-xl md:rounded-2xl text-[9px] md:text-[10px] font-black uppercase text-lime-400 tracking-widest">Nível 28</span></div></div>
       </header>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-10">
-           <div className="flex items-center justify-between"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><User size={20} className="text-lime-400"/> Biometria</h4>{!isEditing ? (<button onClick={() => setIsEditing(true)} className="text-[10px] font-black uppercase text-lime-400 hover:underline">Editar</button>) : (<div className="flex gap-4"><button onClick={handleCancel} className="text-[10px] font-black uppercase text-zinc-500 hover:text-white">Cancelar</button><button onClick={handleSave} className="text-[10px] font-black uppercase text-lime-400 flex items-center gap-1"><Save size={12}/> Salvar</button></div>)}</div>
-           <div className="grid grid-cols-2 gap-6">
-              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Altura</p>{isEditing ? (<input type="number" step="0.01" value={tempBiometrics.height} onChange={(e) => setTempBiometrics({...tempBiometrics, height: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic" />) : (<p className="text-2xl font-black italic text-white">{biometrics.height}m</p>)}</div>
-              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Peso</p>{isEditing ? (<input type="number" step="0.1" value={tempBiometrics.weight} onChange={(e) => setTempBiometrics({...tempBiometrics, weight: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic" />) : (<p className="text-2xl font-black italic text-white">{biometrics.weight}kg</p>)}</div>
-              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Idade</p>{isEditing ? (<input type="number" value={tempBiometrics.age} onChange={(e) => setTempBiometrics({...tempBiometrics, age: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic" />) : (<p className="text-2xl font-black italic text-white">{biometrics.age} anos</p>)}</div>
-              <div className="bg-zinc-950 p-6 rounded-3xl border border-zinc-800/50"><p className="text-[10px] font-black uppercase text-zinc-600 mb-1">Meta</p>{isEditing ? (<select value={tempBiometrics.goal} onChange={(e) => setTempBiometrics({...tempBiometrics, goal: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 w-full text-white font-black italic outline-none appearance-none"><option value="Hipertrofia">Hipertrofia</option><option value="Cutting">Cutting</option><option value="Bulking">Bulking</option></select>) : (<p className="text-xl font-black italic text-lime-400 uppercase tracking-tighter break-words">{biometrics.goal}</p>)}</div>
+      <div className="grid grid-cols-1 gap-6 md:gap-8">
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 md:p-8 lg:p-10 shadow-2xl space-y-6 md:space-y-10">
+           <div className="flex items-center justify-between"><h4 className="text-lg md:text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 md:gap-3"><User size={18} className="md:size-5 text-lime-400"/> Biometria</h4>{!isEditing ? (<button onClick={() => setIsEditing(true)} className="text-[9px] md:text-[10px] font-black uppercase text-lime-400 active:underline">Editar</button>) : (<div className="flex gap-3 md:gap-4"><button onClick={handleCancel} disabled={isSaving} className="text-[9px] md:text-[10px] font-black uppercase text-zinc-500 active:text-white disabled:opacity-50">Cancelar</button><button onClick={handleSave} disabled={isSaving} className="text-[9px] md:text-[10px] font-black uppercase text-lime-400 flex items-center gap-1 disabled:opacity-50">{isSaving ? <Loader2 size={10} className="md:size-3 animate-spin"/> : <Save size={10} className="md:size-3"/>} {isSaving ? 'Salvando...' : 'Salvar'}</button></div>)}</div>
+           <div className="grid grid-cols-2 gap-4 md:gap-6">
+              <div className="bg-zinc-950 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-zinc-800/50"><p className="text-[9px] md:text-[10px] font-black uppercase text-zinc-600 mb-1">Altura</p>{isEditing ? (<input type="number" step="0.01" value={tempBiometrics.height} onChange={(e) => setTempBiometrics({...tempBiometrics, height: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 w-full text-white font-black italic text-sm" />) : (<p className="text-xl md:text-2xl font-black italic text-white">{biometrics.height}m</p>)}</div>
+              <div className="bg-zinc-950 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-zinc-800/50"><p className="text-[9px] md:text-[10px] font-black uppercase text-zinc-600 mb-1">Peso</p>{isEditing ? (<input type="number" step="0.1" value={tempBiometrics.weight} onChange={(e) => setTempBiometrics({...tempBiometrics, weight: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 w-full text-white font-black italic text-sm" />) : (<p className="text-xl md:text-2xl font-black italic text-white">{biometrics.weight}kg</p>)}</div>
+              <div className="bg-zinc-950 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-zinc-800/50"><p className="text-[9px] md:text-[10px] font-black uppercase text-zinc-600 mb-1">Idade</p>{isEditing ? (<input type="number" value={tempBiometrics.age} onChange={(e) => setTempBiometrics({...tempBiometrics, age: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 w-full text-white font-black italic text-sm" />) : (<p className="text-xl md:text-2xl font-black italic text-white">{biometrics.age} anos</p>)}</div>
+              <div className="bg-zinc-950 p-4 md:p-6 rounded-2xl md:rounded-3xl border border-zinc-800/50"><p className="text-[9px] md:text-[10px] font-black uppercase text-zinc-600 mb-1">Meta</p>{isEditing ? (<select value={tempBiometrics.goal} onChange={(e) => setTempBiometrics({...tempBiometrics, goal: e.target.value})} className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 w-full text-white font-black italic outline-none appearance-none text-sm"><option value="Hipertrofia">Hipertrofia</option><option value="Cutting">Cutting</option><option value="Bulking">Bulking</option></select>) : (<p className="text-base md:text-xl font-black italic text-lime-400 uppercase tracking-tighter break-words">{biometrics.goal}</p>)}</div>
            </div>
         </section>
-        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl space-y-8"><h4 className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3"><ShieldCheck size={20} className="text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-[2.5rem] p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-10 opacity-5"><Trophy size={140} className="text-lime-400" /></div><div className="relative z-10"><p className="text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-4 mb-8"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={20}/></div><div><p className="text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-6 border-t border-zinc-900 flex justify-between items-end"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-sm font-black italic text-white">15 de Nov, 2024</p></div><button onClick={() => alert('Gerenciar Assinatura\n\nPlano Atual: BLACK VIP\nPróxima cobrança: 15 de Nov, 2024\n\nOpções:\n• Alterar plano\n• Alterar forma de pagamento\n• Cancelar assinatura')} className="text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-6 py-2.5 rounded-xl hover:text-red-400 transition-all">Gerenciar</button></div></div></div></section>
+        <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 md:p-8 lg:p-10 shadow-2xl space-y-6 md:space-y-8"><h4 className="text-lg md:text-xl font-black italic uppercase tracking-tighter flex items-center gap-2 md:gap-3"><ShieldCheck size={18} className="md:size-5 text-blue-400"/> Assinatura</h4><div className="bg-zinc-950 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 relative overflow-hidden"><div className="absolute top-0 right-0 p-8 md:p-10 opacity-5"><Trophy size={100} className="md:size-[140px] text-lime-400" /></div><div className="relative z-10"><p className="text-[9px] md:text-[10px] font-black uppercase text-lime-400 tracking-widest mb-2">PLANO ATUAL</p><h5 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter mb-4">BLACK VIP</h5><div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8"><div className="size-9 md:size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-zinc-500"><CardIcon size={18} className="md:size-5"/></div><div><p className="text-[9px] md:text-[10px] font-black uppercase text-zinc-300">Pagamento</p><p className="text-[10px] md:text-xs font-bold text-zinc-500">Mastercard **** 8291</p></div></div><div className="pt-4 md:pt-6 border-t border-zinc-900 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4"><div><p className="text-[9px] font-black uppercase text-zinc-600">Próxima Cobrança</p><p className="text-xs md:text-sm font-black italic text-white">15 de Nov, 2024</p></div><button onClick={() => alert('Gerenciar Assinatura\n\nPlano Atual: BLACK VIP\nPróxima cobrança: 15 de Nov, 2024\n\nOpções:\n• Alterar plano\n• Alterar forma de pagamento\n• Cancelar assinatura')} className="text-[9px] md:text-[10px] font-black uppercase bg-zinc-900 border border-zinc-800 px-5 md:px-6 py-2 md:py-2.5 rounded-xl active:text-red-400 transition-all w-full sm:w-auto">Gerenciar</button></div></div></div></section>
       </div>
-      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl">
-         <h4 className="text-xl font-black italic uppercase tracking-tighter mb-10 flex items-center gap-3"><Settings size={20} className="text-orange-400"/> Configurações</h4>
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-            <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
-               <div className="flex items-center gap-4"><div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><Bell size={20}/></div><div><p className="text-sm font-black uppercase italic text-zinc-200">Notificações</p><p className="text-[10px] font-bold text-zinc-600">Lembretes diários</p></div></div>
-               <button onClick={() => setNotif(!notif)} className={`w-14 h-8 rounded-full transition-all relative p-1 ${notif ? 'bg-lime-400' : 'bg-zinc-950 border border-zinc-800'}`}><div className={`size-6 rounded-full transition-all ${notif ? 'bg-black translate-x-6' : 'bg-zinc-700'}`} /></button>
+      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 md:p-8 lg:p-10 shadow-2xl">
+         <h4 className="text-lg md:text-xl font-black italic uppercase tracking-tighter mb-6 md:mb-10 flex items-center gap-2 md:gap-3"><Settings size={18} className="md:size-5 text-orange-400"/> Configurações</h4>
+         <div className="grid grid-cols-1 gap-4 md:gap-6">
+            <div className="flex items-center justify-between py-4 md:py-6 border-b border-zinc-800/50">
+               <div className="flex items-center gap-3 md:gap-4"><div className="size-10 md:size-12 bg-zinc-950 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-500"><Bell size={18} className="md:size-5"/></div><div><p className="text-xs md:text-sm font-black uppercase italic text-zinc-200">Notificações</p><p className="text-[9px] md:text-[10px] font-bold text-zinc-600">Lembretes diários</p></div></div>
+               <button onClick={() => setNotif(!notif)} className={`w-12 md:w-14 h-7 md:h-8 rounded-full transition-all relative p-1 ${notif ? 'bg-lime-400' : 'bg-zinc-950 border border-zinc-800'}`}><div className={`size-5 md:size-6 rounded-full transition-all ${notif ? 'bg-black translate-x-5 md:translate-x-6' : 'bg-zinc-700'}`} /></button>
             </div>
-            <div className="flex items-center justify-between py-6 border-b border-zinc-800/50">
-               <div className="flex items-center gap-4"><div className="size-12 bg-zinc-950 rounded-2xl flex items-center justify-center text-zinc-500"><Smartphone size={20}/></div><div><p className="text-sm font-black uppercase italic text-zinc-200">Dispositivos</p><p className="text-[10px] font-bold text-zinc-600">Apple Health / Watch</p></div></div>
-               <button onClick={handleDevicePairing} disabled={isPairing} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${watchConnected ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 'bg-zinc-950 border border-zinc-800 hover:text-white'}`}>
-                  {isPairing ? <Loader2 size={12} className="animate-spin"/> : watchConnected ? <Watch size={14}/> : <Plus size={14}/>}
-                  {isPairing ? 'Buscando...' : watchConnected ? `Conectado: ${deviceName || 'Apple Watch'}` : 'Conectar'}
+            <div className="flex items-center justify-between py-4 md:py-6 border-b border-zinc-800/50">
+               <div className="flex items-center gap-3 md:gap-4 min-w-0 flex-1"><div className="size-10 md:size-12 bg-zinc-950 rounded-xl md:rounded-2xl flex items-center justify-center text-zinc-500 shrink-0"><Smartphone size={18} className="md:size-5"/></div><div className="min-w-0"><p className="text-xs md:text-sm font-black uppercase italic text-zinc-200">Dispositivos</p><p className="text-[9px] md:text-[10px] font-bold text-zinc-600 truncate">Apple Health / Watch</p></div></div>
+               <button onClick={handleDevicePairing} disabled={isPairing} className={`px-4 md:px-6 py-2 rounded-xl text-[9px] md:text-[10px] font-black uppercase transition-all flex items-center gap-1.5 md:gap-2 shrink-0 ${watchConnected ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 'bg-zinc-950 border border-zinc-800 active:text-white'}`}>
+                  {isPairing ? <Loader2 size={12} className="animate-spin"/> : watchConnected ? <Watch size={12} className="md:size-[14px]"/> : <Plus size={12} className="md:size-[14px]"/>}
+                  <span className="hidden sm:inline">{isPairing ? 'Buscando...' : watchConnected ? `Conectado${deviceName ? `: ${deviceName}` : ''}` : 'Conectar'}</span>
+                  <span className="sm:hidden">{isPairing ? '...' : watchConnected ? 'Ok' : '+'}</span>
                </button>
             </div>
          </div>
@@ -2183,12 +2503,16 @@ const StoreView = ({ products, addToCart, cartCount, openCart }: any) => {
 
 // --- NUTRI EXTENSIONS: SUBSTITUTIONS & VISUAL DIARY ---
 
-const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: number, onGenerateDiet: (d: any) => void }) => {
+const NutritionView = ({ diet, dayIdx, onGenerateDiet, user, onReloadDietas }: { diet: any, dayIdx: number, onGenerateDiet: (d: any) => void, user?: any, onReloadDietas?: () => void }) => {
   const [completedMeals, setCompletedMeals] = useState<number[]>([]);
   const [substitutionModal, setSubstitutionModal] = useState<{ isOpen: boolean, original: string, options: string[] }>({ isOpen: false, original: '', options: [] });
-  const [showAI, setShowAI] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState({ kcal: '2000', type: 'Equilibrada', restrictions: 'Sem restrições' });
-  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Garantir que diet sempre tenha a estrutura correta
+  const safeDiet = {
+    meals: Array.isArray(diet?.meals) ? diet.meals : [],
+    totalCalories: diet?.totalCalories || 0,
+    macros: diet?.macros || { protein: 0, carbs: 0, fat: 0 }
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem(`diet_day_${dayIdx}`);
@@ -2210,51 +2534,7 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
     }
   };
 
-  const generateDiet = async () => {
-    setIsGenerating(true);
-    try {
-        const prompt = `Crie um plano alimentar diário (dieta) em formato JSON.
-        Calorias: ${aiPrompt.kcal}. Tipo: ${aiPrompt.type}. Restrições: ${aiPrompt.restrictions}.
-        
-        Retorne APENAS um objeto JSON válido com esta estrutura exata, sem markdown:
-        {
-          "title": "Nome da Dieta",
-          "kcal": 2000,
-          "meals": [
-            { 
-              "n": "Nome da Refeição (ex: Café)", 
-              "t": "08:00", 
-              "kcal": 500, 
-              "items": [
-                { "name": "Alimento e quantidade", "kcal": 200 }
-              ] 
-            }
-          ]
-        }`;
-
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text() || "{}";
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const generated = JSON.parse(jsonStr);
-        
-        const mealsWithIcons = generated.meals.map((m: any) => ({
-            ...m,
-            icon: m.n.toLowerCase().includes('café') ? <Coffee/> : m.n.toLowerCase().includes('almoço') ? <Sun/> : <Moon/>
-        }));
-
-        onGenerateDiet({ ...generated, meals: mealsWithIcons });
-        setShowAI(false);
-    } catch (e) {
-        console.error(e);
-        alert("Erro ao gerar dieta. Tente novamente.");
-    } finally {
-        setIsGenerating(false);
-    }
-  };
-
-  const progress = diet.meals.length > 0 ? (completedMeals.length / diet.meals.length) * 100 : 0;
+  const progress = safeDiet.meals.length > 0 ? (completedMeals.length / safeDiet.meals.length) * 100 : 0;
 
   return (
     <div className="space-y-10 animate-in fade-in duration-500 relative">
@@ -2263,14 +2543,11 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
             <h2 className="text-3xl md:text-5xl font-black italic uppercase mb-2">Nutrição</h2>
             <p className="text-sm md:text-base text-zinc-500 font-medium">Combustível para o corpo.</p>
          </div>
-         <button onClick={() => setShowAI(true)} className="bg-lime-400 text-black px-4 md:px-6 py-2.5 md:py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 shadow-xl hover:scale-105 transition-all whitespace-nowrap">
-            <Sparkles size={16}/> Gerar Dieta AI
-         </button>
       </header>
 
       <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-[2.5rem] shadow-xl">
         <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-3"><div className="size-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center"><Utensils size={20} /></div><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Adesão Diária</p><h4 className="text-lg font-black italic uppercase">{completedMeals.length} de {diet.meals.length} refeições</h4></div></div>
+        <div className="flex items-center gap-3"><div className="size-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center"><Utensils size={20} /></div><div><p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Adesão Diária</p><h4 className="text-lg font-black italic uppercase">{completedMeals.length} de {safeDiet.meals.length} refeições</h4></div></div>
         <span className="text-xl font-black italic text-lime-400">{Math.round(progress)}%</span>
         </div>
         <div className="h-3 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-800 p-0.5"><div className="h-full bg-lime-400 rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }} /></div>
@@ -2278,37 +2555,93 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 mb-4">
-              <p className="text-xs text-zinc-400 flex items-center gap-2">
-                <Check size={14} className="text-lime-400" />
-                <span>Clique em qualquer refeição para marcar como concluída</span>
-              </p>
-           </div>
-           {diet.meals.map((meal: any, idx: number) => {
+           {safeDiet.meals.length === 0 ? (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-12 text-center">
+                 <div className="size-20 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Apple size={32} className="text-zinc-600" />
+                 </div>
+                 <h3 className="text-2xl font-black italic uppercase text-zinc-400 mb-3">Nenhuma dieta prescrita</h3>
+                 <p className="text-sm text-zinc-500 max-w-md mx-auto">
+                    Seu nutricionista ainda não criou um plano alimentar para você. Entre em contato para receber sua dieta personalizada.
+                 </p>
+              </div>
+           ) : (
+              <>
+                 <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 mb-4">
+                    <p className="text-xs text-zinc-400 flex items-center gap-2">
+                      <Check size={14} className="text-lime-400" />
+                      <span>Clique em qualquer refeição para marcar como concluída</span>
+                    </p>
+                 </div>
+                 {safeDiet.meals.map((meal: any, idx: number) => {
              const isDone = completedMeals.includes(idx);
+             
+             // Extrair informações da refeição
+             const mealIcon = meal?.icon || <Utensils size={24} />;
+             const mealName = meal?.n || meal?.name || meal?.nome || meal?.refeicao || 'Refeição';
+             const mealTime = meal?.t || meal?.time || meal?.horario || meal?.hora || '00:00';
+             const mealKcal = meal?.kcal || meal?.calorias || meal?.calories || 0;
+             
+             // Verificar se alimentos é string (texto) ou array
+             const alimentosTexto = meal?.alimentos;
+             const isAlimentosString = typeof alimentosTexto === 'string';
+             
+             // Se for array, usar como está; se for string, não processar como items
+             const mealItems = Array.isArray(meal?.items) ? meal.items 
+                             : Array.isArray(meal?.alimentos) ? meal.alimentos
+                             : Array.isArray(meal?.foods) ? meal.foods
+                             : Array.isArray(meal?.ingredientes) ? meal.ingredientes
+                             : Array.isArray(meal?.itens) ? meal.itens
+                             : [];
+             
              return (
                <div key={idx} onClick={() => toggleMeal(idx)} className={`group relative bg-zinc-900 border cursor-pointer rounded-2xl md:rounded-[2.5rem] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-6 transition-all duration-300 active:scale-[0.98] ${isDone ? 'border-lime-400/30 bg-lime-400/5' : 'border-zinc-800 hover:border-zinc-700 hover:shadow-lg hover:shadow-lime-400/10'}`}>
-                  <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 shadow-lg border transition-all duration-500 ${isDone ? 'bg-lime-400 border-lime-400 text-black rotate-12' : 'bg-zinc-950 border-zinc-800 text-blue-400 group-hover:border-lime-400/30 group-hover:text-lime-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : meal.icon}</div>
+                  <div className={`size-16 rounded-3xl flex items-center justify-center shrink-0 shadow-lg border transition-all duration-500 ${isDone ? 'bg-lime-400 border-lime-400 text-black rotate-12' : 'bg-zinc-950 border-zinc-800 text-blue-400 group-hover:border-lime-400/30 group-hover:text-lime-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : mealIcon}</div>
                   <div className="flex-1">
-                     <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-2"><h4 className={`text-lg md:text-xl font-black italic uppercase tracking-tight ${isDone ? 'text-zinc-500 line-through' : 'text-white group-hover:text-lime-400 transition-colors'}`}>{meal.n} {!isDone && <span className="text-[9px] text-zinc-600 group-hover:text-lime-400/50 font-normal ml-2">· Clique para marcar</span>}</h4><div className="flex gap-3"><span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{meal.t}</span><span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? 'bg-lime-400 text-black' : 'bg-blue-500/20 text-blue-400'}`}>{meal.kcal} kcal</span></div></div>
-                     <div className="grid grid-cols-1 gap-3">{meal.items.map((item: any, i: number) => (
-                       <div key={i} onClick={(e) => handleFoodClick(e, item.name)} className={`p-4 rounded-2xl flex justify-between items-center border hover:border-lime-400/50 transition-colors ${isDone ? 'bg-zinc-950/30 border-zinc-800/50 opacity-60' : 'bg-zinc-950 border-zinc-800'}`}>
-                         <span className="text-xs font-bold text-zinc-300 flex items-center gap-2">{item.name} {Object.keys(FOOD_SUBSTITUTIONS).some(k => item.name.includes(k)) && <RefreshCw size={10} className="text-lime-400"/>}</span>
-                         <span className="text-[9px] font-black uppercase text-zinc-600">{item.kcal} kcal</span>
+                     <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-2">
+                       <h4 className={`text-lg md:text-xl font-black italic uppercase tracking-tight ${isDone ? 'text-zinc-500 line-through' : 'text-white group-hover:text-lime-400 transition-colors'}`}>
+                         {mealName} {!isDone && <span className="text-[9px] text-zinc-600 group-hover:text-lime-400/50 font-normal ml-2">· Clique para marcar</span>}
+                       </h4>
+                       <div className="flex gap-3">
+                         <span className="text-[10px] bg-zinc-800 text-zinc-400 px-3 py-1 rounded-lg font-black">{mealTime}</span>
+                         <span className={`text-[10px] px-3 py-1 rounded-lg font-black ${isDone ? 'bg-lime-400 text-black' : 'bg-blue-500/20 text-blue-400'}`}>{mealKcal}</span>
                        </div>
-                     ))}</div>
+                     </div>
+                     
+                     {/* Exibir alimentos: se for string, mostrar texto; se for array, mostrar lista */}
+                     {isAlimentosString ? (
+                       <div className={`p-4 rounded-2xl border ${isDone ? 'bg-zinc-950/30 border-zinc-800/50 opacity-60' : 'bg-zinc-950 border-zinc-800'}`}>
+                         <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{alimentosTexto}</p>
+                       </div>
+                     ) : mealItems.length > 0 ? (
+                       <div className="grid grid-cols-1 gap-3">
+                         {mealItems.map((item: any, i: number) => {
+                           const itemName = item?.name || item?.nome || item || 'Alimento';
+                           const itemKcal = item?.kcal || item?.calorias || 0;
+                           
+                           return (
+                             <div key={i} onClick={(e) => handleFoodClick(e, typeof itemName === 'string' ? itemName : 'Alimento')} className={`p-4 rounded-2xl flex justify-between items-center border hover:border-lime-400/50 transition-colors ${isDone ? 'bg-zinc-950/30 border-zinc-800/50 opacity-60' : 'bg-zinc-950 border-zinc-800'}`}>
+                               <span className="text-xs font-bold text-zinc-300 flex items-center gap-2">{itemName} {Object.keys(FOOD_SUBSTITUTIONS).some(k => typeof itemName === 'string' && itemName.includes(k)) && <RefreshCw size={10} className="text-lime-400"/>}</span>
+                               <span className="text-[9px] font-black uppercase text-zinc-600">{itemKcal} kcal</span>
+                             </div>
+                           );
+                         })}
+                       </div>
+                     ) : null}
                   </div>
                </div>
              );
            })}
+              </>
+           )}
         </div>
         <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem] shadow-xl h-fit">
           <h4 className="text-[10px] font-black uppercase text-zinc-500 tracking-widest mb-8">Macros</h4>
           {(() => {
-            const macros = diet.macros ? [
-              { name: 'Proteínas', value: diet.macros.protein || 30, fill: '#D9FF00' },
-              { name: 'Carboidratos', value: diet.macros.carbs || 50, fill: '#3b82f6' },
-              { name: 'Gorduras', value: diet.macros.fat || 20, fill: '#f97316' }
+            const macros = safeDiet.macros ? [
+              { name: 'Proteínas', value: safeDiet.macros.protein || 30, fill: '#D9FF00' },
+              { name: 'Carboidratos', value: safeDiet.macros.carbs || 50, fill: '#3b82f6' },
+              { name: 'Gorduras', value: safeDiet.macros.fat || 20, fill: '#f97316' }
             ] : [
               { name: 'Proteínas', value: 30, fill: '#D9FF00' },
               { name: 'Carboidratos', value: 50, fill: '#3b82f6' },
@@ -2360,23 +2693,6 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet }: { diet: any, dayIdx: nu
            </div>
         </div>
       )}
-
-      {showAI && (
-        <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowAI(false)}>
-            <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl rounded-2xl md:rounded-[3rem] p-6 md:p-10 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
-               <div className="flex justify-between items-center mb-8"><h3 className="text-3xl font-black italic uppercase">Gerador Nutri AI</h3><button onClick={() => setShowAI(false)} className="size-12 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 transition-all"><X size={20}/></button></div>
-               <div className="space-y-6">
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Calorias Diárias</label><input type="number" value={aiPrompt.kcal} onChange={e => setAiPrompt({...aiPrompt, kcal: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none focus:border-lime-400" /></div>
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Tipo de Dieta</label><select value={aiPrompt.type} onChange={e => setAiPrompt({...aiPrompt, type: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none appearance-none"><option>Equilibrada</option><option>Low Carb</option><option>Cetogênica</option><option>Vegana</option><option>Bulking (Ganho de Massa)</option></select></div>
-                  <div className="space-y-2"><label className="text-[10px] font-black uppercase text-zinc-600 ml-4">Restrições / Preferências</label><input placeholder="Ex: Sem glúten, barato, rápido de fazer..." value={aiPrompt.restrictions} onChange={e => setAiPrompt({...aiPrompt, restrictions: e.target.value})} className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-4 text-sm outline-none" /></div>
-                  <button onClick={generateDiet} disabled={isGenerating} className="w-full bg-lime-400 text-black py-6 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                    {isGenerating ? <Loader2 className="animate-spin"/> : <Sparkles size={18}/>} 
-                    {isGenerating ? 'Criando Plano...' : 'Gerar Dieta'}
-                  </button>
-               </div>
-            </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -2387,6 +2703,12 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
   console.log('🔍 StudentModule - user recebido:', user);
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(new Date().getDay());
   const [selectedDayDiet, setSelectedDayDiet] = useState(new Date().getDay());
+  
+  // Estados para geração de treino/dieta com IA
+  const [showIAModal, setShowIAModal] = useState(false);
+  const [iaType, setIaType] = useState<'treino' | 'dieta'>('treino');
+  const [iaConfig, setIaConfig] = useState({ objetivo: '', restricoes: '', diasTreino: 3 });
+  const [isGeneratingIA, setIsGeneratingIA] = useState(false);
   
   // Estados para dados do banco
   const [historicoTreinos, setHistoricoTreinos] = useState<any[]>([]);
@@ -2464,8 +2786,28 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
           });
         }
         
+        // Formatar dietas para o formato esperado pelo frontend
+        console.log('📥 Dietas recebidas para o aluno:', dietas);
+        const dietasFormatadas = Array.isArray(dietas) ? dietas.map((dieta: any) => {
+          console.log('🥗 Processando dieta:', dieta);
+          // As dietas vêm da tabela Relatorio com estrutura: dados: { titulo, refeicoes, ... }
+          const plano = dieta.dados?.refeicoes || dieta.conteudo?.refeicoes || {};
+          console.log('🥗 Plano extraído:', plano);
+          return {
+            id: dieta.id,
+            titulo: dieta.dados?.titulo || dieta.titulo || 'Dieta',
+            alunoId: dieta.usuarioId,
+            alunoNome: 'Aluno',
+            data: new Date(dieta.criadoEm).toLocaleDateString('pt-BR'),
+            plano: plano,
+            tipo: (dieta.dados?.origem || dieta.conteudo?.origem) === 'IA' ? 'ia' : 'manual'
+          };
+        }) : [];
+        
+        console.log('✅ Dietas formatadas:', dietasFormatadas);
+        
         setHistoricoTreinos(treinosFormatados);
-        setHistoricoDietas(dietas);
+        setHistoricoDietas(dietasFormatadas);
         setMedicoes(medicoesData);
         setFotosProgresso(fotos);
         setMetas(metasData);
@@ -2481,6 +2823,207 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
     
     carregarDadosAluno();
   }, []);
+  
+  // Função para recarregar apenas as dietas
+  const recarregarDietas = async () => {
+    const token = localStorage.getItem('fitness_token');
+    if (!token) return;
+    
+    try {
+      const dietas = await carregarHistoricoDietas(token);
+      const dietasFormatadas = Array.isArray(dietas) ? dietas.map((dieta: any) => {
+        const plano = dieta.dados?.refeicoes || dieta.conteudo?.refeicoes || {};
+        return {
+          id: dieta.id,
+          titulo: dieta.dados?.titulo || dieta.titulo || 'Dieta',
+          alunoId: dieta.usuarioId,
+          alunoNome: 'Aluno',
+          data: new Date(dieta.criadoEm).toLocaleDateString('pt-BR'),
+          plano: plano,
+          tipo: (dieta.dados?.origem || dieta.conteudo?.origem) === 'IA' ? 'ia' : 'manual'
+        };
+      }) : [];
+      
+      setHistoricoDietas(dietasFormatadas);
+      console.log('✅ Dietas recarregadas:', dietasFormatadas.length);
+    } catch (error) {
+      console.error('❌ Erro ao recarregar dietas:', error);
+    }
+  };
+  
+  // Função para recarregar treinos
+  const recarregarTreinos = async () => {
+    const token = localStorage.getItem('fitness_token');
+    if (!token) return;
+    
+    try {
+      const treinos = await carregarHistoricoTreinos(token);
+      const treinosFormatados = Array.isArray(treinos) ? treinos.map((treino: any) => {
+        let planoExercicios = {};
+        if (typeof treino.exercicios === 'string') {
+          try {
+            planoExercicios = JSON.parse(treino.exercicios);
+          } catch (e) {
+            console.error('❌ Erro ao fazer parse:', e);
+          }
+        } else if (typeof treino.exercicios === 'object' && treino.exercicios !== null) {
+          planoExercicios = treino.exercicios;
+        }
+        
+        return {
+          id: treino.id,
+          titulo: treino.tituloTreino || treino.titulo || 'Treino',
+          alunoId: treino.usuarioId,
+          alunoNome: 'Aluno',
+          data: new Date(treino.data).toLocaleDateString('pt-BR'),
+          plano: planoExercicios,
+          tipo: treino.origem === 'IA' ? 'ia' : 'manual'
+        };
+      }) : [];
+      
+      setHistoricoTreinos(treinosFormatados);
+      console.log('✅ Treinos recarregados:', treinosFormatados.length);
+    } catch (error) {
+      console.error('❌ Erro ao recarregar treinos:', error);
+    }
+  };
+  
+  // Função para gerar treino com IA
+  const gerarTreinoComIA = async () => {
+    if (!iaConfig.objetivo) {
+      alert('Preencha o objetivo do treino');
+      return;
+    }
+    
+    setIsGeneratingIA(true);
+    try {
+      const prompt = `Você é um personal trainer expert. Crie um plano de treino semanal completo.
+
+Objetivo: ${iaConfig.objetivo}
+Restrições: ${iaConfig.restricoes || 'Nenhuma'}
+Dias de treino: ${iaConfig.diasTreino}
+
+Retorne APENAS um JSON válido no formato:
+{
+  "titulo": "Plano de Treino - [Objetivo]",
+  "segunda": [{"nome": "Exercício", "series": "3", "repeticoes": "12", "carga": "Moderada", "descanso": "90s"}],
+  "terca": [],
+  "quarta": [],
+  "quinta": [],
+  "sexta": [],
+  "sabado": [],
+  "domingo": []
+}
+
+Distribua exercícios em ${iaConfig.diasTreino} dias. Seja específico e profissional.`;
+
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Formato inválido');
+      
+      const planoGerado = JSON.parse(jsonMatch[0]);
+      
+      // Salvar no banco
+      const token = localStorage.getItem('fitness_token');
+      if (token && user?.id) {
+        const dadosTreino = {
+          usuarioId: user.id,
+          titulo: planoGerado.titulo || `Treino IA - ${iaConfig.objetivo}`,
+          tipoTreino: 'Treino Personalizado IA',
+          duracao: 60,
+          exercicios: planoGerado,
+          observacoes: `Gerado pela IA - Objetivo: ${iaConfig.objetivo}`,
+          origem: 'IA'
+        };
+        
+        await salvarTreino(token, dadosTreino);
+        alert('✅ Treino gerado e salvo com sucesso!');
+        
+        // Recarregar lista de treinos
+        await recarregarTreinos();
+      }
+      
+      setShowIAModal(false);
+      setIaConfig({ objetivo: '', restricoes: '', diasTreino: 3 });
+    } catch (error) {
+      console.error('Erro ao gerar treino:', error);
+      alert('Erro ao gerar treino. Tente novamente.');
+    } finally {
+      setIsGeneratingIA(false);
+    }
+  };
+  
+  // Função para gerar dieta com IA
+  const gerarDietaComIA = async () => {
+    if (!iaConfig.objetivo) {
+      alert('Preencha o objetivo da dieta');
+      return;
+    }
+    
+    setIsGeneratingIA(true);
+    try {
+      const prompt = `Você é um nutricionista expert. Crie um plano alimentar completo para a semana.
+
+Objetivo: ${iaConfig.objetivo}
+Restrições: ${iaConfig.restricoes || 'Nenhuma'}
+
+Retorne APENAS um JSON válido no formato:
+{
+  "titulo": "Plano Alimentar Semanal - [Objetivo]",
+  "objetivoCalorico": "2500 kcal",
+  "segunda": [{"nome": "Café da Manhã", "horario": "07:00", "alimentos": "Lista detalhada", "calorias": "500 kcal"}],
+  "terca": [],
+  "quarta": [],
+  "quinta": [],
+  "sexta": [],
+  "sabado": [],
+  "domingo": []
+}
+
+Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
+
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Formato inválido');
+      
+      const planoGerado = JSON.parse(jsonMatch[0]);
+      
+      // Salvar no banco
+      const token = localStorage.getItem('fitness_token');
+      if (token && user?.id) {
+        const dadosDieta = {
+          usuarioId: user.id,
+          titulo: planoGerado.titulo || `Dieta IA - ${iaConfig.objetivo}`,
+          objetivo: planoGerado.objetivoCalorico,
+          refeicoes: planoGerado,
+          observacoes: `Gerada pela IA - Objetivo: ${iaConfig.objetivo}`,
+          origem: 'IA'
+        };
+        
+        await salvarDieta(token, dadosDieta);
+        alert('✅ Dieta gerada e salva com sucesso!');
+        
+        // Recarregar lista de dietas
+        await recarregarDietas();
+      }
+      
+      setShowIAModal(false);
+      setIaConfig({ objetivo: '', restricoes: '', diasTreino: 3 });
+    } catch (error) {
+      console.error('Erro ao gerar dieta:', error);
+      alert('Erro ao gerar dieta. Tente novamente.');
+    } finally {
+      setIsGeneratingIA(false);
+    }
+  };
 
   // Se estiver na view de treino ativo, mostrar a sessão
   if (view === 'active-workout' && activeSession) {
@@ -2501,17 +3044,17 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
     <>
       {/* Indicador flutuante de treino ativo */}
       {activeSession && view !== 'active-workout' && (
-        <div className="fixed bottom-6 left-6 z-[100] animate-in slide-in-from-bottom duration-500">
+        <div className="fixed bottom-20 left-4 right-4 md:bottom-6 md:left-6 md:right-auto z-[100] animate-in slide-in-from-bottom duration-500">
           <button 
             onClick={() => setView('active-workout')} 
-            className="bg-lime-400 text-black px-6 py-4 rounded-2xl shadow-2xl shadow-lime-400/30 flex items-center gap-4 hover:scale-105 transition-all border-4 border-zinc-950"
+            className="bg-lime-400 text-black px-5 py-3.5 md:px-6 md:py-4 rounded-2xl shadow-2xl shadow-lime-400/30 flex items-center gap-3 active:scale-95 transition-all border-4 border-zinc-950 w-full md:w-auto justify-center"
           >
-            <div className="size-3 bg-red-500 rounded-full animate-pulse" />
+            <div className="size-2 bg-red-500 rounded-full animate-pulse" />
             <div className="flex flex-col items-start">
-              <span className="text-[10px] font-black uppercase tracking-widest">Treino Ativo</span>
-              <span className="text-lg font-black italic">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</span>
+              <span className="text-[9px] font-black uppercase tracking-widest">Treino Ativo</span>
+              <span className="text-base md:text-lg font-black italic">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</span>
             </div>
-            <Play size={20} fill="currentColor" />
+            <Play size={18} fill="currentColor" />
           </button>
         </div>
       )}
@@ -2536,7 +3079,8 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
          duration: '60 min',
          exercises: (treinoHoje.plano[diaAtualNome] || []).map((ex: any) => ({
             id: ex.id || `ex-${Date.now()}-${Math.random()}`, // Adicionar ID único se não existir
-            n: ex.nome,
+            nome: ex.nome || ex.exercicio,
+            n: ex.nome || ex.exercicio,
             s: ex.series,
             r: ex.repeticoes,
             w: ex.carga,
@@ -2553,35 +3097,35 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
       };
       
       return (
-        <div className="space-y-12 animate-in fade-in duration-700">
-           <header><h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter leading-none mb-2">Olá, {user?.nome?.split(' ')[0] || 'Atleta'}</h1><p className="text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
+        <div className="space-y-8 animate-in fade-in duration-700">
+           <header><h1 className="text-3xl md:text-4xl lg:text-6xl font-black italic uppercase tracking-tighter leading-none mb-1">Olá, {user?.nome?.split(' ')[0] || 'Atleta'}</h1><p className="text-xs md:text-sm text-zinc-500 font-medium">Vamos destruir hoje?</p></header>
            
            {/* Banner de treino ativo */}
            {activeSession && (
-             <div className="bg-gradient-to-r from-lime-400/20 to-lime-500/10 border-2 border-lime-400/50 p-4 md:p-8 rounded-2xl md:rounded-[3rem] shadow-xl shadow-lime-400/10 animate-in slide-in-from-top duration-500">
-               <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-6">
-                 <div className="flex items-center gap-6">
-                   <div className="size-16 bg-lime-400 rounded-2xl flex items-center justify-center text-black animate-pulse">
-                     <Timer size={32} strokeWidth={3} />
+             <div className="bg-gradient-to-r from-lime-400/20 to-lime-500/10 border-2 border-lime-400/50 p-4 md:p-6 rounded-2xl shadow-xl shadow-lime-400/10 animate-in slide-in-from-top duration-500">
+               <div className="flex flex-col gap-4">
+                 <div className="flex items-center gap-4">
+                   <div className="size-12 bg-lime-400 rounded-xl flex items-center justify-center text-black animate-pulse shrink-0">
+                     <Timer size={24} strokeWidth={3} />
                    </div>
-                   <div>
-                     <div className="flex items-center gap-3 mb-2">
-                       <div className="size-3 bg-red-500 rounded-full animate-pulse" />
-                       <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-tight text-lime-400">Treino em Andamento</h3>
+                   <div className="min-w-0">
+                     <div className="flex items-center gap-2 mb-1">
+                       <div className="size-2 bg-red-500 rounded-full animate-pulse" />
+                       <h3 className="text-base md:text-xl font-black italic uppercase tracking-tight text-lime-400">Treino em Andamento</h3>
                      </div>
-                     <p className="text-zinc-400 font-bold">{activeSession.title}</p>
+                     <p className="text-zinc-400 font-bold text-sm truncate">{activeSession.title}</p>
                    </div>
                  </div>
-                 <div className="flex items-center gap-6">
+                 <div className="flex items-center justify-between gap-4">
                    <div className="text-center">
-                     <p className="text-[10px] font-black uppercase text-zinc-500 mb-1">Tempo Decorrido</p>
-                     <p className="text-4xl font-black italic text-lime-400 tracking-tighter">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</p>
+                     <p className="text-[9px] font-black uppercase text-zinc-500 mb-0.5">Tempo Decorrido</p>
+                     <p className="text-2xl md:text-3xl font-black italic text-lime-400 tracking-tighter">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</p>
                    </div>
                    <button 
                      onClick={() => setView('active-workout')} 
-                     className="bg-lime-400 hover:bg-lime-300 text-black px-8 py-4 rounded-2xl font-black uppercase text-sm flex items-center gap-3 shadow-xl transition-all hover:scale-105"
+                     className="bg-lime-400 active:bg-lime-300 text-black px-6 py-3.5 rounded-2xl font-black uppercase text-[11px] flex items-center gap-2 shadow-xl active:scale-95 transition-all"
                    >
-                     <Play size={20} fill="currentColor" />
+                     <Play size={16} fill="currentColor" />
                      Retornar
                    </button>
                  </div>
@@ -2589,33 +3133,33 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
              </div>
            )}
 
-           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+           <div className="grid grid-cols-3 gap-3">
              <StatCard label="Treinos" value={historicoTreinos.length || "0"} trend={historicoTreinos.length > 0 ? `+${historicoTreinos.length} essa semana` : "Sem dados"} color="text-lime-400" icon={Dumbbell} />
              <StatCard label="Calorias" value={historicoDietas.length > 0 ? "2450" : "0"} trend={historicoDietas.length > 0 ? "Na meta" : "Sem dados"} color="text-orange-400" icon={Flame} />
              <StatCard label="Peso" value={medicoes.length > 0 ? biometrics.weight : "0"} trend={medicoes.length > 0 ? "-1.2kg" : "Sem dados"} color="text-blue-400" icon={Scale} />
            </div>
            <section>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-3">
-                 <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter">Treino de Hoje</h3>
+              <div className="flex items-center justify-between mb-4 md:mb-6 gap-3">
+                 <h3 className="text-xl md:text-2xl lg:text-3xl font-black italic uppercase tracking-tighter">Treino de Hoje</h3>
                  <button 
                     onClick={() => setView('workouts')} 
-                    className="text-lime-400 hover:text-lime-300 font-black uppercase text-[10px] md:text-xs flex items-center gap-2"
+                    className="text-lime-400 active:text-lime-300 font-black uppercase text-[9px] md:text-[10px] flex items-center gap-1"
                  >
-                    Ver Todos <ChevronRight size={16}/>
+                    Ver Todos <ChevronRight size={14}/>
                  </button>
               </div>
               {todayWorkout ? (
                  <WorkoutDetailCard workout={todayWorkout} onStart={() => handleStartWorkout(todayWorkout)} />
               ) : (
-                 <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center">
-                    <div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700">
-                       <RotateCcw size={48} />
+                 <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-12 text-center">
+                    <div className="size-16 md:size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-6 text-zinc-700">
+                       <RotateCcw size={32} className="md:size-12" />
                     </div>
-                    <h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3>
-                    <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mb-6">Foque na recuperação</p>
+                    <h3 className="text-xl md:text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3>
+                    <p className="text-zinc-500 text-xs md:text-sm font-bold uppercase tracking-widest mb-6">Foque na recuperação</p>
                     <button 
                        onClick={() => setView('workouts')} 
-                       className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-xs"
+                       className="bg-lime-400 active:bg-lime-300 text-black px-6 py-3 rounded-xl font-black uppercase text-[10px] active:scale-95 transition-all"
                     >
                        Ver Outros Treinos
                     </button>
@@ -2653,7 +3197,8 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
          duration: '60 min',
          exercises: (treinoDodia.plano[diaSelecionado] || []).map((ex: any) => ({
            id: ex.id || `ex-${Date.now()}-${Math.random()}`, // Adicionar ID único se não existir
-           n: ex.nome,
+           nome: ex.nome || ex.exercicio,
+           n: ex.nome || ex.exercicio,
            s: ex.series,
            r: ex.repeticoes,
            w: ex.carga,
@@ -2695,8 +3240,20 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
              selectedDay={selectedDayWorkout} 
              setSelectedDay={setSelectedDayWorkout} 
              days={DAYS_SHORT}
+             headerButton={
+               <button
+                 onClick={() => { setIaType('treino'); setShowIAModal(true); }}
+                 className="w-full bg-lime-400 active:bg-lime-300 text-black px-4 py-3.5 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all"
+               >
+                 <Sparkles size={16} />
+                 Gerar Treino IA
+               </button>
+             }
            >
-             <WorkoutDetailCard workout={currentWorkout} onStart={() => handleStartWorkout(currentWorkout)} />
+             <WorkoutDetailCard 
+               workout={currentWorkout} 
+               onStart={() => handleStartWorkout(currentWorkout)}
+             />
            </CalendarBase>
          </>
        );
@@ -2705,15 +3262,38 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
        const diasSemanaDieta = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
        const diaSelecionadoDieta = diasSemanaDieta[selectedDayDiet];
        
+       console.log('🍎 DEBUG DIETA - Dia selecionado:', diaSelecionadoDieta);
+       console.log('🍎 DEBUG DIETA - Histórico completo:', historicoDietas);
+       
        const dietaDoDia = historicoDietas.find(d => {
-          return d && d.plano && d.plano[diaSelecionadoDieta] && d.plano[diaSelecionadoDieta].length > 0;
+          console.log('🍎 Verificando dieta:', d);
+          console.log('🍎 Plano da dieta:', d?.plano);
+          console.log('🍎 Dia específico:', d?.plano?.[diaSelecionadoDieta]);
+          return d && d.plano && d.plano[diaSelecionadoDieta] && Array.isArray(d.plano[diaSelecionadoDieta]) && d.plano[diaSelecionadoDieta].length > 0;
        });
        
-       const currentDiet = (dietaDoDia && dietaDoDia.plano && dietaDoDia.plano[diaSelecionadoDieta]) ? dietaDoDia.plano[diaSelecionadoDieta] : {
+       console.log('🍎 Dieta encontrada:', dietaDoDia);
+       
+       console.log('📊 ESTRUTURA ESPERADA:');
+       console.log('dietaDoDia.plano[diaSelecionado] deve ser um ARRAY como:');
+       console.log('[{ n: "Café da Manhã", t: "08:00", kcal: 500, items: [{ name: "Pão", kcal: 100 }] }]');
+       console.log('📊 ESTRUTURA RECEBIDA:');
+       console.log('Tipo:', typeof dietaDoDia?.plano?.[diaSelecionadoDieta]);
+       console.log('É Array?:', Array.isArray(dietaDoDia?.plano?.[diaSelecionadoDieta]));
+       console.log('Conteúdo:', dietaDoDia?.plano?.[diaSelecionadoDieta]);
+       
+       const currentDiet = (dietaDoDia && dietaDoDia.plano && dietaDoDia.plano[diaSelecionadoDieta]) ? {
+          meals: Array.isArray(dietaDoDia.plano[diaSelecionadoDieta]) ? dietaDoDia.plano[diaSelecionadoDieta] : [],
+          totalCalories: dietaDoDia.plano[diaSelecionadoDieta].reduce?.((acc: number, meal: any) => acc + (meal.kcal || 0), 0) || 0,
+          macros: dietaDoDia.plano.macros || { protein: 0, carbs: 0, fat: 0 }
+       } : {
           meals: [],
           totalCalories: 0,
           macros: { protein: 0, carbs: 0, fat: 0 }
        };
+       
+       console.log('🍎 CurrentDiet final:', currentDiet);
+       
        return (
          <CalendarBase 
            title="Nutrição" 
@@ -2721,8 +3301,23 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
            selectedDay={selectedDayDiet} 
            setSelectedDay={setSelectedDayDiet} 
            days={DAYS_SHORT}
+           headerButton={
+             <button
+               onClick={() => { setIaType('dieta'); setShowIAModal(true); }}
+               className="w-full bg-lime-400 active:bg-lime-300 text-black px-4 py-3.5 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all"
+             >
+               <Sparkles size={16} />
+               Gerar Dieta IA
+             </button>
+           }
          >
-           <NutritionView diet={currentDiet} dayIdx={selectedDayDiet} onGenerateDiet={(newDiet: any) => setDietPlans({...dietPlans, [`${1}_${selectedDayDiet}`]: newDiet})} />
+           <NutritionView 
+             diet={currentDiet} 
+             dayIdx={selectedDayDiet} 
+             onGenerateDiet={(newDiet: any) => setDietPlans({...dietPlans, [`${1}_${selectedDayDiet}`]: newDiet})}
+             user={user}
+             onReloadDietas={recarregarDietas}
+           />
          </CalendarBase>
        );
     case 'store':
@@ -2733,6 +3328,89 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
     default: return null;
           }
         })()}
+        
+        {/* Modal de Geração IA */}
+        {showIAModal && (
+          <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setShowIAModal(false)}>
+            <div className="bg-zinc-900 border-t-2 border-lime-400 sm:border sm:border-zinc-800 w-full max-w-xl rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-start mb-6 sm:mb-8">
+                <div className="flex-1">
+                  <h3 className="text-2xl sm:text-3xl font-black italic uppercase leading-tight text-white mb-1">
+                    {iaType === 'treino' ? '🏋️ Treino com IA' : '🥗 Dieta com IA'}
+                  </h3>
+                  <p className="text-xs text-zinc-500 font-medium">Personalizado para você</p>
+                </div>
+                <button onClick={() => setShowIAModal(false)} className="size-10 sm:size-11 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 active:bg-zinc-800 active:text-white transition-all shrink-0 ml-4">
+                  <X size={18} className="sm:size-5"/>
+                </button>
+              </div>
+              
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold text-zinc-300 block">🎯 Qual seu objetivo?</label>
+                  <input 
+                    type="text" 
+                    placeholder={iaType === 'treino' ? "Ex: Hipertrofia, Emagrecimento" : "Ex: Ganho de massa, Perda de peso"}
+                    value={iaConfig.objetivo} 
+                    onChange={e => setIaConfig({...iaConfig, objetivo: e.target.value})} 
+                    className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none focus:border-lime-400 active:border-lime-400 placeholder:text-zinc-600 transition-colors" 
+                  />
+                </div>
+                
+                {iaType === 'treino' && (
+                  <div className="space-y-2">
+                    <label className="text-xs sm:text-sm font-bold text-zinc-300 block">📅 Quantos dias por semana?</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[3, 4, 5, 6].map(dias => (
+                        <button
+                          key={dias}
+                          type="button"
+                          onClick={() => setIaConfig({...iaConfig, diasTreino: dias})}
+                          className={`py-4 rounded-xl font-black text-base transition-all ${
+                            iaConfig.diasTreino === dias
+                              ? 'bg-lime-400 text-black shadow-lg shadow-lime-400/20'
+                              : 'bg-zinc-950 border-2 border-zinc-800 text-zinc-400 active:bg-zinc-900'
+                          }`}
+                        >
+                          {dias}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  <label className="text-xs sm:text-sm font-bold text-zinc-300 block">⚠️ Restrições <span className="text-zinc-600 font-normal">(opcional)</span></label>
+                  <textarea 
+                    rows={3}
+                    placeholder={iaType === 'treino' ? "Ex: Sem agachamento, lesão no joelho direito" : "Ex: Sem glúten, vegetariano"}
+                    value={iaConfig.restricoes} 
+                    onChange={e => setIaConfig({...iaConfig, restricoes: e.target.value})} 
+                    className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none focus:border-lime-400 active:border-lime-400 placeholder:text-zinc-600 transition-colors resize-none" 
+                  />
+                </div>
+                
+                <button 
+                  onClick={iaType === 'treino' ? gerarTreinoComIA : gerarDietaComIA} 
+                  disabled={isGeneratingIA || !iaConfig.objetivo} 
+                  className="w-full bg-lime-400 text-black py-5 rounded-2xl font-black uppercase tracking-widest text-sm sm:text-base shadow-2xl shadow-lime-400/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-6"
+                >
+                  {isGeneratingIA ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin"/> 
+                      <span>Gerando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={20} className="animate-pulse"/> 
+                      <span>Gerar {iaType === 'treino' ? 'Treino' : 'Dieta'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
@@ -3808,11 +4486,20 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
             })));
             
             // Formatar dietas
-            const dietasFormatadas = dietas.map((dieta: any) => ({
-               id: dieta.id,
-               titulo: dieta.titulo,
-               plano: typeof dieta.conteudo === 'object' ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || '{}')
-            }));
+            console.log('📥 Dietas recebidas do aluno (nutricionista):', dietas);
+            const dietasFormatadas = dietas.map((dieta: any) => {
+               console.log('🥗 Processando dieta:', dieta);
+               // As dietas vêm da tabela Relatorio com estrutura: dados: { titulo, refeicoes, ... }
+               const plano = dieta.dados?.refeicoes || dieta.conteudo?.refeicoes || {};
+               console.log('🥗 Plano extraído:', plano);
+               return {
+                  id: dieta.id,
+                  titulo: dieta.dados?.titulo || dieta.titulo || 'Dieta',
+                  alunoId: selectedStudent.id,
+                  plano: plano
+               };
+            });
+            console.log('✅ Dietas formatadas (nutricionista):', dietasFormatadas);
             setHistoricoDietas(dietasFormatadas);
             
          } catch (error) {
@@ -4017,7 +4704,7 @@ const NutriModule = ({ view, students, setView, user, academia }: any) => {
                      
                      // Pegar dieta mais recente para este dia
                      const dietaMaisRecente = historicoDietas.find(d => 
-                        d && d.plano && d.plano[diaNome] && d.plano[diaNome].length > 0
+                        d && d.plano && d.plano[diaNome] && Array.isArray(d.plano[diaNome]) && d.plano[diaNome].length > 0
                      );
                      
                      const diet = (dietaMaisRecente && dietaMaisRecente.plano) ? {
@@ -4728,7 +5415,41 @@ const AdminModule = ({ view, user, academia }: any) => {
       objetivo: '',
       nivel: '',
       restricoes: '',
-      diasTreino: 3
+      diasTreino: 3,
+      selectedDays: [] as string[]
+   });
+   const [historicoAbaAtiva, setHistoricoAbaAtiva] = useState<'treinos' | 'dietas'>('treinos');
+   const [showEvolucaoModal, setShowEvolucaoModal] = useState(false);
+   const [showFotosModal, setShowFotosModal] = useState(false);
+   const [medicoesAluno, setMedicoesAluno] = useState<any[]>([]);
+   const [fotosAluno, setFotosAluno] = useState<any[]>([]);
+   const [pagamentos, setPagamentos] = useState<any[]>([]);
+   const [showAddPagamentoModal, setShowAddPagamentoModal] = useState(false);
+   const [showGerarMensalidadesModal, setShowGerarMensalidadesModal] = useState(false);
+   const [pagamentoForm, setPagamentoForm] = useState({
+      usuarioId: '',
+      valor: '',
+      mesReferencia: '',
+      dataVencimento: '',
+      observacoes: ''
+   });
+   const [mensalidadeForm, setMensalidadeForm] = useState({
+      mesReferencia: '',
+      valor: '',
+      diaVencimento: '10'
+   });
+   const [produtos, setProdutos] = useState<any[]>([]);
+   const [showAddProdutoModal, setShowAddProdutoModal] = useState(false);
+   const [showEditProdutoModal, setShowEditProdutoModal] = useState(false);
+   const [selectedProduto, setSelectedProduto] = useState<any>(null);
+   const [produtoForm, setProdutoForm] = useState({
+      nome: '',
+      categoria: 'suplementos',
+      preco: '',
+      estoque: '0',
+      estoqueMinimo: '10',
+      descricao: '',
+      urlImagem: ''
    });
    const [financialData, setFinancialData] = useState({
       revenue: 0,
@@ -4863,6 +5584,328 @@ const AdminModule = ({ view, user, academia }: any) => {
       }
    }, [selectedStudent]);
 
+   const carregarEvolucaoAluno = async () => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token || !selectedStudent) return;
+
+      try {
+         const medicoes = await carregarMedicoes(token, selectedStudent.id);
+         setMedicoesAluno(medicoes);
+         setShowEvolucaoModal(true);
+      } catch (error) {
+         console.error('Erro ao carregar evolução:', error);
+         alert('Erro ao carregar dados de evolução');
+      }
+   };
+
+   const carregarFotosProgressoAluno = async () => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token || !selectedStudent) return;
+
+      try {
+         const fotos = await carregarFotosProgresso(token, selectedStudent.id);
+         setFotosAluno(fotos);
+         setShowFotosModal(true);
+      } catch (error) {
+         console.error('Erro ao carregar fotos:', error);
+         alert('Erro ao carregar fotos de progresso');
+      }
+   };
+
+   const calcularEstatisticas = () => {
+      if (!selectedStudent || !historicoTreinos) {
+         return { totalTreinos: 0, frequencia: 0, evolucaoPeso: '-' };
+      }
+
+      // Total de treinos no último mês
+      const hoje = new Date();
+      const umMesAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const treinosUltimoMes = historicoTreinos.filter((t: any) => 
+         new Date(t.data) >= umMesAtras
+      ).length;
+
+      // Frequência (treinos por semana)
+      const frequencia = treinosUltimoMes > 0 
+         ? Math.round((treinosUltimoMes / 4) * 10) / 10 
+         : 0;
+
+      // Evolução de peso (se houver medições)
+      let evolucaoPeso = '-';
+      if (medicoesAluno.length >= 2) {
+         const medicoesOrdenadas = [...medicoesAluno].sort((a, b) => 
+            new Date(a.data).getTime() - new Date(b.data).getTime()
+         );
+         const primeira = medicoesOrdenadas[0];
+         const ultima = medicoesOrdenadas[medicoesOrdenadas.length - 1];
+         
+         if (primeira.peso && ultima.peso) {
+            const diff = ultima.peso - primeira.peso;
+            evolucaoPeso = diff > 0 ? `+${diff.toFixed(1)}kg` : `${diff.toFixed(1)}kg`;
+         }
+      }
+
+      return { 
+         totalTreinos: treinosUltimoMes, 
+         frequencia: `${frequencia}x/sem`,
+         evolucaoPeso 
+      };
+   };
+
+   const carregarPagamentos = async (filtros?: { usuarioId?: string; mesReferencia?: string; status?: string }) => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const params = new URLSearchParams();
+         if (filtros?.usuarioId) params.append('usuarioId', filtros.usuarioId);
+         if (filtros?.mesReferencia) params.append('mesReferencia', filtros.mesReferencia);
+         if (filtros?.status) params.append('status', filtros.status);
+         
+         const response = await fetch(`/api/pagamentos?${params.toString()}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+         });
+         
+         if (response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+               const dados = await response.json();
+               setPagamentos(dados);
+            } else {
+               console.error('Servidor não retornou JSON. Verifique se o backend está rodando.');
+               setPagamentos([]);
+            }
+         } else {
+            console.error('Erro ao carregar pagamentos:', response.status);
+            setPagamentos([]);
+         }
+      } catch (error) {
+         console.error('Erro ao carregar pagamentos:', error);
+         setPagamentos([]);
+      }
+   };
+
+   const criarPagamento = async () => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const response = await fetch('/api/pagamentos', {
+            method: 'POST',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(pagamentoForm)
+         });
+
+         if (response.ok) {
+            alert('Pagamento criado com sucesso!');
+            setShowAddPagamentoModal(false);
+            setPagamentoForm({ usuarioId: '', valor: '', mesReferencia: '', dataVencimento: '', observacoes: '' });
+            await carregarPagamentos();
+         } else {
+            alert('Erro ao criar pagamento');
+         }
+      } catch (error) {
+         console.error('Erro ao criar pagamento:', error);
+         alert('Erro ao criar pagamento');
+      }
+   };
+
+   const atualizarStatusPagamento = async (pagamentoId: string, novoStatus: string) => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const data: any = { status: novoStatus };
+         if (novoStatus === 'PAGO') {
+            data.dataPagamento = new Date().toISOString();
+         }
+
+         const response = await fetch(`/api/pagamentos/${pagamentoId}`, {
+            method: 'PUT',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+         });
+
+         if (response.ok) {
+            alert('Status atualizado com sucesso!');
+            await carregarPagamentos();
+         } else {
+            alert('Erro ao atualizar status');
+         }
+      } catch (error) {
+         console.error('Erro ao atualizar status:', error);
+         alert('Erro ao atualizar status');
+      }
+   };
+
+   const gerarMensalidadesAutomaticas = async () => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const response = await fetch('/api/pagamentos/gerar-mensalidades', {
+            method: 'POST',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(mensalidadeForm)
+         });
+
+         if (response.ok) {
+            const data = await response.json();
+            alert(data.mensagem);
+            setShowGerarMensalidadesModal(false);
+            setMensalidadeForm({ mesReferencia: '', valor: '', diaVencimento: '10' });
+            await carregarPagamentos();
+         } else {
+            alert('Erro ao gerar mensalidades');
+         }
+      } catch (error) {
+         console.error('Erro ao gerar mensalidades:', error);
+         alert('Erro ao gerar mensalidades');
+      }
+   };
+
+   const carregarProdutos = async () => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const response = await fetch('/api/produtos', {
+            headers: { 'Authorization': `Bearer ${token}` }
+         });
+         
+         if (response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+               const dados = await response.json();
+               setProdutos(dados);
+            } else {
+               console.error('Servidor não retornou JSON. Verifique se o backend está rodando.');
+               setProdutos([]);
+            }
+         } else {
+            console.error('Erro ao carregar produtos:', response.status);
+            setProdutos([]);
+         }
+      } catch (error) {
+         console.error('Erro ao carregar produtos:', error);
+         setProdutos([]);
+      }
+   };
+
+   const criarProduto = async () => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const response = await fetch('/api/produtos', {
+            method: 'POST',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(produtoForm)
+         });
+
+         if (response.ok) {
+            alert('Produto criado com sucesso!');
+            setShowAddProdutoModal(false);
+            setProdutoForm({ nome: '', categoria: 'suplementos', preco: '', estoque: '0', estoqueMinimo: '10', descricao: '', urlImagem: '' });
+            await carregarProdutos();
+         } else {
+            alert('Erro ao criar produto');
+         }
+      } catch (error) {
+         console.error('Erro ao criar produto:', error);
+         alert('Erro ao criar produto');
+      }
+   };
+
+   const atualizarProduto = async () => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token || !selectedProduto) return;
+
+      try {
+         const response = await fetch(`/api/produtos/${selectedProduto.id}`, {
+            method: 'PUT',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(produtoForm)
+         });
+
+         if (response.ok) {
+            alert('Produto atualizado com sucesso!');
+            setShowEditProdutoModal(false);
+            setSelectedProduto(null);
+            setProdutoForm({ nome: '', categoria: 'suplementos', preco: '', estoque: '0', estoqueMinimo: '10', descricao: '', urlImagem: '' });
+            await carregarProdutos();
+         } else {
+            alert('Erro ao atualizar produto');
+         }
+      } catch (error) {
+         console.error('Erro ao atualizar produto:', error);
+         alert('Erro ao atualizar produto');
+      }
+   };
+
+   const deletarProduto = async (produtoId: string) => {
+      if (!confirm('Deseja realmente deletar este produto?')) return;
+
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const response = await fetch(`/api/produtos/${produtoId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+         });
+
+         if (response.ok) {
+            alert('Produto deletado com sucesso!');
+            await carregarProdutos();
+         } else {
+            alert('Erro ao deletar produto');
+         }
+      } catch (error) {
+         console.error('Erro ao deletar produto:', error);
+         alert('Erro ao deletar produto');
+      }
+   };
+
+   const ajustarEstoque = async (produtoId: string, quantidade: number, operacao: 'adicionar' | 'remover') => {
+      const token = localStorage.getItem('fitness_token');
+      if (!token) return;
+
+      try {
+         const response = await fetch(`/api/produtos/${produtoId}/ajustar-estoque`, {
+            method: 'POST',
+            headers: {
+               'Authorization': `Bearer ${token}`,
+               'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantidade, operacao })
+         });
+
+         if (response.ok) {
+            await carregarProdutos();
+         } else {
+            alert('Erro ao ajustar estoque');
+         }
+      } catch (error) {
+         console.error('Erro ao ajustar estoque:', error);
+         alert('Erro ao ajustar estoque');
+      }
+   };
+
    const carregarHistoricos = async () => {
       const token = localStorage.getItem('fitness_token');
       if (!token || !selectedStudent) return;
@@ -4893,15 +5936,23 @@ const AdminModule = ({ view, user, academia }: any) => {
          console.log('✅ Treinos formatados:', treinosFormatados);
 
          // Adaptar dietas para o formato esperado - com verificação
-         const dietasFormatadas = Array.isArray(dietas) ? dietas.map((dieta: any) => ({
-            id: dieta.id,
-            titulo: dieta.titulo,
-            alunoId: selectedStudent.id,
-            alunoNome: selectedStudent.nome,
-            data: new Date(dieta.criadoEm).toLocaleDateString('pt-BR'),
-            plano: typeof dieta.conteudo === 'object' ? dieta.conteudo.refeicoes : JSON.parse(dieta.conteudo || '{}'),
-            tipo: dieta.conteudo?.origem === 'IA' ? 'ia' : 'manual'
-         })) : [];
+         console.log('📥 Dietas recebidas:', dietas);
+         const dietasFormatadas = Array.isArray(dietas) ? dietas.map((dieta: any) => {
+            console.log('🍎 Processando dieta:', dieta);
+            const plano = dieta.dados?.refeicoes || dieta.conteudo?.refeicoes || {};
+            console.log('🍎 Plano extraído:', plano);
+            return {
+               id: dieta.id,
+               titulo: dieta.dados?.titulo || dieta.titulo || 'Dieta',
+               alunoId: selectedStudent.id,
+               alunoNome: selectedStudent.nome,
+               data: new Date(dieta.criadoEm).toLocaleDateString('pt-BR'),
+               plano: plano,
+               tipo: (dieta.dados?.origem || dieta.conteudo?.origem) === 'IA' ? 'ia' : 'manual'
+            };
+         }) : [];
+
+         console.log('✅ Dietas formatadas:', dietasFormatadas);
 
          setHistoricoTreinos(treinosFormatados);
          setHistoricoDietas(dietasFormatadas);
@@ -5262,19 +6313,25 @@ Perfil do Aluno:
 - Objetivo: ${iaConfig.objetivo}
 - Nível: ${iaConfig.nivel}
 - Restrições: ${iaConfig.restricoes || 'Nenhuma'}
+${iaConfig.selectedDays.length > 0 ? `- Dias de treino: ${iaConfig.selectedDays.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ')}` : ''}
 
 IMPORTANTE: 
 ${iaConfig.diasTreino === 7 ? 
   `- Distribua exercícios em TODOS os 7 dias (segunda, terça, quarta, quinta, sexta, sábado, domingo)
 - Para fins de semana (sábado/domingo), inclua treinos mais leves ou diferentes grupos musculares` :
+  iaConfig.selectedDays.length > 0 ?
+  `- Crie exercícios APENAS para os dias especificados: ${iaConfig.selectedDays.join(', ')}
+- Deixe os outros dias com arrays vazios []` :
   `- Distribua os exercícios estrategicamente em ${iaConfig.diasTreino} dos 7 dias da semana
 - Deixe os outros dias com arrays vazios [] para descanso`
 }
 
+- Para CADA exercício, adicione uma URL de vídeo do YouTube mostrando a execução correta (procure por canais confiáveis de educação física)
+
 Retorne APENAS um JSON válido no formato:
 {
   "titulo": "Nome do plano (${iaConfig.diasTreino} dias)",
-  "segunda": [{"nome": "Exercício", "series": "3", "repeticoes": "12", "carga": "Moderada", "descanso": "90s"}],
+  "segunda": [{"nome": "Exercício", "series": "3", "repeticoes": "12", "carga": "Moderada", "descanso": "90s", "videoUrl": "https://youtube.com/watch?v=..."}],
   "terca": [],
   "quarta": [],
   "quinta": [],
@@ -5285,9 +6342,12 @@ Retorne APENAS um JSON válido no formato:
 
 ${iaConfig.diasTreino === 7 ? 
   'CERTIFIQUE-SE de incluir exercícios em TODOS os 7 dias! Sábado e domingo NÃO devem ficar vazios!' :
+  iaConfig.selectedDays.length > 0 ?
+  `Distribua os exercícios APENAS nos dias: ${iaConfig.selectedDays.join(', ')}.` :
   `Distribua os exercícios nos ${iaConfig.diasTreino} dias solicitados, deixando os outros dias vazios [].`
 }
 
+OBRIGATÓRIO: Todos os exercícios devem incluir videoUrl com links válidos do YouTube para demonstração da técnica correta.
 Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos para fins de semana!' : ''}`;
 
          const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
@@ -5335,7 +6395,7 @@ Seja específico e profissional. ${iaConfig.diasTreino >= 6 ? 'Inclua treinos pa
             }
             
             setShowIAConfigModal(false);
-            setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
+            setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3, selectedDays: [] });
             alert('Treino gerado com sucesso pela IA!');
          } else {
             throw new Error('Formato de resposta inválido');
@@ -5407,11 +6467,11 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   // Atualizar estado local com a dieta salva
                   const novaDieta = {
                      id: dietaSalva.id,
-                     titulo: dietaSalva.titulo,
+                     titulo: dietaSalva.dados?.titulo || planoGerado.titulo,
                      alunoId: selectedStudent.id,
                      alunoNome: selectedStudent.nome,
                      data: new Date(dietaSalva.criadoEm).toLocaleDateString('pt-BR'),
-                     plano: dietaSalva.conteudo.refeicoes,
+                     plano: dietaSalva.dados?.refeicoes || planoGerado,
                      tipo: 'ia'
                   };
                   setHistoricoDietas(prev => [novaDieta, ...prev]);
@@ -5435,9 +6495,18 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
    useEffect(() => {
       if (tab === 'dashboard') {
          carregarEstatisticas();
+         carregarAlunos();
+         carregarPagamentos();
+         carregarProdutos();
       }
       if (tab === 'alunos') {
          carregarAlunos();
+      }
+      if (tab === 'financeiro' || tab === 'financial') {
+         carregarPagamentos();
+      }
+      if (tab === 'estoque' || tab === 'stock') {
+         carregarProdutos();
       }
       if (tab === 'equipe') {
          carregarFuncionarios();
@@ -5716,9 +6785,17 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  onClick={() => setSelectedStudent(aluno)}
                               >
                                  <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-lime-400 to-lime-600 flex items-center justify-center text-black font-black text-2xl">
-                                       {aluno.nome.charAt(0).toUpperCase()}
-                                    </div>
+                                    {aluno.imagemPerfil ? (
+                                       <img 
+                                          src={aluno.imagemPerfil} 
+                                          alt={aluno.nome}
+                                          className="w-16 h-16 rounded-full object-cover border-2 border-lime-400/30"
+                                       />
+                                    ) : (
+                                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-lime-400 to-lime-600 flex items-center justify-center text-black font-black text-2xl">
+                                          {aluno.nome.charAt(0).toUpperCase()}
+                                       </div>
+                                    )}
                                     <div className="flex-1">
                                        <h3 className="font-black text-lg group-hover:text-lime-400 transition-colors">
                                           {aluno.nome}
@@ -5793,6 +6870,83 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  <User size={20} className="text-lime-400" />
                                  Dados Pessoais
                               </h3>
+                              
+                              {/* Foto do Aluno */}
+                              <div className="mb-6 flex flex-col items-center">
+                                 <div className="relative group">
+                                    {selectedStudent.imagemPerfil ? (
+                                       <img 
+                                          src={selectedStudent.imagemPerfil} 
+                                          alt={selectedStudent.nome}
+                                          className="size-32 rounded-2xl object-cover border-2 border-lime-400/30"
+                                       />
+                                    ) : (
+                                       <div className="size-32 rounded-2xl bg-gradient-to-br from-lime-400 to-green-500 flex items-center justify-center border-2 border-lime-400/30">
+                                          <span className="text-5xl font-black text-black">
+                                             {selectedStudent.nome.charAt(0).toUpperCase()}
+                                          </span>
+                                       </div>
+                                    )}
+                                    <label 
+                                       htmlFor="upload-foto-aluno"
+                                       className="absolute inset-0 bg-black/60 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                    >
+                                       <Camera className="text-white" size={24} />
+                                    </label>
+                                    <input 
+                                       id="upload-foto-aluno"
+                                       type="file"
+                                       accept="image/*"
+                                       className="hidden"
+                                       onChange={async (e) => {
+                                          const file = e.target.files?.[0];
+                                          if (file) {
+                                             // Validar tamanho (máx 5MB)
+                                             if (file.size > 5 * 1024 * 1024) {
+                                                alert('Imagem muito grande! Máximo 5MB');
+                                                return;
+                                             }
+                                             
+                                             // Converter para base64
+                                             const reader = new FileReader();
+                                             reader.onloadend = async () => {
+                                                try {
+                                                   const base64 = reader.result as string;
+                                                   const token = localStorage.getItem('fitness_token');
+                                                   
+                                                   const response = await fetch('/api/usuarios/foto', {
+                                                      method: 'POST',
+                                                      headers: { 
+                                                         'Authorization': `Bearer ${token}`,
+                                                         'Content-Type': 'application/json'
+                                                      },
+                                                      body: JSON.stringify({
+                                                         usuarioId: selectedStudent.id,
+                                                         foto: base64
+                                                      })
+                                                   });
+                                                   
+                                                   if (response.ok) {
+                                                      const data = await response.json();
+                                                      setSelectedStudent({ ...selectedStudent, imagemPerfil: data.imagemPerfil });
+                                                      await carregarAlunos();
+                                                      alert('Foto atualizada com sucesso!');
+                                                   } else {
+                                                      alert('Erro ao fazer upload da foto');
+                                                   }
+                                                } catch (error) {
+                                                   console.error('Erro no upload:', error);
+                                                   alert('Erro ao fazer upload da foto');
+                                                }
+                                             };
+                                             reader.readAsDataURL(file);
+                                          }
+                                       }}
+                                    />
+                                 </div>
+                                 <p className="text-xs text-zinc-500 mt-2 text-center">Clique na foto para alterar</p>
+                              </div>
+
                               <div className="space-y-3">
                                  <div>
                                     <p className="text-xs text-zinc-500 font-bold uppercase">Email</p>
@@ -5849,12 +7003,14 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     Prescrever Dieta
                                  </button>
                                  <button
+                                    onClick={carregarEvolucaoAluno}
                                     className="w-full bg-purple-500/20 text-purple-400 py-3 rounded-xl text-sm font-black uppercase hover:bg-purple-500/30 transition-colors flex items-center justify-center gap-2"
                                  >
                                     <TrendingUp size={16} />
                                     Ver Evolução
                                  </button>
                                  <button
+                                    onClick={carregarFotosProgressoAluno}
                                     className="w-full bg-orange-500/20 text-orange-400 py-3 rounded-xl text-sm font-black uppercase hover:bg-orange-500/30 transition-colors flex items-center justify-center gap-2"
                                  >
                                     <Camera size={16} />
@@ -5873,109 +7029,432 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  <div>
                                     <div className="flex justify-between items-baseline mb-1">
                                        <p className="text-xs text-zinc-500 font-bold uppercase">Treinos</p>
-                                       <p className="text-2xl font-black text-lime-400">0</p>
+                                       <p className="text-2xl font-black text-lime-400">{calcularEstatisticas().totalTreinos}</p>
                                     </div>
                                     <p className="text-[10px] text-zinc-600">Último mês</p>
                                  </div>
                                  <div>
                                     <div className="flex justify-between items-baseline mb-1">
                                        <p className="text-xs text-zinc-500 font-bold uppercase">Frequência</p>
-                                       <p className="text-2xl font-black text-blue-400">-</p>
+                                       <p className="text-2xl font-black text-blue-400">{calcularEstatisticas().frequencia}</p>
                                     </div>
-                                    <p className="text-[10px] text-zinc-600">Sem dados ainda</p>
+                                    <p className="text-[10px] text-zinc-600">Treinos por semana</p>
                                  </div>
                                  <div>
                                     <div className="flex justify-between items-baseline mb-1">
-                                       <p className="text-xs text-zinc-500 font-bold uppercase">Evolução</p>
-                                       <p className="text-2xl font-black text-green-400">-</p>
+                                       <p className="text-xs text-zinc-500 font-bold uppercase">Evolução Peso</p>
+                                       <p className={`text-2xl font-black ${
+                                          calcularEstatisticas().evolucaoPeso.startsWith('+') ? 'text-orange-400' : 
+                                          calcularEstatisticas().evolucaoPeso.startsWith('-') ? 'text-green-400' : 'text-zinc-400'
+                                       }`}>
+                                          {calcularEstatisticas().evolucaoPeso}
+                                       </p>
                                     </div>
-                                    <p className="text-[10px] text-zinc-600">Sem dados ainda</p>
+                                    <p className="text-[10px] text-zinc-600">
+                                       {medicoesAluno.length >= 2 ? 'Desde primeira medição' : 'Sem dados ainda'}
+                                    </p>
                                  </div>
                               </div>
                            </div>
                         </div>
 
-                        {/* Histórico de Treinos */}
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
-                           <h3 className="text-xl font-black italic uppercase mb-6">Histórico de Treinos</h3>
-                           {historicoTreinos.filter(t => t.alunoId === selectedStudent?.id).length === 0 ? (
-                              <div className="flex flex-col items-center justify-center py-12 text-center">
-                                 <Dumbbell className="w-16 h-16 text-zinc-700 mb-4" />
-                                 <h4 className="text-lg font-black text-zinc-400 mb-2">Nenhum treino registrado</h4>
-                                 <p className="text-sm text-zinc-500 max-w-sm">
-                                    Este aluno ainda não possui histórico de treinos. Prescreva um treino para começar!
+                        {/* Histórico com Abas: Treinos / Dietas */}
+                        <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-8 shadow-2xl">
+                           {/* Abas */}
+                           <div className="flex items-center gap-4 mb-8">
+                              <button
+                                 onClick={() => setHistoricoAbaAtiva('treinos')}
+                                 className={`flex items-center gap-3 px-6 py-4 rounded-xl font-black uppercase text-sm transition-all ${
+                                    historicoAbaAtiva === 'treinos'
+                                       ? 'bg-gradient-to-br from-lime-400 to-lime-500 text-black shadow-lg shadow-lime-400/20'
+                                       : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300'
+                                 }`}
+                              >
+                                 <Dumbbell className="w-5 h-5" />
+                                 <span>Treinos ({historicoTreinos.filter(t => t.alunoId === selectedStudent?.id).length})</span>
+                              </button>
+                              <button
+                                 onClick={() => setHistoricoAbaAtiva('dietas')}
+                                 className={`flex items-center gap-3 px-6 py-4 rounded-xl font-black uppercase text-sm transition-all ${
+                                    historicoAbaAtiva === 'dietas'
+                                       ? 'bg-gradient-to-br from-orange-400 to-orange-500 text-black shadow-lg shadow-orange-400/20'
+                                       : 'bg-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300'
+                                 }`}
+                              >
+                                 <Apple className="w-5 h-5" />
+                                 <span>Dietas ({historicoDietas.filter(d => d.alunoId === selectedStudent?.id).length})</span>
+                              </button>
+                           </div>
+
+                           {/* Conteúdo baseado na aba ativa */}
+                           {historicoAbaAtiva === 'treinos' ? (
+                              <>
+                                 <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                       <h3 className="text-2xl font-black italic uppercase tracking-tight">Histórico de Treinos</h3>
+                                       <p className="text-sm text-zinc-500 font-bold">
+                                          {historicoTreinos.filter(t => t.alunoId === selectedStudent?.id).length} treino(s) prescrito(s)
+                                       </p>
+                                    </div>
+                                    <button
+                                       onClick={() => prescrever(selectedStudent, 'treino')}
+                                       className="bg-lime-400 hover:bg-lime-500 text-black px-6 py-3 rounded-xl font-black uppercase text-sm transition-all flex items-center gap-2 shadow-lg shadow-lime-400/20 hover:scale-105"
+                                    >
+                                       <Plus size={18} />
+                                       Novo Treino
+                                    </button>
+                                 </div>
+                           
+                                 {historicoTreinos.filter(t => t.alunoId === selectedStudent?.id).length === 0 ? (
+                              <div className="flex flex-col items-center justify-center py-16 text-center bg-zinc-900/50 rounded-2xl border-2 border-dashed border-zinc-800">
+                                 <div className="bg-zinc-800/50 p-6 rounded-full mb-6">
+                                    <Dumbbell className="w-16 h-16 text-zinc-600" />
+                                 </div>
+                                 <h4 className="text-xl font-black text-zinc-400 mb-2">Nenhum treino prescrito ainda</h4>
+                                 <p className="text-sm text-zinc-500 max-w-md mb-6">
+                                    Comece a jornada deste aluno criando o primeiro plano de treino personalizado.
                                  </p>
                                  <button
                                     onClick={() => prescrever(selectedStudent, 'treino')}
-                                    className="mt-6 bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase hover:bg-lime-300 transition-colors flex items-center gap-2"
+                                    className="bg-lime-400 hover:bg-lime-500 text-black px-8 py-4 rounded-xl font-black uppercase transition-all flex items-center gap-2 shadow-xl shadow-lime-400/20 hover:scale-105"
                                  >
-                                    <Plus size={18} />
+                                    <Plus size={20} />
                                     Prescrever Primeiro Treino
                                  </button>
                               </div>
                            ) : (
-                              <div className="space-y-4">
+                              <div className="space-y-6">
                                  {historicoTreinos
                                     .filter(t => t.alunoId === selectedStudent?.id)
-                                    .map((treino, index) => (
-                                       <div key={treino.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors">
-                                          <div className="flex justify-between items-start mb-4">
-                                             <div className="flex-1">
-                                                <h4 className="font-black italic uppercase text-lg text-lime-400">{treino.titulo}</h4>
-                                                <div className="flex items-center gap-4 mt-2">
-                                                   <p className="text-xs text-zinc-500 font-bold uppercase">📅 {treino.data}</p>
-                                                   <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                                                      treino.tipo === 'ia' ? 'bg-purple-500/20 text-purple-400' : 'bg-blue-500/20 text-blue-400'
-                                                   }`}>
-                                                      {treino.tipo === 'ia' ? '🤖 IA' : '✋ Manual'}
-                                                   </span>
-                                                </div>
-                                             </div>
-                                             
-                                             <div className="flex items-center gap-4">
-                                                <div className="text-right">
-                                                   <p className="text-[10px] text-zinc-600 uppercase font-bold">Exercícios</p>
-                                                   <p className="text-xl font-black text-white">
-                                                      {Object.values(treino.plano)
-                                                         .filter((dia: any) => Array.isArray(dia))
-                                                         .reduce((total: number, dia: any) => total + dia.length, 0)}
-                                                   </p>
-                                                </div>
-                                                <button
-                                                   onClick={() => abrirModalEdicaoTreino(treino)}
-                                                   className="bg-blue-500 hover:bg-blue-600 p-3 rounded-xl transition-colors"
-                                                   title="Editar Treino"
-                                                >
-                                                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                   </svg>
-                                                </button>
-                                             </div>
-                                          </div>
-                                          
-                                          <div className="grid grid-cols-7 gap-2">
-                                             {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
-                                                const exercicios = treino.plano[dia] || [];
-                                                return (
-                                                   <div key={dia} className="text-center">
-                                                      <p className="text-[10px] text-zinc-500 font-bold uppercase mb-1">
-                                                         {dia.substring(0, 3)}
-                                                      </p>
-                                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black ${
-                                                         exercicios.length > 0 
-                                                            ? 'bg-lime-400 text-black' 
-                                                            : 'bg-zinc-800 text-zinc-600'
-                                                      }`}>
-                                                         {exercicios.length}
+                                    .map((treino) => {
+                                       return (
+                                          <div key={treino.id} className="bg-zinc-900/50 border-2 border-zinc-800 rounded-2xl overflow-hidden hover:border-lime-400/30 transition-all">
+                                             {/* Header */}
+                                             <div className="bg-gradient-to-r from-lime-400/10 to-lime-500/10 border-b border-zinc-800 p-6">
+                                                <div className="flex justify-between items-start">
+                                                   <div>
+                                                      <div className="flex items-center gap-3 mb-2">
+                                                         <h4 className="font-black italic uppercase text-2xl text-lime-400">
+                                                            {treino.titulo}
+                                                         </h4>
+                                                         <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                            treino.tipo === 'ia' 
+                                                               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                                                               : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
+                                                         }`}>
+                                                            {treino.tipo === 'ia' ? '✨ IA' : '✋ Manual'}
+                                                         </span>
                                                       </div>
+                                                      <p className="text-sm text-zinc-500">
+                                                         Criado em {treino.data}
+                                                      </p>
                                                    </div>
-                                                );
-                                             })}
+                                                   <div className="flex items-center gap-2">
+                                                      <button
+                                                         onClick={() => abrirModalEdicaoTreino(treino)}
+                                                         className="bg-blue-500 hover:bg-blue-600 p-3 rounded-xl transition-all hover:scale-105"
+                                                         title="Editar Treino"
+                                                      >
+                                                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                         </svg>
+                                                      </button>
+                                                      <button
+                                                         onClick={async () => {
+                                                            if (confirm('Tem certeza que deseja remover este treino?')) {
+                                                               const token = localStorage.getItem('fitness_token');
+                                                               if (token) {
+                                                                  const sucesso = await removerTreino(token, treino.id);
+                                                                  if (sucesso) {
+                                                                     setHistoricoTreinos(prev => prev.filter(t => t.id !== treino.id));
+                                                                     alert('Treino removido com sucesso!');
+                                                                  } else {
+                                                                     alert('Erro ao remover treino. Tente novamente.');
+                                                                  }
+                                                               }
+                                                            }
+                                                         }}
+                                                         className="bg-red-500 hover:bg-red-600 p-3 rounded-xl transition-all hover:scale-105"
+                                                         title="Remover Treino"
+                                                      >
+                                                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                         </svg>
+                                                      </button>
+                                                   </div>
+                                                </div>
+                                             </div>
+
+                                             {/* Dias da Semana com Exercícios */}
+                                             <div className="p-6 space-y-4">
+                                                {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
+                                                   const exercicios = treino.plano[dia] || [];
+                                                   const diasNomes = {
+                                                      segunda: 'Segunda-feira',
+                                                      terca: 'Terça-feira',
+                                                      quarta: 'Quarta-feira',
+                                                      quinta: 'Quinta-feira',
+                                                      sexta: 'Sexta-feira',
+                                                      sabado: 'Sábado',
+                                                      domingo: 'Domingo'
+                                                   };
+
+                                                   if (exercicios.length === 0) return null;
+
+                                                   return (
+                                                      <div key={dia} className="bg-zinc-950/50 rounded-xl p-5 border border-zinc-800">
+                                                         <div className="flex items-center gap-3 mb-4">
+                                                            <div className="bg-lime-400 p-2 rounded-lg">
+                                                               <Dumbbell className="w-4 h-4 text-black" />
+                                                            </div>
+                                                            <h5 className="font-black uppercase text-lg text-white">
+                                                               {diasNomes[dia]}
+                                                            </h5>
+                                                            <span className="ml-auto text-xs text-zinc-500 font-bold">
+                                                               {exercicios.length} exercício{exercicios.length !== 1 ? 's' : ''}
+                                                            </span>
+                                                         </div>
+                                                         
+                                                         <div className="space-y-3">
+                                                            {exercicios.map((ex: any, idx: number) => (
+                                                               <div key={idx} className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800 hover:border-lime-400/30 transition-all">
+                                                                  <div className="flex items-start gap-3">
+                                                                     <div className="bg-lime-400/10 text-lime-400 w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm flex-shrink-0">
+                                                                        {idx + 1}
+                                                                     </div>
+                                                                     <div className="flex-1">
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                           <h6 className="font-bold text-white">
+                                                                              {ex.nome || ex.exercicio || ex.n || 'Exercício'}
+                                                                           </h6>
+                                                                           {ex.videoUrl && (
+                                                                              <a
+                                                                                 href={ex.videoUrl}
+                                                                                 target="_blank"
+                                                                                 rel="noopener noreferrer"
+                                                                                 className="flex items-center gap-1 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-xs font-bold text-red-400 transition-colors"
+                                                                              >
+                                                                                 <PlayCircle size={14} />
+                                                                                 Vídeo
+                                                                              </a>
+                                                                           )}
+                                                                        </div>
+                                                                        <div className="grid grid-cols-3 gap-3 text-xs">
+                                                                           {ex.series && (
+                                                                              <div className="bg-zinc-800/50 px-3 py-2 rounded">
+                                                                                 <p className="text-zinc-500 mb-1">Séries</p>
+                                                                                 <p className="text-lime-400 font-bold">{ex.series}</p>
+                                                                              </div>
+                                                                           )}
+                                                                           {ex.repeticoes && (
+                                                                              <div className="bg-zinc-800/50 px-3 py-2 rounded">
+                                                                                 <p className="text-zinc-500 mb-1">Reps</p>
+                                                                                 <p className="text-lime-400 font-bold">{ex.repeticoes}</p>
+                                                                              </div>
+                                                                           )}
+                                                                           {ex.descanso && (
+                                                                              <div className="bg-zinc-800/50 px-3 py-2 rounded">
+                                                                                 <p className="text-zinc-500 mb-1">Descanso</p>
+                                                                                 <p className="text-lime-400 font-bold">{ex.descanso}</p>
+                                                                              </div>
+                                                                           )}
+                                                                        </div>
+                                                                        {ex.observacoes && (
+                                                                           <p className="text-xs text-zinc-400 mt-2 italic">
+                                                                              💡 {ex.observacoes}
+                                                                           </p>
+                                                                        )}
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                            ))}
+                                                         </div>
+                                                      </div>
+                                                   );
+                                                })}
+                                             </div>
                                           </div>
-                                       </div>
-                                    ))
+                                       );
+                                    })
                                  }
                               </div>
+                           )}
+                              </>
+                           ) : (
+                              <>
+                                 <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                       <h3 className="text-2xl font-black italic uppercase tracking-tight">Histórico de Dietas</h3>
+                                       <p className="text-sm text-zinc-500 font-bold">
+                                          {historicoDietas.filter(d => d.alunoId === selectedStudent?.id).length} dieta(s) prescrita(s)
+                                       </p>
+                                    </div>
+                                    <button
+                                       onClick={() => prescrever(selectedStudent, 'dieta')}
+                                       className="bg-orange-400 hover:bg-orange-500 text-black px-6 py-3 rounded-xl font-black uppercase text-sm transition-all flex items-center gap-2 shadow-lg shadow-orange-400/20 hover:scale-105"
+                                    >
+                                       <Plus size={18} />
+                                       Nova Dieta
+                                    </button>
+                                 </div>
+                           
+                                 {historicoDietas.filter(d => d.alunoId === selectedStudent?.id).length === 0 ? (
+                              <div className="flex flex-col items-center justify-center py-16 text-center bg-zinc-900/50 rounded-2xl border-2 border-dashed border-zinc-800">
+                                 <div className="bg-zinc-800/50 p-6 rounded-full mb-6">
+                                    <Apple className="w-16 h-16 text-zinc-600" />
+                                 </div>
+                                 <h4 className="text-xl font-black text-zinc-400 mb-2">Nenhuma dieta prescrita ainda</h4>
+                                 <p className="text-sm text-zinc-500 max-w-md mb-6">
+                                    Comece o acompanhamento nutricional criando o primeiro plano alimentar personalizado.
+                                 </p>
+                                 <button
+                                    onClick={() => prescrever(selectedStudent, 'dieta')}
+                                    className="bg-orange-400 hover:bg-orange-500 text-black px-8 py-4 rounded-xl font-black uppercase transition-all flex items-center gap-2 shadow-xl shadow-orange-400/20 hover:scale-105"
+                                 >
+                                    <Plus size={20} />
+                                    Prescrever Primeira Dieta
+                                 </button>
+                              </div>
+                           ) : (
+                              <div className="space-y-6">
+                                 {historicoDietas
+                                    .filter(d => d.alunoId === selectedStudent?.id)
+                                    .map((dieta) => {
+                                       const plano = dieta.plano || {};
+                                       
+                                       return (
+                                          <div key={dieta.id} className="bg-zinc-900/50 border-2 border-zinc-800 rounded-2xl overflow-hidden hover:border-orange-400/30 transition-all">
+                                             {/* Header */}
+                                             <div className="bg-gradient-to-r from-orange-400/10 to-orange-500/10 border-b border-zinc-800 p-6">
+                                                <div className="flex justify-between items-start">
+                                                   <div>
+                                                      <div className="flex items-center gap-3 mb-2">
+                                                         <h4 className="font-black italic uppercase text-2xl text-orange-400">
+                                                            {dieta.titulo}
+                                                         </h4>
+                                                         <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                                            dieta.tipo === 'ia' 
+                                                               ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                                                               : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
+                                                         }`}>
+                                                            {dieta.tipo === 'ia' ? '✨ IA' : '✋ Manual'}
+                                                         </span>
+                                                      </div>
+                                                      <p className="text-sm text-zinc-500">
+                                                         Criada em {dieta.data}
+                                                      </p>
+                                                   </div>
+                                                   <div className="flex items-center gap-2">
+                                                      <button
+                                                         onClick={() => abrirModalEdicaoDieta(dieta)}
+                                                         className="bg-orange-500 hover:bg-orange-600 p-3 rounded-xl transition-all hover:scale-105"
+                                                         title="Editar Dieta"
+                                                      >
+                                                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                         </svg>
+                                                      </button>
+                                                      <button
+                                                         onClick={async () => {
+                                                            if (confirm('Tem certeza que deseja remover esta dieta?')) {
+                                                               const token = localStorage.getItem('fitness_token');
+                                                               if (token) {
+                                                                  const sucesso = await removerDieta(token, dieta.id);
+                                                                  if (sucesso) {
+                                                                     setHistoricoDietas(prev => prev.filter(d => d.id !== dieta.id));
+                                                                     alert('Dieta removida com sucesso!');
+                                                                  } else {
+                                                                     alert('Erro ao remover dieta. Tente novamente.');
+                                                                  }
+                                                               }
+                                                            }
+                                                         }}
+                                                         className="bg-red-500 hover:bg-red-600 p-3 rounded-xl transition-all hover:scale-105"
+                                                         title="Remover Dieta"
+                                                      >
+                                                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                         </svg>
+                                                      </button>
+                                                   </div>
+                                                </div>
+                                             </div>
+
+                                             {/* Dias da Semana com Refeições */}
+                                             <div className="p-6 space-y-4">
+                                                {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
+                                                   const refeicoes = plano[dia] || [];
+                                                   const diasNomes = {
+                                                      segunda: 'Segunda-feira',
+                                                      terca: 'Terça-feira',
+                                                      quarta: 'Quarta-feira',
+                                                      quinta: 'Quinta-feira',
+                                                      sexta: 'Sexta-feira',
+                                                      sabado: 'Sábado',
+                                                      domingo: 'Domingo'
+                                                   };
+
+                                                   if (refeicoes.length === 0) return null;
+
+                                                   return (
+                                                      <div key={dia} className="bg-zinc-950/50 rounded-xl p-5 border border-zinc-800">
+                                                         <div className="flex items-center gap-3 mb-4">
+                                                            <div className="bg-orange-400 p-2 rounded-lg">
+                                                               <Apple className="w-4 h-4 text-black" />
+                                                            </div>
+                                                            <h5 className="font-black uppercase text-lg text-white">
+                                                               {diasNomes[dia]}
+                                                            </h5>
+                                                            <span className="ml-auto text-xs text-zinc-500 font-bold">
+                                                               {refeicoes.length} refeição{refeicoes.length !== 1 ? 'ões' : ''}
+                                                            </span>
+                                                         </div>
+                                                         
+                                                         <div className="space-y-3">
+                                                            {refeicoes.map((ref: any, idx: number) => (
+                                                               <div key={idx} className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-800 hover:border-orange-400/30 transition-all">
+                                                                  <div className="flex items-start gap-3">
+                                                                     <div className="bg-orange-400/10 text-orange-400 w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm flex-shrink-0">
+                                                                        {idx + 1}
+                                                                     </div>
+                                                                     <div className="flex-1">
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                           <h6 className="font-bold text-white">
+                                                                              {ref.nome || 'Refeição'}
+                                                                           </h6>
+                                                                           {ref.horario && (
+                                                                              <span className="text-xs text-zinc-400 font-bold">
+                                                                                 🕐 {ref.horario}
+                                                                              </span>
+                                                                           )}
+                                                                        </div>
+                                                                        {ref.alimentos && (
+                                                                           <p className="text-sm text-zinc-300 mb-2">
+                                                                              {ref.alimentos}
+                                                                           </p>
+                                                                        )}
+                                                                        {ref.calorias && (
+                                                                           <div className="bg-zinc-800/50 px-3 py-2 rounded inline-block">
+                                                                              <span className="text-xs text-zinc-500">Calorias: </span>
+                                                                              <span className="text-orange-400 font-bold text-sm">{ref.calorias}</span>
+                                                                           </div>
+                                                                        )}
+                                                                     </div>
+                                                                  </div>
+                                                               </div>
+                                                            ))}
+                                                         </div>
+                                                      </div>
+                                                   );
+                                                })}
+                                             </div>
+                                          </div>
+                                       );
+                                    })
+                                 }
+                              </div>
+                           )}
+                              </>
                            )}
                         </div>
                      </div>
@@ -6093,7 +7572,8 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                        series: '',
                                        repeticoes: '',
                                        carga: '',
-                                       descanso: '90s'
+                                       descanso: '90s',
+                                       videoUrl: ''
                                     };
                                     setPlanoTreino({
                                        ...planoTreino,
@@ -6117,7 +7597,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  {planoTreino[selectedDay].map((ex: any, idx: number) => (
                                     <div key={idx} className="bg-zinc-900 p-4 rounded-xl space-y-3">
                                        <div className="flex justify-between items-start gap-4">
-                                          <div className="flex-1">
+                                          <div className="flex-1 space-y-3">
                                              <input
                                                 type="text"
                                                 placeholder="Nome do exercício (ex: Supino Reto)"
@@ -6129,6 +7609,20 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                 }}
                                                 className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-sm focus:outline-none focus:border-lime-400"
                                              />
+                                             <div className="flex items-center gap-2">
+                                                <PlayCircle size={16} className="text-zinc-500" />
+                                                <input
+                                                   type="text"
+                                                   placeholder="URL do vídeo (YouTube, etc)"
+                                                   value={ex.videoUrl || ''}
+                                                   onChange={(e) => {
+                                                      const updated = [...planoTreino[selectedDay]];
+                                                      updated[idx].videoUrl = e.target.value;
+                                                      setPlanoTreino({ ...planoTreino, [selectedDay]: updated });
+                                                   }}
+                                                   className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-xs focus:outline-none focus:border-lime-400"
+                                                />
+                                             </div>
                                           </div>
                                           <button
                                              onClick={() => {
@@ -6569,15 +8063,15 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     // Atualizar estado local com a dieta salva
                                     const novaDieta = {
                                        id: dietaSalva.id,
-                                       titulo: dietaSalva.titulo,
+                                       titulo: planoDieta.titulo,
                                        alunoId: selectedStudent.id,
                                        alunoNome: selectedStudent.nome,
-                                       data: new Date(dietaSalva.criadoEm).toLocaleDateString('pt-BR'),
-                                       plano: typeof dietaSalva.conteudo === 'object' ? dietaSalva.conteudo.refeicoes : planoAtualizado,
+                                       data: new Date().toLocaleDateString('pt-BR'),
+                                       plano: planoAtualizado,
                                        tipo: 'manual'
                                     };
                                     setHistoricoDietas(prev => [novaDieta, ...prev]);
-                                    console.log('✅ Dieta salva no banco:', dietaSalva);
+                                    console.log('✅ Dieta adicionada ao histórico:', novaDieta);
                                     alert('Dieta prescrita e salva com sucesso!');
                                  } else {
                                     throw new Error('Erro ao salvar dieta');
@@ -6727,10 +8221,34 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
          {tab === 'dashboard' && (
             <div className="space-y-6">
                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <StatCard label="Receita Mensal" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].receita / 1000).toFixed(1) : '0'}k`} color="text-lime-400" icon={DollarSign} trend="+12%" />
-                  <StatCard label="Lucro Líquido" value={`R$ ${relatoriosFinanceiros[0] ? (relatoriosFinanceiros[0].lucro / 1000).toFixed(1) : '0'}k`} color="text-green-500" icon={TrendingUp} trend="+8%" />
-                  <StatCard label="Alunos Ativos" value={(estatisticas?.alunosAtivos || 0).toString()} color="text-blue-400" icon={Users} trend={estatisticas?.alunosAtivos > 0 ? `${estatisticas.alunosAtivos}` : '0'} />
-                  <StatCard label="Taxa Retenção" value={`${estatisticas?.taxaRetencao || 0}%`} color="text-purple-400" icon={Target} trend={`${estatisticas?.taxaRetencao || 0}%`} />
+                  <StatCard 
+                     label="Receita Mensal" 
+                     value={`R$ ${(pagamentos.filter(p => p.status === 'PAGO' && new Date(p.dataPagamento).getMonth() === new Date().getMonth()).reduce((sum, p) => sum + p.valor, 0) / 1000).toFixed(1)}k`} 
+                     color="text-lime-400" 
+                     icon={DollarSign} 
+                     trend={`${pagamentos.filter(p => p.status === 'PAGO').length} pagos`} 
+                  />
+                  <StatCard 
+                     label="Pendente" 
+                     value={`R$ ${(pagamentos.filter(p => p.status === 'PENDENTE').reduce((sum, p) => sum + p.valor, 0) / 1000).toFixed(1)}k`} 
+                     color="text-yellow-400" 
+                     icon={Clock} 
+                     trend={`${pagamentos.filter(p => p.status === 'PENDENTE').length} pendentes`} 
+                  />
+                  <StatCard 
+                     label="Alunos Ativos" 
+                     value={(alunos.filter(a => a.ativo).length).toString()} 
+                     color="text-blue-400" 
+                     icon={Users} 
+                     trend={`${alunos.length} total`} 
+                  />
+                  <StatCard 
+                     label="Produtos" 
+                     value={produtos.length.toString()} 
+                     color="text-purple-400" 
+                     icon={Package} 
+                     trend={`${produtos.filter(p => p.estoque < p.estoqueMinimo).length} baixo estoque`} 
+                  />
                </div>
                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
@@ -6750,17 +8268,21 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                   <div className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl md:rounded-[3rem]">
                      <h3 className="text-xl font-black italic uppercase mb-6">Estoque Crítico</h3>
                      <div className="space-y-3">
-                        {adminProducts.filter(s => s.status !== 'ok').map(item => (
-                           <div key={item.id} className={`p-4 rounded-2xl border-2 ${item.status === 'critical' ? 'bg-red-500/10 border-red-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
-                              <div className="flex justify-between items-center">
-                                 <div>
-                                    <h4 className="font-black text-sm">{item.name}</h4>
-                                    <p className="text-[10px] text-zinc-500 font-bold">Estoque: {item.quantity} un (Min: {item.minStock})</p>
+                        {produtos.filter(p => p.estoque < p.estoqueMinimo).length === 0 ? (
+                           <p className="text-zinc-500 text-center py-8">Nenhum produto com estoque baixo</p>
+                        ) : (
+                           produtos.filter(p => p.estoque < p.estoqueMinimo).map(produto => (
+                              <div key={produto.id} className={`p-4 rounded-2xl border-2 ${produto.estoque === 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-orange-500/10 border-orange-500/30'}`}>
+                                 <div className="flex justify-between items-center">
+                                    <div>
+                                       <h4 className="font-black text-sm">{produto.nome}</h4>
+                                       <p className="text-[10px] text-zinc-500 font-bold">Estoque: {produto.estoque} un (Mín: {produto.estoqueMinimo})</p>
+                                    </div>
+                                    <AlertTriangle size={20} className={produto.estoque === 0 ? 'text-red-500' : 'text-orange-500'}/>
                                  </div>
-                                 <AlertTriangle size={20} className={item.status === 'critical' ? 'text-red-500' : 'text-orange-500'}/>
                               </div>
-                           </div>
-                        ))}
+                           ))
+                        )}
                      </div>
                   </div>
                </div>
@@ -7203,7 +8725,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                      <button
                         onClick={() => {
                            setShowIAConfigModal(false);
-                           setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
+                           setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3, selectedDays: [] });
                         }}
                         className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
                      >
@@ -7271,6 +8793,49 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  ))}
                               </div>
                            </div>
+
+                           <div>
+                              <label className="block text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                                 <CalendarCheck size={16} className="text-purple-400" />
+                                 Selecione os Dias Específicos
+                              </label>
+                              <div className="grid grid-cols-4 gap-2">
+                                 {[
+                                    { key: 'segunda', label: 'SEG' },
+                                    { key: 'terca', label: 'TER' },
+                                    { key: 'quarta', label: 'QUA' },
+                                    { key: 'quinta', label: 'QUI' },
+                                    { key: 'sexta', label: 'SEX' },
+                                    { key: 'sabado', label: 'SÁB' },
+                                    { key: 'domingo', label: 'DOM' }
+                                 ].map((dia) => {
+                                    const isSelected = iaConfig.selectedDays.includes(dia.key);
+                                    return (
+                                       <button
+                                          key={dia.key}
+                                          onClick={() => {
+                                             const newDays = isSelected
+                                                ? iaConfig.selectedDays.filter(d => d !== dia.key)
+                                                : [...iaConfig.selectedDays, dia.key];
+                                             setIaConfig({ ...iaConfig, selectedDays: newDays, diasTreino: newDays.length });
+                                          }}
+                                          className={`py-3 px-2 rounded-xl font-black text-xs transition-all ${
+                                             isSelected
+                                                ? 'bg-purple-500 text-white ring-2 ring-purple-400 ring-offset-2 ring-offset-zinc-900'
+                                                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                          }`}
+                                       >
+                                          {dia.label}
+                                       </button>
+                                    );
+                                 })}
+                              </div>
+                              <p className="text-xs text-zinc-500 mt-2">
+                                 {iaConfig.selectedDays.length === 0 
+                                    ? 'Selecione os dias em que o aluno irá treinar' 
+                                    : `${iaConfig.selectedDays.length} dia(s) selecionado(s)`}
+                              </p>
+                           </div>
                         </>
                      )}
 
@@ -7304,7 +8869,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <button
                            onClick={() => {
                               setShowIAConfigModal(false);
-                              setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3 });
+                              setIaConfig({ objetivo: '', nivel: '', restricoes: '', diasTreino: 3, selectedDays: [] });
                            }}
                            className="flex-1 bg-zinc-800 text-white py-4 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
                         >
@@ -7414,15 +8979,20 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     onClick={() => {
                                        const novoExercicio = {
                                           exercicio: '',
+                                          nome: '',
                                           series: '',
                                           repeticoes: '',
                                           carga: '',
-                                          descanso: '',
-                                          observacoes: ''
+                                          descanso: '90s',
+                                          observacoes: '',
+                                          videoUrl: ''
                                        };
-                                       setEditingPlano(prev => ({
+                                       setSelectedTreinoEdit(prev => ({
                                           ...prev,
-                                          [activeDayEdit]: [...(prev[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []), novoExercicio]
+                                          plano: {
+                                             ...prev.plano,
+                                             [activeDayEdit]: [...(prev.plano[activeDayEdit] || []), novoExercicio]
+                                          }
                                        }));
                                     }}
                                     className="bg-lime-400 hover:bg-lime-500 text-black px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
@@ -7439,10 +9009,13 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                           <h4 className="font-bold text-lg">Exercício {index + 1}</h4>
                                           <button
                                              onClick={() => {
-                                                const novosExercicios = (editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []).filter((_, i) => i !== index);
-                                                setEditingPlano(prev => ({
+                                                const novosExercicios = selectedTreinoEdit.plano[activeDayEdit].filter((_, i) => i !== index);
+                                                setSelectedTreinoEdit(prev => ({
                                                    ...prev,
-                                                   [activeDayEdit]: novosExercicios
+                                                   plano: {
+                                                      ...prev.plano,
+                                                      [activeDayEdit]: novosExercicios
+                                                   }
                                                 }));
                                              }}
                                              className="text-red-400 hover:text-red-300 p-1"
@@ -7494,8 +9067,30 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                 placeholder="Ex: Movimento controlado"
                                              />
                                           </div>
+                                       </div>
 
-                                          <div className="grid grid-cols-2 gap-3">
+                                       <div>
+                                          <label className="block text-xs font-bold text-zinc-500 uppercase mb-2 flex items-center gap-2">
+                                             <PlayCircle size={14} />
+                                             URL do Vídeo (YouTube, etc)
+                                          </label>
+                                          <input
+                                             type="text"
+                                             value={exercicio.videoUrl || ''}
+                                             onChange={(e) => {
+                                                const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
+                                                novosExercicios[index] = { ...novosExercicios[index], videoUrl: e.target.value };
+                                                setEditingPlano(prev => ({
+                                                   ...prev,
+                                                   [activeDayEdit]: novosExercicios
+                                                }));
+                                             }}
+                                             className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                                             placeholder="https://youtube.com/watch?v=..."
+                                          />
+                                       </div>
+
+                                       <div className="grid grid-cols-2 gap-3">
                                              <div>
                                                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Séries</label>
                                                 <input
@@ -7531,9 +9126,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                    placeholder="10-12"
                                                 />
                                              </div>
-                                          </div>
 
-                                          <div className="grid grid-cols-2 gap-3">
                                              <div>
                                                 <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Carga</label>
                                                 <input
@@ -7570,7 +9163,6 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                 />
                                              </div>
                                           </div>
-                                       </div>
                                     </div>
                                  ))}
 
@@ -7942,6 +9534,988 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                </div>
             </div>
          )}
+
+         {/* Seção Financeiro / Cobranças */}
+         {(tab === 'financeiro' || tab === 'financial') && (
+            <div className="space-y-8 animate-in fade-in duration-700">
+               <header className="flex flex-col md:flex-row justify-between md:items-end gap-4">
+                  <div>
+                     <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
+                        Financeiro
+                     </h2>
+                     <p className="text-zinc-500 font-medium">Gerenciamento de mensalidades e pagamentos</p>
+                  </div>
+                  <div className="flex gap-3">
+                     <button
+                        onClick={() => setShowGerarMensalidadesModal(true)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl font-black uppercase text-sm transition-all flex items-center gap-2"
+                     >
+                        <Calendar size={20} />
+                        Gerar Mensalidades
+                     </button>
+                     <button
+                        onClick={() => setShowAddPagamentoModal(true)}
+                        className="bg-lime-400 hover:bg-lime-500 text-black px-6 py-3 rounded-2xl font-black uppercase text-sm transition-all flex items-center gap-2 shadow-lg shadow-lime-400/20"
+                     >
+                        <Plus size={20} />
+                        Novo Pagamento
+                     </button>
+                  </div>
+               </header>
+
+               {/* Resumo Financeiro */}
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-green-500/30 flex items-center justify-center">
+                           <DollarSign className="text-green-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-green-400 font-bold uppercase">Recebido</p>
+                           <p className="text-2xl font-black text-green-400">
+                              R$ {pagamentos.filter(p => p.status === 'PAGO').reduce((sum, p) => sum + p.valor, 0).toFixed(2)}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-yellow-500/30 flex items-center justify-center">
+                           <Clock className="text-yellow-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-yellow-400 font-bold uppercase">Pendente</p>
+                           <p className="text-2xl font-black text-yellow-400">
+                              R$ {pagamentos.filter(p => p.status === 'PENDENTE').reduce((sum, p) => sum + p.valor, 0).toFixed(2)}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 border border-red-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-red-500/30 flex items-center justify-center">
+                           <AlertTriangle className="text-red-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-red-400 font-bold uppercase">Atrasado</p>
+                           <p className="text-2xl font-black text-red-400">
+                              R$ {pagamentos.filter(p => p.status === 'ATRASADO').reduce((sum, p) => sum + p.valor, 0).toFixed(2)}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-lime-500/20 to-lime-600/20 border border-lime-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-lime-500/30 flex items-center justify-center">
+                           <TrendingUp className="text-lime-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-lime-400 font-bold uppercase">Total</p>
+                           <p className="text-2xl font-black text-lime-400">
+                              {pagamentos.length}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Lista de Pagamentos */}
+               <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+                  <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+                     <h3 className="text-xl font-black italic uppercase">Pagamentos</h3>
+                     {pagamentos.length === 0 && (
+                        <div className="text-xs text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20 flex items-center gap-2">
+                           <AlertTriangle size={14} />
+                           Verifique se o servidor está rodando
+                        </div>
+                     )}
+                  </div>
+                  
+                  <div className="overflow-x-auto">
+                     <table className="w-full">
+                        <thead className="bg-zinc-950/50">
+                           <tr>
+                              <th className="text-left p-4 text-xs font-black uppercase text-zinc-500">Aluno</th>
+                              <th className="text-left p-4 text-xs font-black uppercase text-zinc-500">Mês Ref.</th>
+                              <th className="text-left p-4 text-xs font-black uppercase text-zinc-500">Valor</th>
+                              <th className="text-left p-4 text-xs font-black uppercase text-zinc-500">Vencimento</th>
+                              <th className="text-left p-4 text-xs font-black uppercase text-zinc-500">Status</th>
+                              <th className="text-left p-4 text-xs font-black uppercase text-zinc-500">Ações</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           {pagamentos.length === 0 ? (
+                              <tr>
+                                 <td colSpan={6} className="text-center p-12">
+                                    <DollarSign className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
+                                    <p className="text-zinc-400 font-bold">Nenhum pagamento registrado</p>
+                                 </td>
+                              </tr>
+                           ) : (
+                              pagamentos.map((pagamento) => {
+                                 const aluno = alunos.find(a => a.id === pagamento.usuarioId);
+                                 const vencido = new Date(pagamento.dataVencimento) < new Date() && pagamento.status === 'PENDENTE';
+                                 
+                                 return (
+                                    <tr key={pagamento.id} className="border-t border-zinc-800 hover:bg-zinc-800/50 transition-colors">
+                                       <td className="p-4">
+                                          <div className="flex items-center gap-3">
+                                             {aluno?.imagemPerfil ? (
+                                                <img src={aluno.imagemPerfil} alt={aluno.nome} className="size-10 rounded-full object-cover" />
+                                             ) : (
+                                                <div className="size-10 rounded-full bg-lime-400/20 flex items-center justify-center">
+                                                   <span className="text-lime-400 font-black">
+                                                      {aluno?.nome?.charAt(0).toUpperCase() || '?'}
+                                                   </span>
+                                                </div>
+                                             )}
+                                             <span className="font-semibold">{aluno?.nome || 'Aluno não encontrado'}</span>
+                                          </div>
+                                       </td>
+                                       <td className="p-4 font-semibold">{pagamento.mesReferencia}</td>
+                                       <td className="p-4 font-black text-lime-400">R$ {pagamento.valor.toFixed(2)}</td>
+                                       <td className="p-4">
+                                          <span className={vencido ? 'text-red-400 font-bold' : 'text-zinc-400'}>
+                                             {new Date(pagamento.dataVencimento).toLocaleDateString('pt-BR')}
+                                          </span>
+                                       </td>
+                                       <td className="p-4">
+                                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                             pagamento.status === 'PAGO' ? 'bg-green-500/20 text-green-400' :
+                                             pagamento.status === 'PENDENTE' ? 'bg-yellow-500/20 text-yellow-400' :
+                                             pagamento.status === 'ATRASADO' ? 'bg-red-500/20 text-red-400' :
+                                             'bg-zinc-500/20 text-zinc-400'
+                                          }`}>
+                                             {pagamento.status}
+                                          </span>
+                                       </td>
+                                       <td className="p-4">
+                                          <select
+                                             value={pagamento.status}
+                                             onChange={(e) => atualizarStatusPagamento(pagamento.id, e.target.value)}
+                                             className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-semibold hover:border-lime-400 transition-colors focus:outline-none focus:border-lime-400"
+                                          >
+                                             <option value="PENDENTE">Pendente</option>
+                                             <option value="PAGO">Pago</option>
+                                             <option value="ATRASADO">Atrasado</option>
+                                             <option value="CANCELADO">Cancelado</option>
+                                          </select>
+                                       </td>
+                                    </tr>
+                                 );
+                              })
+                           )}
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Seção Estoque / Produtos */}
+         {(tab === 'estoque' || tab === 'stock') && (
+            <div className="space-y-8 animate-in fade-in duration-700">
+               <header className="flex flex-col md:flex-row justify-between md:items-end gap-4">
+                  <div>
+                     <h2 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 leading-none">
+                        Estoque
+                     </h2>
+                     <p className="text-zinc-500 font-medium">Gerenciamento de produtos e inventário</p>
+                     {produtos.length === 0 && (
+                        <div className="mt-2 text-xs text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20 inline-flex items-center gap-2">
+                           <AlertTriangle size={14} />
+                           Servidor offline ou nenhum produto cadastrado
+                        </div>
+                     )}
+                  </div>
+                  <button
+                     onClick={() => setShowAddProdutoModal(true)}
+                     className="bg-lime-400 hover:bg-lime-500 text-black px-6 py-3 rounded-2xl font-black uppercase text-sm transition-all flex items-center gap-2 shadow-lg shadow-lime-400/20"
+                  >
+                     <Plus size={20} />
+                     Novo Produto
+                  </button>
+               </header>
+
+               {/* Resumo de Estoque */}
+               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="bg-gradient-to-br from-lime-500/20 to-lime-600/20 border border-lime-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-lime-500/30 flex items-center justify-center">
+                           <Package className="text-lime-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-lime-400 font-bold uppercase">Total Produtos</p>
+                           <p className="text-2xl font-black text-lime-400">{produtos.length}</p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-blue-500/30 flex items-center justify-center">
+                           <TrendingUp className="text-blue-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-blue-400 font-bold uppercase">Valor Total</p>
+                           <p className="text-2xl font-black text-blue-400">
+                              R$ {produtos.reduce((sum, p) => sum + (p.preco * p.estoque), 0).toFixed(2)}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-yellow-500/30 flex items-center justify-center">
+                           <AlertTriangle className="text-yellow-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-yellow-400 font-bold uppercase">Estoque Baixo</p>
+                           <p className="text-2xl font-black text-yellow-400">
+                              {produtos.filter(p => p.estoque < p.estoqueMinimo).length}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-red-500/20 to-red-600/20 border border-red-500/30 rounded-3xl p-6">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="size-12 rounded-2xl bg-red-500/30 flex items-center justify-center">
+                           <XCircle className="text-red-400" size={24} />
+                        </div>
+                        <div>
+                           <p className="text-xs text-red-400 font-bold uppercase">Sem Estoque</p>
+                           <p className="text-2xl font-black text-red-400">
+                              {produtos.filter(p => p.estoque === 0).length}
+                           </p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Lista de Produtos */}
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {produtos.length === 0 ? (
+                     <div className="col-span-full bg-zinc-900 border border-zinc-800 rounded-3xl p-12 text-center">
+                        <Package className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
+                        <h3 className="text-xl font-black text-zinc-400 mb-2">Nenhum produto cadastrado</h3>
+                        <p className="text-zinc-500">Adicione produtos ao estoque para começar</p>
+                     </div>
+                  ) : (
+                     produtos.map((produto) => (
+                        <div key={produto.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden hover:border-lime-400/30 transition-all group">
+                           {/* Imagem do Produto */}
+                           <div className="aspect-video bg-zinc-950 flex items-center justify-center relative">
+                              {produto.urlImagem ? (
+                                 <img src={produto.urlImagem} alt={produto.nome} className="w-full h-full object-cover" />
+                              ) : (
+                                 <Package className="text-zinc-700" size={48} />
+                              )}
+                              {produto.estoque < produto.estoqueMinimo && produto.estoque > 0 && (
+                                 <div className="absolute top-2 right-2 bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-black">
+                                    ESTOQUE BAIXO
+                                 </div>
+                              )}
+                              {produto.estoque === 0 && (
+                                 <div className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-black">
+                                    SEM ESTOQUE
+                                 </div>
+                              )}
+                           </div>
+
+                           <div className="p-6">
+                              <div className="mb-4">
+                                 <div className="flex items-start justify-between mb-2">
+                                    <h3 className="font-black text-lg group-hover:text-lime-400 transition-colors">
+                                       {produto.nome}
+                                    </h3>
+                                    <span className="text-xs bg-lime-500/20 text-lime-400 px-2 py-1 rounded-full font-bold uppercase">
+                                       {produto.categoria}
+                                    </span>
+                                 </div>
+                                 {produto.descricao && (
+                                    <p className="text-sm text-zinc-400 line-clamp-2">{produto.descricao}</p>
+                                 )}
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-3 mb-4">
+                                 <div className="bg-zinc-950 rounded-xl p-3">
+                                    <p className="text-xs text-zinc-500 uppercase mb-1">Preço</p>
+                                    <p className="text-lg font-black text-lime-400">R$ {produto.preco.toFixed(2)}</p>
+                                 </div>
+                                 <div className="bg-zinc-950 rounded-xl p-3">
+                                    <p className="text-xs text-zinc-500 uppercase mb-1">Estoque</p>
+                                    <p className={`text-lg font-black ${
+                                       produto.estoque === 0 ? 'text-red-400' :
+                                       produto.estoque < produto.estoqueMinimo ? 'text-yellow-400' :
+                                       'text-lime-400'
+                                    }`}>
+                                       {produto.estoque} un
+                                    </p>
+                                 </div>
+                              </div>
+
+                              {/* Ajuste Rápido de Estoque */}
+                              <div className="flex items-center gap-2 mb-4 p-3 bg-zinc-950 rounded-xl">
+                                 <button
+                                    onClick={() => ajustarEstoque(produto.id, 1, 'remover')}
+                                    className="size-8 bg-red-500/20 text-red-400 rounded-lg flex items-center justify-center hover:bg-red-500/30 transition-colors"
+                                 >
+                                    <Minus size={16} />
+                                 </button>
+                                 <div className="flex-1 text-center">
+                                    <p className="text-xs text-zinc-500 uppercase">Ajuste Rápido</p>
+                                 </div>
+                                 <button
+                                    onClick={() => ajustarEstoque(produto.id, 1, 'adicionar')}
+                                    className="size-8 bg-green-500/20 text-green-400 rounded-lg flex items-center justify-center hover:bg-green-500/30 transition-colors"
+                                 >
+                                    <Plus size={16} />
+                                 </button>
+                              </div>
+
+                              <div className="flex gap-2">
+                                 <button
+                                    onClick={() => {
+                                       setSelectedProduto(produto);
+                                       setProdutoForm({
+                                          nome: produto.nome,
+                                          categoria: produto.categoria,
+                                          preco: produto.preco.toString(),
+                                          estoque: produto.estoque.toString(),
+                                          estoqueMinimo: produto.estoqueMinimo.toString(),
+                                          descricao: produto.descricao || '',
+                                          urlImagem: produto.urlImagem || ''
+                                       });
+                                       setShowEditProdutoModal(true);
+                                    }}
+                                    className="flex-1 bg-blue-500/20 text-blue-400 py-2 rounded-xl text-xs font-black uppercase hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2"
+                                 >
+                                    <Edit3 size={14} />
+                                    Editar
+                                 </button>
+                                 <button
+                                    onClick={() => deletarProduto(produto.id)}
+                                    className="flex-1 bg-red-500/20 text-red-400 py-2 rounded-xl text-xs font-black uppercase hover:bg-red-500/30 transition-colors flex items-center justify-center gap-2"
+                                 >
+                                    <Trash2 size={14} />
+                                    Deletar
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     ))
+                  )}
+               </div>
+            </div>
+         )}
+
+         {/* Modal: Adicionar Produto */}
+         {showAddProdutoModal && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-lime-400/30 rounded-3xl max-w-2xl w-full shadow-2xl shadow-lime-400/20 max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800 sticky top-0 bg-zinc-900/95 backdrop-blur-sm">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-lime-400 to-lime-500 flex items-center justify-center">
+                           <Package className="text-black" size={24} />
+                        </div>
+                        <h2 className="text-2xl font-black">Novo Produto</h2>
+                     </div>
+                     <button
+                        onClick={() => setShowAddProdutoModal(false)}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Nome do Produto</label>
+                        <input
+                           type="text"
+                           value={produtoForm.nome}
+                           onChange={(e) => setProdutoForm({ ...produtoForm, nome: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                           placeholder="Ex: Whey Protein 1kg"
+                        />
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Categoria</label>
+                           <select
+                              value={produtoForm.categoria}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, categoria: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                           >
+                              <option value="suplementos">Suplementos</option>
+                              <option value="equipamentos">Equipamentos</option>
+                              <option value="acessorios">Acessórios</option>
+                              <option value="vestuario">Vestuário</option>
+                              <option value="outros">Outros</option>
+                           </select>
+                        </div>
+
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Preço (R$)</label>
+                           <input
+                              type="number"
+                              step="0.01"
+                              value={produtoForm.preco}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, preco: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                              placeholder="0.00"
+                           />
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Estoque Inicial</label>
+                           <input
+                              type="number"
+                              value={produtoForm.estoque}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, estoque: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                              placeholder="0"
+                           />
+                        </div>
+
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Estoque Mínimo</label>
+                           <input
+                              type="number"
+                              value={produtoForm.estoqueMinimo}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, estoqueMinimo: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                              placeholder="10"
+                           />
+                        </div>
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">URL da Imagem (Opcional)</label>
+                        <input
+                           type="url"
+                           value={produtoForm.urlImagem}
+                           onChange={(e) => setProdutoForm({ ...produtoForm, urlImagem: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                           placeholder="https://exemplo.com/imagem.jpg"
+                        />
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Descrição (Opcional)</label>
+                        <textarea
+                           value={produtoForm.descricao}
+                           onChange={(e) => setProdutoForm({ ...produtoForm, descricao: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                           rows={3}
+                           placeholder="Descrição do produto..."
+                        />
+                     </div>
+                  </div>
+
+                  <div className="border-t border-zinc-800 p-6 flex gap-3">
+                     <button
+                        onClick={() => setShowAddProdutoModal(false)}
+                        className="flex-1 bg-zinc-800 text-white py-3 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
+                     >
+                        Cancelar
+                     </button>
+                     <button
+                        onClick={criarProduto}
+                        className="flex-1 bg-gradient-to-r from-lime-400 to-lime-500 text-black py-3 rounded-xl font-black uppercase hover:opacity-90 transition-all"
+                     >
+                        Criar Produto
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Modal: Editar Produto */}
+         {showEditProdutoModal && selectedProduto && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-blue-400/30 rounded-3xl max-w-2xl w-full shadow-2xl shadow-blue-400/20 max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800 sticky top-0 bg-zinc-900/95 backdrop-blur-sm">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center">
+                           <Edit3 className="text-black" size={24} />
+                        </div>
+                        <h2 className="text-2xl font-black">Editar Produto</h2>
+                     </div>
+                     <button
+                        onClick={() => {
+                           setShowEditProdutoModal(false);
+                           setSelectedProduto(null);
+                        }}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Nome do Produto</label>
+                        <input
+                           type="text"
+                           value={produtoForm.nome}
+                           onChange={(e) => setProdutoForm({ ...produtoForm, nome: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                           placeholder="Ex: Whey Protein 1kg"
+                        />
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Categoria</label>
+                           <select
+                              value={produtoForm.categoria}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, categoria: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                           >
+                              <option value="suplementos">Suplementos</option>
+                              <option value="equipamentos">Equipamentos</option>
+                              <option value="acessorios">Acessórios</option>
+                              <option value="vestuario">Vestuário</option>
+                              <option value="outros">Outros</option>
+                           </select>
+                        </div>
+
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Preço (R$)</label>
+                           <input
+                              type="number"
+                              step="0.01"
+                              value={produtoForm.preco}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, preco: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                              placeholder="0.00"
+                           />
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Estoque Atual</label>
+                           <input
+                              type="number"
+                              value={produtoForm.estoque}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, estoque: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                              placeholder="0"
+                           />
+                        </div>
+
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Estoque Mínimo</label>
+                           <input
+                              type="number"
+                              value={produtoForm.estoqueMinimo}
+                              onChange={(e) => setProdutoForm({ ...produtoForm, estoqueMinimo: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                              placeholder="10"
+                           />
+                        </div>
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">URL da Imagem (Opcional)</label>
+                        <input
+                           type="url"
+                           value={produtoForm.urlImagem}
+                           onChange={(e) => setProdutoForm({ ...produtoForm, urlImagem: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                           placeholder="https://exemplo.com/imagem.jpg"
+                        />
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Descrição (Opcional)</label>
+                        <textarea
+                           value={produtoForm.descricao}
+                           onChange={(e) => setProdutoForm({ ...produtoForm, descricao: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                           rows={3}
+                           placeholder="Descrição do produto..."
+                        />
+                     </div>
+                  </div>
+
+                  <div className="border-t border-zinc-800 p-6 flex gap-3">
+                     <button
+                        onClick={() => {
+                           setShowEditProdutoModal(false);
+                           setSelectedProduto(null);
+                        }}
+                        className="flex-1 bg-zinc-800 text-white py-3 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
+                     >
+                        Cancelar
+                     </button>
+                     <button
+                        onClick={atualizarProduto}
+                        className="flex-1 bg-gradient-to-r from-blue-400 to-blue-500 text-black py-3 rounded-xl font-black uppercase hover:opacity-90 transition-all"
+                     >
+                        Salvar Alterações
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Modal: Adicionar Pagamento */}
+         {showAddPagamentoModal && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-lime-400/30 rounded-3xl max-w-2xl w-full shadow-2xl shadow-lime-400/20">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-lime-400 to-lime-500 flex items-center justify-center">
+                           <DollarSign className="text-black" size={24} />
+                        </div>
+                        <h2 className="text-2xl font-black">Novo Pagamento</h2>
+                     </div>
+                     <button
+                        onClick={() => setShowAddPagamentoModal(false)}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Aluno</label>
+                        <select
+                           value={pagamentoForm.usuarioId}
+                           onChange={(e) => setPagamentoForm({ ...pagamentoForm, usuarioId: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                        >
+                           <option value="">Selecione um aluno</option>
+                           {alunos.map(aluno => (
+                              <option key={aluno.id} value={aluno.id}>{aluno.nome}</option>
+                           ))}
+                        </select>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Valor (R$)</label>
+                           <input
+                              type="number"
+                              step="0.01"
+                              value={pagamentoForm.valor}
+                              onChange={(e) => setPagamentoForm({ ...pagamentoForm, valor: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                              placeholder="150.00"
+                           />
+                        </div>
+
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Mês Referência</label>
+                           <input
+                              type="month"
+                              value={pagamentoForm.mesReferencia}
+                              onChange={(e) => setPagamentoForm({ ...pagamentoForm, mesReferencia: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                           />
+                        </div>
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Data Vencimento</label>
+                        <input
+                           type="date"
+                           value={pagamentoForm.dataVencimento}
+                           onChange={(e) => setPagamentoForm({ ...pagamentoForm, dataVencimento: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                        />
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Observações (Opcional)</label>
+                        <textarea
+                           value={pagamentoForm.observacoes}
+                           onChange={(e) => setPagamentoForm({ ...pagamentoForm, observacoes: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                           rows={3}
+                           placeholder="Observações adicionais..."
+                        />
+                     </div>
+                  </div>
+
+                  <div className="border-t border-zinc-800 p-6 flex gap-3">
+                     <button
+                        onClick={() => setShowAddPagamentoModal(false)}
+                        className="flex-1 bg-zinc-800 text-white py-3 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
+                     >
+                        Cancelar
+                     </button>
+                     <button
+                        onClick={criarPagamento}
+                        className="flex-1 bg-gradient-to-r from-lime-400 to-lime-500 text-black py-3 rounded-xl font-black uppercase hover:opacity-90 transition-all"
+                     >
+                        Criar Pagamento
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Modal: Gerar Mensalidades */}
+         {showGerarMensalidadesModal && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-blue-400/30 rounded-3xl max-w-2xl w-full shadow-2xl shadow-blue-400/20">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center">
+                           <Calendar className="text-black" size={24} />
+                        </div>
+                        <div>
+                           <h2 className="text-2xl font-black">Gerar Mensalidades</h2>
+                           <p className="text-sm text-zinc-400">Criar pagamentos para todos os alunos ativos</p>
+                        </div>
+                     </div>
+                     <button
+                        onClick={() => setShowGerarMensalidadesModal(false)}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                     <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                        <p className="text-sm text-blue-400">
+                           <AlertTriangle className="inline mr-2" size={16} />
+                           Isso irá criar um pagamento para cada aluno ativo da academia.
+                        </p>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Mês Referência</label>
+                           <input
+                              type="month"
+                              value={mensalidadeForm.mesReferencia}
+                              onChange={(e) => setMensalidadeForm({ ...mensalidadeForm, mesReferencia: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                           />
+                        </div>
+
+                        <div>
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Valor (R$)</label>
+                           <input
+                              type="number"
+                              step="0.01"
+                              value={mensalidadeForm.valor}
+                              onChange={(e) => setMensalidadeForm({ ...mensalidadeForm, valor: e.target.value })}
+                              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                              placeholder="150.00"
+                           />
+                        </div>
+                     </div>
+
+                     <div>
+                        <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Dia do Vencimento</label>
+                        <select
+                           value={mensalidadeForm.diaVencimento}
+                           onChange={(e) => setMensalidadeForm({ ...mensalidadeForm, diaVencimento: e.target.value })}
+                           className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-blue-400 transition-colors"
+                        >
+                           {Array.from({ length: 28 }, (_, i) => i + 1).map(dia => (
+                              <option key={dia} value={dia}>{dia}</option>
+                           ))}
+                        </select>
+                     </div>
+
+                     <div className="bg-zinc-950 rounded-xl p-4">
+                        <p className="text-sm text-zinc-400">
+                           Serão criadas <span className="text-lime-400 font-black">{alunos.filter(a => a.ativo).length}</span> mensalidades para alunos ativos.
+                        </p>
+                     </div>
+                  </div>
+
+                  <div className="border-t border-zinc-800 p-6 flex gap-3">
+                     <button
+                        onClick={() => setShowGerarMensalidadesModal(false)}
+                        className="flex-1 bg-zinc-800 text-white py-3 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
+                     >
+                        Cancelar
+                     </button>
+                     <button
+                        onClick={gerarMensalidadesAutomaticas}
+                        className="flex-1 bg-gradient-to-r from-blue-400 to-blue-500 text-black py-3 rounded-xl font-black uppercase hover:opacity-90 transition-all"
+                     >
+                        Gerar Mensalidades
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Modal de Evolução */}
+         {showEvolucaoModal && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-purple-400/30 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-purple-400/20">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800 sticky top-0 bg-zinc-900/95 backdrop-blur-sm">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center">
+                           <TrendingUp className="text-black" size={24} />
+                        </div>
+                        <div>
+                           <h2 className="text-2xl font-black">Evolução - {selectedStudent?.nome}</h2>
+                           <p className="text-sm text-zinc-400">Histórico de medições</p>
+                        </div>
+                     </div>
+                     <button
+                        onClick={() => setShowEvolucaoModal(false)}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                     {medicoesAluno.length > 0 ? (
+                        medicoesAluno.map((medicao: any, index: number) => (
+                           <div key={medicao.id || index} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+                              <div className="flex justify-between items-start mb-4">
+                                 <div className="flex items-center gap-3">
+                                    <div className="size-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                                       <TrendingUp className="text-purple-400" size={20} />
+                                    </div>
+                                    <div>
+                                       <h3 className="font-black text-lg">{new Date(medicao.data).toLocaleDateString('pt-BR')}</h3>
+                                       <p className="text-sm text-zinc-500">Medição #{medicoesAluno.length - index}</p>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                 {medicao.peso && (
+                                    <div className="bg-zinc-950 rounded-xl p-4">
+                                       <p className="text-xs text-zinc-500 uppercase mb-1">Peso</p>
+                                       <p className="text-2xl font-black text-purple-400">{medicao.peso} kg</p>
+                                    </div>
+                                 )}
+                                 {medicao.altura && (
+                                    <div className="bg-zinc-950 rounded-xl p-4">
+                                       <p className="text-xs text-zinc-500 uppercase mb-1">Altura</p>
+                                       <p className="text-2xl font-black text-purple-400">{medicao.altura} cm</p>
+                                    </div>
+                                 )}
+                                 {medicao.gorduraCorporal && (
+                                    <div className="bg-zinc-950 rounded-xl p-4">
+                                       <p className="text-xs text-zinc-500 uppercase mb-1">Gordura</p>
+                                       <p className="text-2xl font-black text-purple-400">{medicao.gorduraCorporal}%</p>
+                                    </div>
+                                 )}
+                                 {medicao.massaMuscular && (
+                                    <div className="bg-zinc-950 rounded-xl p-4">
+                                       <p className="text-xs text-zinc-500 uppercase mb-1">Massa Muscular</p>
+                                       <p className="text-2xl font-black text-purple-400">{medicao.massaMuscular} kg</p>
+                                    </div>
+                                 )}
+                              </div>
+
+                              {medicao.observacoes && (
+                                 <div className="mt-4 pt-4 border-t border-zinc-800">
+                                    <p className="text-xs text-zinc-500 uppercase mb-2">Observações</p>
+                                    <p className="text-sm text-zinc-300">{medicao.observacoes}</p>
+                                 </div>
+                              )}
+                           </div>
+                        ))
+                     ) : (
+                        <div className="text-center py-12">
+                           <div className="size-16 rounded-2xl bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                              <TrendingUp className="text-purple-400" size={32} />
+                           </div>
+                           <p className="text-lg font-bold text-zinc-400 mb-2">Nenhuma medição registrada</p>
+                           <p className="text-sm text-zinc-600">As medições de evolução aparecerão aqui</p>
+                        </div>
+                     )}
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Modal de Fotos de Progresso */}
+         {showFotosModal && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-orange-400/30 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-orange-400/20">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800 sticky top-0 bg-zinc-900/95 backdrop-blur-sm">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center">
+                           <Camera className="text-black" size={24} />
+                        </div>
+                        <div>
+                           <h2 className="text-2xl font-black">Fotos de Progresso - {selectedStudent?.nome}</h2>
+                           <p className="text-sm text-zinc-400">Registro fotográfico da evolução</p>
+                        </div>
+                     </div>
+                     <button
+                        onClick={() => setShowFotosModal(false)}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="p-6">
+                     {fotosAluno.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                           {fotosAluno.map((foto: any, index: number) => (
+                              <div key={foto.id || index} className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+                                 <div className="aspect-square bg-zinc-950 flex items-center justify-center">
+                                    {foto.url ? (
+                                       <img 
+                                          src={foto.url} 
+                                          alt={`Progresso ${new Date(foto.data).toLocaleDateString('pt-BR')}`}
+                                          className="w-full h-full object-cover"
+                                       />
+                                    ) : (
+                                       <Camera className="text-zinc-700" size={48} />
+                                    )}
+                                 </div>
+                                 <div className="p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                       <span className="text-sm font-black text-orange-400">
+                                          {new Date(foto.data).toLocaleDateString('pt-BR')}
+                                       </span>
+                                       {foto.tipo && (
+                                          <span className="text-xs bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full font-bold uppercase">
+                                             {foto.tipo}
+                                          </span>
+                                       )}
+                                    </div>
+                                    {foto.observacoes && (
+                                       <p className="text-sm text-zinc-400 mt-2">{foto.observacoes}</p>
+                                    )}
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
+                     ) : (
+                        <div className="text-center py-12">
+                           <div className="size-16 rounded-2xl bg-orange-500/20 flex items-center justify-center mx-auto mb-4">
+                              <Camera className="text-orange-400" size={32} />
+                           </div>
+                           <p className="text-lg font-bold text-zinc-400 mb-2">Nenhuma foto registrada</p>
+                           <p className="text-sm text-zinc-600">As fotos de progresso aparecerão aqui</p>
+                        </div>
+                     )}
+                  </div>
+               </div>
+            </div>
+         )}
       </div>
    );
 };
@@ -8000,14 +10574,42 @@ const AppContent: React.FC = () => {
     return localStorage.getItem('fitness_profile_img') || "https://picsum.photos/seed/fitness/300";
   });
   
-  const [biometrics, setBiometrics] = useState<Biometrics>(() => {
-    try {
-      const saved = localStorage.getItem('fitness_biometrics');
-      return saved ? JSON.parse(saved) : { height: '1.82', weight: '84.2', age: '26', goal: 'Hipertrofia' };
-    } catch {
-      return { height: '1.82', weight: '84.2', age: '26', goal: 'Hipertrofia' };
+  const [biometrics, setBiometrics] = useState<Biometrics>({ height: '1.82', weight: '84.2', age: '26', goal: 'Hipertrofia' });
+  
+  // Carregar dados de perfil do banco ao montar
+  useEffect(() => {
+    const carregarDadosPerfil = async () => {
+      try {
+        const response = await fetch(`${API_URL}/usuario/perfil`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('fitness_token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const dados = await response.json();
+          console.log('📊 Dados do perfil carregados:', dados);
+          
+          // Atualizar biometria se existir no banco
+          if (dados.altura || dados.peso || dados.idade || dados.objetivo) {
+            setBiometrics({
+              height: dados.altura || '1.82',
+              weight: dados.peso || '84.2',
+              age: dados.idade || '26',
+              goal: dados.objetivo || 'Hipertrofia'
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    };
+    
+    if (user) {
+      carregarDadosPerfil();
     }
-  });
+  }, [user]);
   
   const [workoutTemplates, setWorkoutTemplates] = useState<WorkoutTemplate[]>([]);
   const [dietPlans, setDietPlans] = useState<Record<number, any>>({});

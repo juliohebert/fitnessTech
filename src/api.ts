@@ -1,7 +1,7 @@
 // API Service para FitnessTech
 // Gerencia todas as chamadas ao backend
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 // Helper para headers com autenticação
 const getHeaders = (includeAuth = true) => {
@@ -10,7 +10,7 @@ const getHeaders = (includeAuth = true) => {
   };
   
   if (includeAuth) {
-    const token = localStorage.getItem('fitness_auth_token');
+    const token = localStorage.getItem('fitness_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -86,8 +86,12 @@ export const userAPI = {
     phone?: string;
     cpf?: string;
     profileImage?: string;
+    altura?: string;
+    peso?: string;
+    idade?: string;
+    objetivo?: string;
   }) => {
-    const response = await fetch(`${API_URL}/user/profile`, {
+    const response = await fetch(`${API_URL}/usuario/perfil`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -474,6 +478,57 @@ export const scheduleAPI = {
 
   delete: async (id: string) => {
     const response = await fetch(`${API_URL}/schedules/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+};
+
+// ===== METAS =====
+
+export const metaAPI = {
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/metas`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  create: async (data: {
+    titulo: string;
+    descricao?: string;
+    valorAlvo: number;
+    valorAtual?: number;
+    unidade: string;
+    prazo?: string;
+  }) => {
+    const response = await fetch(`${API_URL}/metas`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  update: async (id: string, data: {
+    titulo?: string;
+    descricao?: string;
+    valorAlvo?: number;
+    valorAtual?: number;
+    prazo?: string;
+    completada?: boolean;
+  }) => {
+    const response = await fetch(`${API_URL}/metas/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/metas/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });

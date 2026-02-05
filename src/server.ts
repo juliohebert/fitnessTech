@@ -485,13 +485,33 @@ app.get('/api/usuario/perfil', autenticar, async (req: AuthRequest, res) => {
 
 app.put('/api/usuario/perfil', autenticar, async (req: AuthRequest, res) => {
   try {
+    console.log('📝 Atualizando perfil do usuário:', req.usuario?.id);
+    console.log('📦 Dados recebidos:', req.body);
+    
+    // Filtrar apenas campos válidos do Usuario
+    const dadosAtualizacao: any = {};
+    
+    if (req.body.nome !== undefined) dadosAtualizacao.nome = req.body.nome;
+    if (req.body.telefone !== undefined) dadosAtualizacao.telefone = req.body.telefone;
+    if (req.body.cpf !== undefined) dadosAtualizacao.cpf = req.body.cpf;
+    if (req.body.imagemPerfil !== undefined) dadosAtualizacao.imagemPerfil = req.body.imagemPerfil;
+    if (req.body.altura !== undefined) dadosAtualizacao.altura = req.body.altura;
+    if (req.body.peso !== undefined) dadosAtualizacao.peso = req.body.peso;
+    if (req.body.idade !== undefined) dadosAtualizacao.idade = req.body.idade;
+    if (req.body.objetivo !== undefined) dadosAtualizacao.objetivo = req.body.objetivo;
+    
+    console.log('✅ Dados filtrados para atualização:', dadosAtualizacao);
+    
     const usuario = await prisma.usuario.update({
       where: { id: req.usuario?.id },
-      data: req.body
+      data: dadosAtualizacao
     });
+    
+    console.log('✅ Perfil atualizado com sucesso!');
     res.json(usuario);
   } catch (err) {
-    res.status(500).json({ erro: 'Erro ao atualizar perfil' });
+    console.error('❌ Erro ao atualizar perfil:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar perfil', detalhes: err instanceof Error ? err.message : 'Erro desconhecido' });
   }
 });
 
@@ -1695,6 +1715,53 @@ app.post('/api/historico-treinos', autenticar, async (req: AuthRequest, res) => 
   }
 });
 
+// PUT /api/historico-treinos/:id - Atualizar treino
+app.put('/api/historico-treinos/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, exercicios, plano, duracao, observacoes } = req.body;
+    
+    console.log('📝 PUT /api/historico-treinos/:id');
+    console.log('🆔 ID:', id);
+    console.log('📦 Body:', JSON.stringify(req.body, null, 2));
+    
+    // Verificar se o treino existe
+    const treinoExistente = await prisma.historicoTreino.findUnique({
+      where: { id }
+    });
+    
+    if (!treinoExistente) {
+      return res.status(404).json({ erro: 'Treino não encontrado' });
+    }
+    
+    // Verificar permissão (dono do treino ou admin)
+    if (treinoExistente.usuarioId !== req.usuario?.id && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(403).json({ erro: 'Sem permissão para editar este treino' });
+    }
+    
+    // Atualizar o treino
+    const treinoAtualizado = await prisma.historicoTreino.update({
+      where: { id },
+      data: {
+        ...(titulo && { tituloTreino: titulo }),
+        ...(duracao && { duracao: parseInt(duracao) }),
+        ...(observacoes !== undefined && { observacoes }),
+        ...(exercicios && { exercicios }),
+        ...(plano && { exercicios: plano }) // plano é armazenado em exercicios
+      }
+    });
+    
+    console.log('✅ Treino atualizado:', treinoAtualizado.id);
+    res.json(treinoAtualizado);
+  } catch (err: any) {
+    console.error('❌ Erro ao atualizar treino:', err);
+    res.status(500).json({ 
+      erro: 'Erro ao atualizar treino',
+      detalhes: err.message 
+    });
+  }
+});
+
 // ===== HISTÓRICO DE DIETAS =====
 app.get('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
   try {
@@ -1721,8 +1788,14 @@ app.get('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
 
 app.post('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
   try {
+    console.log('📥 POST /api/historico-dietas - Recebendo dados:', JSON.stringify(req.body, null, 2));
     const { usuarioId, titulo, objetivo, refeicoes, observacoes, origem } = req.body;
     const targetUserId = usuarioId || req.usuario?.id;
+    
+    console.log('📥 UsuarioId:', targetUserId);
+    console.log('📥 Titulo:', titulo);
+    console.log('📥 Objetivo:', objetivo);
+    console.log('📥 Refeicoes:', JSON.stringify(refeicoes));
     
     const historico = await prisma.relatorio.create({
       data: {
@@ -1739,10 +1812,135 @@ app.post('/api/historico-dietas', autenticar, async (req: AuthRequest, res) => {
       }
     });
     
+    console.log('✅ Dieta criada com sucesso:', historico.id);
     res.json(historico);
-  } catch (err) {
-    console.error('Erro ao criar histórico de dieta:', err);
-    res.status(500).json({ erro: 'Erro ao criar histórico de dieta' });
+  } catch (err: any) {
+    console.error('❌ Erro ao criar histórico de dieta:', err);
+    console.error('❌ Stack:', err.stack);
+    res.status(500).json({ erro: 'Erro ao criar histórico de dieta', detalhes: err.message });
+  }
+});
+
+// PUT /api/historico-dietas/:id - Atualizar dieta
+app.put('/api/historico-dietas/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { titulo, objetivo, refeicoes, plano, observacoes } = req.body;
+    
+    console.log('📝 PUT /api/historico-dietas/:id');
+    console.log('🆔 ID:', id);
+    console.log('📦 Body:', JSON.stringify(req.body, null, 2));
+    
+    // Verificar se a dieta existe
+    const dietaExistente = await prisma.relatorio.findUnique({
+      where: { id }
+    });
+    
+    if (!dietaExistente || dietaExistente.tipo !== 'dieta') {
+      return res.status(404).json({ erro: 'Dieta não encontrada' });
+    }
+    
+    // Verificar permissão (dono da dieta ou admin)
+    if (dietaExistente.usuarioId !== req.usuario?.id && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(403).json({ erro: 'Sem permissão para editar esta dieta' });
+    }
+    
+    // Preparar dados atualizados
+    const dadosAtualizados = {
+      ...dietaExistente.dados as any,
+      ...(titulo && { titulo }),
+      ...(objetivo && { objetivo }),
+      ...(refeicoes && { refeicoes }),
+      ...(plano && { refeicoes: plano }),
+      ...(observacoes !== undefined && { observacoes })
+    };
+    
+    // Atualizar a dieta
+    const dietaAtualizada = await prisma.relatorio.update({
+      where: { id },
+      data: {
+        dados: dadosAtualizados
+      }
+    });
+    
+    console.log('✅ Dieta atualizada:', dietaAtualizada.id);
+    res.json(dietaAtualizada);
+  } catch (err: any) {
+    console.error('❌ Erro ao atualizar dieta:', err);
+    res.status(500).json({ 
+      erro: 'Erro ao atualizar dieta',
+      detalhes: err.message 
+    });
+  }
+});
+
+// DELETE /api/historico-treinos/:id - Remover treino
+app.delete('/api/historico-treinos/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se o treino existe
+    const treinoExistente = await prisma.historico.findUnique({
+      where: { id }
+    });
+    
+    if (!treinoExistente) {
+      return res.status(404).json({ erro: 'Treino não encontrado' });
+    }
+    
+    // Verificar permissão (dono do treino ou admin)
+    if (treinoExistente.usuarioId !== req.usuario?.id && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(403).json({ erro: 'Sem permissão para remover este treino' });
+    }
+    
+    // Remover o treino
+    await prisma.historico.delete({
+      where: { id }
+    });
+    
+    console.log('✅ Treino removido:', id);
+    res.json({ mensagem: 'Treino removido com sucesso' });
+  } catch (err: any) {
+    console.error('❌ Erro ao remover treino:', err);
+    res.status(500).json({ 
+      erro: 'Erro ao remover treino',
+      detalhes: err.message 
+    });
+  }
+});
+
+// DELETE /api/historico-dietas/:id - Remover dieta
+app.delete('/api/historico-dietas/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se a dieta existe
+    const dietaExistente = await prisma.relatorio.findUnique({
+      where: { id }
+    });
+    
+    if (!dietaExistente || dietaExistente.tipo !== 'dieta') {
+      return res.status(404).json({ erro: 'Dieta não encontrada' });
+    }
+    
+    // Verificar permissão (dono da dieta ou admin)
+    if (dietaExistente.usuarioId !== req.usuario?.id && req.usuario?.funcao !== 'ADMIN') {
+      return res.status(403).json({ erro: 'Sem permissão para remover esta dieta' });
+    }
+    
+    // Remover a dieta
+    await prisma.relatorio.delete({
+      where: { id }
+    });
+    
+    console.log('✅ Dieta removida:', id);
+    res.json({ mensagem: 'Dieta removida com sucesso' });
+  } catch (err: any) {
+    console.error('❌ Erro ao remover dieta:', err);
+    res.status(500).json({ 
+      erro: 'Erro ao remover dieta',
+      detalhes: err.message 
+    });
   }
 });
 
@@ -2444,6 +2642,320 @@ app.delete('/api/conteudos-educacionais/:id', autenticar, async (req: AuthReques
   } catch (err) {
     console.error('Erro ao deletar conteúdo educacional:', err);
     res.status(500).json({ erro: 'Erro ao deletar conteúdo educacional' });
+  }
+});
+
+// ===== UPLOAD DE FOTO DO USUÁRIO =====
+app.post('/api/usuarios/foto', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, foto } = req.body;
+    
+    // Verificar se é admin ou o próprio usuário
+    if (req.usuario?.funcao !== 'ADMIN' && req.usuario?.id !== usuarioId) {
+      return res.status(403).json({ erro: 'Sem permissão para alterar foto deste usuário' });
+    }
+    
+    if (!foto || !usuarioId) {
+      return res.status(400).json({ erro: 'Foto e usuarioId são obrigatórios' });
+    }
+    
+    // Atualizar a foto no banco
+    const usuarioAtualizado = await prisma.usuario.update({
+      where: { id: usuarioId },
+      data: { imagemPerfil: foto }
+    });
+    
+    res.json({ 
+      mensagem: 'Foto atualizada com sucesso',
+      imagemPerfil: usuarioAtualizado.imagemPerfil
+    });
+  } catch (err) {
+    console.error('Erro ao atualizar foto:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar foto' });
+  }
+});
+
+// ===== PAGAMENTOS E MENSALIDADES =====
+
+// Listar pagamentos (Admin vê todos, outros veem apenas seus)
+app.get('/api/pagamentos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, mesReferencia, status } = req.query;
+    
+    const where: any = {};
+    
+    // Se não for admin, só pode ver seus próprios pagamentos
+    if (req.usuario?.funcao !== 'ADMIN') {
+      where.usuarioId = req.usuario?.id;
+    } else if (usuarioId) {
+      where.usuarioId = usuarioId;
+    }
+    
+    if (mesReferencia) where.mesReferencia = mesReferencia;
+    if (status) where.status = status;
+    
+    const pagamentos = await prisma.pagamento.findMany({
+      where,
+      orderBy: [
+        { dataVencimento: 'desc' }
+      ]
+    });
+    
+    res.json(pagamentos);
+  } catch (err) {
+    console.error('Erro ao listar pagamentos:', err);
+    res.status(500).json({ erro: 'Erro ao listar pagamentos' });
+  }
+});
+
+// Criar pagamento (apenas Admin)
+app.post('/api/pagamentos', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { usuarioId, valor, mesReferencia, dataVencimento, observacoes } = req.body;
+    
+    if (!usuarioId || !valor || !mesReferencia || !dataVencimento) {
+      return res.status(400).json({ erro: 'Campos obrigatórios: usuarioId, valor, mesReferencia, dataVencimento' });
+    }
+    
+    const pagamento = await prisma.pagamento.create({
+      data: {
+        usuarioId,
+        valor: parseFloat(valor),
+        mesReferencia,
+        dataVencimento: new Date(dataVencimento),
+        observacoes,
+        criadoPor: req.usuario?.id || ''
+      }
+    });
+    
+    res.json(pagamento);
+  } catch (err) {
+    console.error('Erro ao criar pagamento:', err);
+    res.status(500).json({ erro: 'Erro ao criar pagamento' });
+  }
+});
+
+// Atualizar pagamento (apenas Admin)
+app.put('/api/pagamentos/:id', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { status, metodoPagamento, dataPagamento, observacoes } = req.body;
+    
+    const data: any = {};
+    if (status) data.status = status;
+    if (metodoPagamento) data.metodoPagamento = metodoPagamento;
+    if (dataPagamento) data.dataPagamento = new Date(dataPagamento);
+    if (observacoes !== undefined) data.observacoes = observacoes;
+    
+    const pagamento = await prisma.pagamento.update({
+      where: { id },
+      data
+    });
+    
+    res.json(pagamento);
+  } catch (err) {
+    console.error('Erro ao atualizar pagamento:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar pagamento' });
+  }
+});
+
+// Deletar pagamento (apenas Admin)
+app.delete('/api/pagamentos/:id', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    await prisma.pagamento.delete({
+      where: { id }
+    });
+    
+    res.json({ mensagem: 'Pagamento deletado com sucesso' });
+  } catch (err) {
+    console.error('Erro ao deletar pagamento:', err);
+    res.status(500).json({ erro: 'Erro ao deletar pagamento' });
+  }
+});
+
+// Gerar mensalidades automáticas para todos os alunos ativos
+app.post('/api/pagamentos/gerar-mensalidades', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { mesReferencia, valor, diaVencimento } = req.body;
+    
+    if (!mesReferencia || !valor || !diaVencimento) {
+      return res.status(400).json({ erro: 'Campos obrigatórios: mesReferencia, valor, diaVencimento' });
+    }
+    
+    // Buscar alunos ativos da mesma academia
+    const alunos = await prisma.usuario.findMany({
+      where: {
+        funcao: 'ALUNO',
+        ativo: true,
+        academiaId: req.usuario?.academiaId
+      }
+    });
+    
+    // Criar data de vencimento
+    const [ano, mes] = mesReferencia.split('-');
+    const dataVencimento = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(diaVencimento));
+    
+    // Criar pagamentos em batch
+    const pagamentosCriados = await Promise.all(
+      alunos.map(aluno => 
+        prisma.pagamento.create({
+          data: {
+            usuarioId: aluno.id,
+            valor: parseFloat(valor),
+            mesReferencia,
+            dataVencimento,
+            criadoPor: req.usuario?.id || ''
+          }
+        })
+      )
+    );
+    
+    res.json({ 
+      mensagem: `${pagamentosCriados.length} mensalidades geradas com sucesso`,
+      quantidade: pagamentosCriados.length
+    });
+  } catch (err) {
+    console.error('Erro ao gerar mensalidades:', err);
+    res.status(500).json({ erro: 'Erro ao gerar mensalidades' });
+  }
+});
+
+// ===== GESTÃO DE PRODUTOS/ESTOQUE =====
+
+// Listar produtos
+app.get('/api/produtos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { categoria, ativo } = req.query;
+    
+    const where: any = {
+      academiaId: req.usuario?.academiaId
+    };
+    
+    if (categoria) where.categoria = categoria;
+    if (ativo !== undefined) where.ativo = ativo === 'true';
+    
+    const produtos = await prisma.produto.findMany({
+      where,
+      orderBy: { criadoEm: 'desc' }
+    });
+    
+    res.json(produtos);
+  } catch (err) {
+    console.error('Erro ao listar produtos:', err);
+    res.status(500).json({ erro: 'Erro ao listar produtos' });
+  }
+});
+
+// Criar produto (apenas Admin)
+app.post('/api/produtos', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { nome, categoria, preco, estoque, estoqueMinimo, descricao, urlImagem } = req.body;
+    
+    if (!nome || !categoria || !preco) {
+      return res.status(400).json({ erro: 'Campos obrigatórios: nome, categoria, preco' });
+    }
+    
+    const produto = await prisma.produto.create({
+      data: {
+        academiaId: req.usuario?.academiaId || '',
+        nome,
+        categoria,
+        preco: parseFloat(preco),
+        estoque: estoque ? parseInt(estoque) : 0,
+        estoqueMinimo: estoqueMinimo ? parseInt(estoqueMinimo) : 10,
+        descricao,
+        urlImagem
+      }
+    });
+    
+    res.json(produto);
+  } catch (err) {
+    console.error('Erro ao criar produto:', err);
+    res.status(500).json({ erro: 'Erro ao criar produto' });
+  }
+});
+
+// Atualizar produto (apenas Admin)
+app.put('/api/produtos/:id', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { nome, categoria, preco, estoque, estoqueMinimo, descricao, urlImagem, ativo } = req.body;
+    
+    const data: any = {};
+    if (nome) data.nome = nome;
+    if (categoria) data.categoria = categoria;
+    if (preco) data.preco = parseFloat(preco);
+    if (estoque !== undefined) data.estoque = parseInt(estoque);
+    if (estoqueMinimo !== undefined) data.estoqueMinimo = parseInt(estoqueMinimo);
+    if (descricao !== undefined) data.descricao = descricao;
+    if (urlImagem !== undefined) data.urlImagem = urlImagem;
+    if (ativo !== undefined) data.ativo = ativo;
+    
+    const produto = await prisma.produto.update({
+      where: { id },
+      data
+    });
+    
+    res.json(produto);
+  } catch (err) {
+    console.error('Erro ao atualizar produto:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar produto' });
+  }
+});
+
+// Deletar produto (apenas Admin)
+app.delete('/api/produtos/:id', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    await prisma.produto.delete({
+      where: { id }
+    });
+    
+    res.json({ mensagem: 'Produto deletado com sucesso' });
+  } catch (err) {
+    console.error('Erro ao deletar produto:', err);
+    res.status(500).json({ erro: 'Erro ao deletar produto' });
+  }
+});
+
+// Ajustar estoque (apenas Admin)
+app.post('/api/produtos/:id/ajustar-estoque', autenticar, verificarAdmin, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { quantidade, operacao } = req.body; // operacao: 'adicionar' ou 'remover'
+    
+    if (!quantidade || !operacao) {
+      return res.status(400).json({ erro: 'Campos obrigatórios: quantidade, operacao' });
+    }
+    
+    const produto = await prisma.produto.findUnique({
+      where: { id }
+    });
+    
+    if (!produto) {
+      return res.status(404).json({ erro: 'Produto não encontrado' });
+    }
+    
+    const novoEstoque = operacao === 'adicionar' 
+      ? produto.estoque + parseInt(quantidade)
+      : produto.estoque - parseInt(quantidade);
+    
+    if (novoEstoque < 0) {
+      return res.status(400).json({ erro: 'Estoque não pode ser negativo' });
+    }
+    
+    const produtoAtualizado = await prisma.produto.update({
+      where: { id },
+      data: { estoque: novoEstoque }
+    });
+    
+    res.json(produtoAtualizado);
+  } catch (err) {
+    console.error('Erro ao ajustar estoque:', err);
+    res.status(500).json({ erro: 'Erro ao ajustar estoque' });
   }
 });
 

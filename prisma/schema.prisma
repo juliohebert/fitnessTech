@@ -23,6 +23,13 @@ model Usuario {
   imagemPerfil  String?
   ativo         Boolean  @default(true) // Se o usuário está ativo/aprovado
   aprovadoPor   String?  // ID do admin que aprovou
+  
+  // Dados biométricos básicos
+  altura        String?  // em metros, ex: "1.82"
+  peso          String?  // em kg, ex: "84.2"
+  idade         String?  // idade em anos
+  objetivo      String?  // objetivo do aluno: Hipertrofia, Cutting, Bulking, etc
+  
   criadoEm      DateTime @default(now())
   atualizadoEm  DateTime @updatedAt
   
@@ -599,4 +606,26 @@ model ConteudoEducacional {
   @@index([categoria])
   @@index([tipo])
   @@index([publicado])
+}
+
+// Pagamentos e Mensalidades
+model Pagamento {
+  id            String   @id @default(cuid())
+  usuarioId     String
+  valor         Float
+  mesReferencia String   // "2025-01" formato YYYY-MM
+  status        String   @default("PENDENTE") // PENDENTE, PAGO, ATRASADO, CANCELADO
+  metodoPagamento String? // PIX, CARTAO, DINHEIRO, TRANSFERENCIA
+  dataVencimento DateTime
+  dataPagamento DateTime?
+  observacoes   String?
+  criadoPor     String   // ID do admin que criou
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+  
+  @@map("pagamentos")
+  @@index([usuarioId])
+  @@index([mesReferencia])
+  @@index([status])
+  @@index([dataVencimento])
 }
