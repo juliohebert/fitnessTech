@@ -5111,19 +5111,6 @@ const AdminModule = ({ view, user, academia }: any) => {
       setShowEditModal(true);
    };
 
-   // Forçar atualização quando o modal abrir
-   useEffect(() => {
-      if (showEditModal && selectedTreinoEdit) {
-         console.log('🔄 Modal aberto - selectedTreinoEdit:', selectedTreinoEdit);
-         console.log('🔄 Plano completo:', selectedTreinoEdit.plano);
-         console.log('🔄 Dia ativo:', activeDayEdit);
-         console.log('🔄 Exercícios da segunda:', selectedTreinoEdit.plano?.segunda);
-         // Forçar re-render resetando e setando o dia novamente
-         setActiveDayEdit('');
-         setTimeout(() => setActiveDayEdit('segunda'), 0);
-      }
-   }, [showEditModal, selectedTreinoEdit]);
-
    const salvarEdicaoTreino = async () => {
       if (!selectedTreinoEdit) {
          alert('Nenhum treino selecionado para edição');
@@ -7331,7 +7318,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 
          {/* Modal de Edição de Treino */}
          {showEditModal && selectedTreinoEdit && (
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div key={selectedTreinoEdit.id} className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
                <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-lime-400/30 rounded-3xl max-w-7xl w-full h-[90vh] shadow-2xl shadow-lime-400/20 flex flex-col">
                   <div className="flex justify-between items-center p-6 border-b border-zinc-800">
                      <div className="flex items-center gap-3">
