@@ -536,6 +536,58 @@ export const metaAPI = {
   },
 };
 
+// ===== BADGES =====
+
+export const badgeAPI = {
+  // Listar todos badges
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/badges`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Listar meus badges com progresso
+  getMeus: async () => {
+    const response = await fetch(`${API_URL}/badges/meus`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Atualizar progresso
+  updateProgresso: async (badgeId: string, progresso: number) => {
+    const response = await fetch(`${API_URL}/badges/${badgeId}/progresso`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ progresso }),
+    });
+    return handleResponse(response);
+  },
+};
+
+// ===== SEQUÊNCIAS =====
+
+export const sequenciaAPI = {
+  // Listar minhas sequências
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/sequencias`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Atualizar sequência
+  update: async (tipo: string, incrementar: boolean) => {
+    const response = await fetch(`${API_URL}/sequencias/${tipo}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ incrementar }),
+    });
+    return handleResponse(response);
+  },
+};
+
 // ===== GRUPOS =====
 
 export const gruposAPI = {
@@ -599,6 +651,15 @@ export const gruposAPI = {
   // Sair do grupo
   leave: async (grupoId: string) => {
     const response = await fetch(`${API_URL}/grupos/${grupoId}/sair`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Deletar grupo (apenas admin)
+  delete: async (grupoId: string) => {
+    const response = await fetch(`${API_URL}/grupos/${grupoId}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });

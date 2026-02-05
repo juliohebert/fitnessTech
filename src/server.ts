@@ -892,14 +892,23 @@ app.get('/api/progresso/medicoes', autenticar, async (req: AuthRequest, res) => 
 
 app.post('/api/metas', autenticar, async (req: AuthRequest, res) => {
   try {
+    const { titulo, descricao, valorAlvo, valorAtual, unidade, prazo } = req.body;
+    
     const meta = await prisma.meta.create({
       data: {
         usuarioId: req.usuario?.id,
-        ...req.body
+        titulo,
+        descricao,
+        valorAlvo: parseFloat(valorAlvo),
+        valorAtual: valorAtual ? parseFloat(valorAtual) : 0,
+        unidade,
+        prazo: prazo ? new Date(prazo) : null
       }
     });
+    
     res.json(meta);
   } catch (err) {
+    console.error('Erro ao criar meta:', err);
     res.status(500).json({ erro: 'Erro ao criar meta' });
   }
 });
@@ -936,6 +945,177 @@ app.delete('/api/metas/:id', autenticar, async (req: AuthRequest, res) => {
     res.json({ mensagem: 'Meta excluída' });
   } catch (err) {
     res.status(500).json({ erro: 'Erro ao excluir meta' });
+  }
+});
+
+// ==================== BADGES E SEQUÊNCIAS ====================
+
+// Listar todos os badges disponíveis
+app.get('/api/badges', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const badges = await prisma.badge.findMany({
+      orderBy: { criadoEm: 'asc' }
+    });
+    res.json(badges);
+  } catch (err) {
+    console.error('Erro ao buscar badges:', err);
+    res.status(500).json({ erro: 'Erro ao buscar badges' });
+  }
+});
+
+// Listar badges do usuário com progresso
+app.get('/api/badges/meus', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.usuario?.id;
+    
+    // Buscar todos os badges
+    const todosBadges = await prisma.badge.findMany();
+    
+    // Buscar progresso do usuário
+    const progressoUsuario = await prisma.badgeConquistado.findMany({
+      where: { usuarioId: userId },
+      include: { badge: true }
+    });
+    
+    // Mapear badges com progresso
+    const badgesComProgresso = todosBadges.map(badge => {
+      const progresso = progressoUsuario.find(p => p.badgeId === badge.id);
+      return {
+        ...badge,
+        progresso: progresso?.progresso || 0,
+        conquistado: progresso?.conquistado || false,
+        conquistadoEm: progresso?.conquistadoEm || null
+      };
+    });
+    
+    res.json(badgesComProgresso);
+  } catch (err) {
+    console.error('Erro ao buscar badges do usuário:', err);
+    res.status(500).json({ erro: 'Erro ao buscar badges' });
+  }
+});
+
+// Atualizar progresso de badge
+app.post('/api/badges/:badgeId/progresso', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { badgeId } = req.params;
+    const { progresso } = req.body;
+    const userId = req.usuario?.id;
+    
+    const badge = await prisma.badge.findUnique({ where: { id: badgeId } });
+    if (!badge) {
+      return res.status(404).json({ erro: 'Badge não encontrado' });
+    }
+    
+    const conquistado = progresso >= 100;
+    
+    const badgeConquistado = await prisma.badgeConquistado.upsert({
+      where: {
+        usuarioId_badgeId: {
+          usuarioId: userId!,
+          badgeId: badgeId
+        }
+      },
+      update: {
+        progresso,
+        conquistado,
+        conquistadoEm: conquistado ? new Date() : null
+      },
+      create: {
+        usuarioId: userId!,
+        badgeId: badgeId,
+        progresso,
+        conquistado,
+        conquistadoEm: conquistado ? new Date() : null
+      }
+    });
+    
+    res.json(badgeConquistado);
+  } catch (err) {
+    console.error('Erro ao atualizar progresso:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar progresso' });
+  }
+});
+
+// Listar sequências do usuário
+app.get('/api/sequencias', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.usuario?.id;
+    
+    const sequencias = await prisma.sequencia.findMany({
+      where: { usuarioId: userId }
+    });
+    
+    // Se não existir, criar sequências padrão
+    if (sequencias.length === 0) {
+      const tiposSequencia = ['TREINO', 'CARDIO', 'META_CALORICA'];
+      
+      for (const tipo of tiposSequencia) {
+        await prisma.sequencia.create({
+          data: {
+            usuarioId: userId!,
+            tipo,
+            atual: 0,
+            melhor: 0
+          }
+        });
+      }
+      
+      const novasSequencias = await prisma.sequencia.findMany({
+        where: { usuarioId: userId }
+      });
+      
+      return res.json(novasSequencias);
+    }
+    
+    res.json(sequencias);
+  } catch (err) {
+    console.error('Erro ao buscar sequências:', err);
+    res.status(500).json({ erro: 'Erro ao buscar sequências' });
+  }
+});
+
+// Atualizar sequência
+app.put('/api/sequencias/:tipo', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { tipo } = req.params;
+    const { incrementar } = req.body;
+    const userId = req.usuario?.id;
+    
+    const sequencia = await prisma.sequencia.findUnique({
+      where: {
+        usuarioId_tipo: {
+          usuarioId: userId!,
+          tipo
+        }
+      }
+    });
+    
+    if (!sequencia) {
+      return res.status(404).json({ erro: 'Sequência não encontrada' });
+    }
+    
+    const novoAtual = incrementar ? sequencia.atual + 1 : 0;
+    const novoMelhor = Math.max(sequencia.melhor, novoAtual);
+    
+    const sequenciaAtualizada = await prisma.sequencia.update({
+      where: {
+        usuarioId_tipo: {
+          usuarioId: userId!,
+          tipo
+        }
+      },
+      data: {
+        atual: novoAtual,
+        melhor: novoMelhor,
+        ultimaData: new Date()
+      }
+    });
+    
+    res.json(sequenciaAtualizada);
+  } catch (err) {
+    console.error('Erro ao atualizar sequência:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar sequência' });
   }
 });
 
@@ -2052,28 +2232,7 @@ app.get('/api/metas', autenticar, async (req: AuthRequest, res) => {
   }
 });
 
-app.post('/api/metas', autenticar, async (req: AuthRequest, res) => {
-  try {
-    const { usuarioId, titulo, descricao, categoria, valorAlvo, prazo } = req.body;
-    const targetUserId = usuarioId || req.usuario?.id;
-    
-    const meta = await prisma.meta.create({
-      data: {
-        usuarioId: targetUserId,
-        titulo,
-        descricao,
-        valorAlvo: valorAlvo ? parseFloat(valorAlvo) : 0,
-        unidade: 'kg',
-        prazo: prazo ? new Date(prazo) : null
-      }
-    });
-    
-    res.json(meta);
-  } catch (err) {
-    console.error('Erro ao criar meta:', err);
-    res.status(500).json({ erro: 'Erro ao criar meta' });
-  }
-});
+// Endpoint de criar meta removido (duplicado - usar o da linha 893)
 
 app.patch('/api/metas/:metaId', autenticar, async (req: AuthRequest, res) => {
   try {
@@ -2984,7 +3143,7 @@ app.post('/api/grupos', autenticar, async (req: AuthRequest, res) => {
     });
     
     // Adicionar criador como admin do grupo
-    await prisma.membroGrupo.create({
+    const membroGrupo = await prisma.membroGrupo.create({
       data: {
         grupoId: grupo.id,
         usuarioId: req.usuario?.id!,
@@ -2993,6 +3152,7 @@ app.post('/api/grupos', autenticar, async (req: AuthRequest, res) => {
     });
     
     console.log(`✅ Grupo criado: ${grupo.nome} por ${req.usuario?.nome}`);
+    console.log(`✅ Membro admin criado:`, membroGrupo);
     res.json(grupo);
   } catch (err) {
     console.error('❌ Erro ao criar grupo:', err);
@@ -3031,6 +3191,8 @@ app.get('/api/grupos', autenticar, async (req: AuthRequest, res) => {
       entradoEm: m.entradoEm
     }));
     
+    console.log('📤 Enviando grupos:', grupos.map(g => ({ nome: g.nome, meuPapel: g.meuPapel })));
+    
     res.json(grupos);
   } catch (err) {
     console.error('❌ Erro ao listar grupos:', err);
@@ -3043,6 +3205,9 @@ app.get('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     
+    console.log('🔍 Verificando acesso ao grupo:', id);
+    console.log('👤 Usuário ID:', req.usuario?.id);
+    
     // Verificar se usuário é membro
     const membro = await prisma.membroGrupo.findFirst({
       where: {
@@ -3051,9 +3216,14 @@ app.get('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
       }
     });
     
+    console.log('🔍 Membro encontrado:', membro ? 'SIM' : 'NÃO');
+    
     if (!membro) {
+      console.log('❌ Usuário não é membro do grupo');
       return res.status(403).json({ erro: 'Você não é membro deste grupo' });
     }
+    
+    console.log('✅ Usuário é membro, buscando dados do grupo...');
     
     const grupo = await prisma.grupo.findUnique({
       where: { id },
@@ -3064,16 +3234,7 @@ app.get('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
               select: {
                 id: true,
                 nome: true,
-                imagemPerfil: true,
-                historicoTreinos: {
-                  select: {
-                    id: true,
-                    dataInicio: true,
-                    dataFim: true,
-                    totalCaloriasQueimadas: true
-                  },
-                  orderBy: { dataInicio: 'desc' }
-                }
+                imagemPerfil: true
               }
             }
           },
@@ -3082,10 +3243,20 @@ app.get('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
       }
     });
     
+    console.log('✅ Grupo encontrado:', grupo ? 'SIM' : 'NÃO');
+    
+    if (!grupo) {
+      return res.status(404).json({ erro: 'Grupo não encontrado' });
+    }
+    
     res.json({ ...grupo, meuPapel: membro.funcao });
   } catch (err) {
     console.error('❌ Erro ao buscar grupo:', err);
-    res.status(500).json({ erro: 'Erro ao buscar grupo' });
+    console.error('Stack:', err instanceof Error ? err.stack : String(err));
+    res.status(500).json({ 
+      erro: 'Erro ao buscar grupo',
+      detalhes: err instanceof Error ? err.message : String(err)
+    });
   }
 });
 
@@ -3093,6 +3264,9 @@ app.get('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
 app.post('/api/grupos/:id/convite', autenticar, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
+    
+    console.log('🔍 Gerando convite - Grupo ID:', id);
+    console.log('🔍 Gerando convite - Usuário ID:', req.usuario?.id);
     
     // Verificar se usuário é admin do grupo
     const membro = await prisma.membroGrupo.findFirst({
@@ -3103,13 +3277,18 @@ app.post('/api/grupos/:id/convite', autenticar, async (req: AuthRequest, res) =>
       }
     });
     
+    console.log('🔍 Membro admin encontrado:', membro ? 'SIM' : 'NÃO');
+    
     if (!membro) {
+      console.log('❌ Usuário não é admin do grupo');
       return res.status(403).json({ erro: 'Apenas admins podem gerar convites' });
     }
     
     // Gerar token único para o convite
     const token = Buffer.from(`${id}:${Date.now()}`).toString('base64');
     const linkConvite = `${process.env.APP_URL || 'http://localhost:5173'}/convite/${token}`;
+    
+    console.log('✅ Convite gerado:', linkConvite);
     
     res.json({ linkConvite, token });
   } catch (err) {
@@ -3177,6 +3356,9 @@ app.get('/api/grupos/:id/leaderboard', autenticar, async (req: AuthRequest, res)
     const { id } = req.params;
     const { periodo = '7' } = req.query; // dias
     
+    console.log('📊 Buscando leaderboard do grupo:', id);
+    console.log('👤 Usuário ID:', req.usuario?.id);
+    
     // Verificar se usuário é membro
     const membro = await prisma.membroGrupo.findFirst({
       where: {
@@ -3185,7 +3367,10 @@ app.get('/api/grupos/:id/leaderboard', autenticar, async (req: AuthRequest, res)
       }
     });
     
+    console.log('🔍 Membro encontrado no leaderboard:', membro ? 'SIM' : 'NÃO');
+    
     if (!membro) {
+      console.log('❌ Usuário não é membro do grupo (leaderboard)');
       return res.status(403).json({ erro: 'Você não é membro deste grupo' });
     }
     
@@ -3193,7 +3378,9 @@ app.get('/api/grupos/:id/leaderboard', autenticar, async (req: AuthRequest, res)
     const dataLimite = new Date();
     dataLimite.setDate(dataLimite.getDate() - diasAtras);
     
-    // Buscar membros com estatísticas de treino
+    console.log(`📅 Buscando treinos desde: ${dataLimite.toISOString()}`);
+    
+    // Buscar membros do grupo
     const membros = await prisma.membroGrupo.findMany({
       where: { grupoId: id },
       include: {
@@ -3201,52 +3388,33 @@ app.get('/api/grupos/:id/leaderboard', autenticar, async (req: AuthRequest, res)
           select: {
             id: true,
             nome: true,
-            imagemPerfil: true,
-            historicoTreinos: {
-              where: {
-                dataInicio: { gte: dataLimite }
-              },
-              select: {
-                id: true,
-                totalCaloriasQueimadas: true,
-                dataInicio: true,
-                dataFim: true
-              }
-            }
+            imagemPerfil: true
           }
         }
       }
     });
     
-    // Calcular estatísticas
-    const ranking = membros.map(m => {
-      const treinos = m.usuario.historicoTreinos;
-      const totalTreinos = treinos.length;
-      const totalCalorias = treinos.reduce((acc, t) => acc + (t.totalCaloriasQueimadas || 0), 0);
-      const totalMinutos = treinos.reduce((acc, t) => {
-        if (t.dataFim) {
-          const diff = new Date(t.dataFim).getTime() - new Date(t.dataInicio).getTime();
-          return acc + Math.floor(diff / 60000);
-        }
-        return acc;
-      }, 0);
-      
-      return {
-        usuarioId: m.usuario.id,
-        nome: m.usuario.nome,
-        imagemPerfil: m.usuario.imagemPerfil,
-        funcao: m.funcao,
-        totalTreinos,
-        totalCalorias,
-        totalMinutos,
-        pontos: totalTreinos * 10 + Math.floor(totalCalorias / 10)
-      };
-    }).sort((a, b) => b.pontos - a.pontos);
+    console.log(`👥 Membros encontrados: ${membros.length}`);
+    
+    // Por enquanto, retornar ranking básico sem histórico de treinos
+    const ranking = membros.map(m => ({
+      usuarioId: m.usuario.id,
+      nome: m.usuario.nome,
+      imagemPerfil: m.usuario.imagemPerfil,
+      funcao: m.funcao,
+      totalTreinos: 0,
+      totalCalorias: 0,
+      totalMinutos: 0,
+      pontos: 0
+    })).sort((a, b) => b.pontos - a.pontos);
+    
+    console.log(`🏆 Ranking gerado com ${ranking.length} membros`);
     
     res.json({ ranking, periodo: diasAtras });
   } catch (err) {
     console.error('❌ Erro ao buscar leaderboard:', err);
-    res.status(500).json({ erro: 'Erro ao buscar leaderboard' });
+    console.error('❌ Stack trace:', err instanceof Error ? err.stack : 'Sem stack trace');
+    res.status(500).json({ erro: 'Erro ao buscar leaderboard', detalhes: err instanceof Error ? err.message : 'Erro desconhecido' });
   }
 });
 
@@ -3293,6 +3461,42 @@ app.delete('/api/grupos/:id/sair', autenticar, async (req: AuthRequest, res) => 
   } catch (err) {
     console.error('❌ Erro ao sair do grupo:', err);
     res.status(500).json({ erro: 'Erro ao sair do grupo' });
+  }
+});
+
+// Deletar grupo (apenas admin)
+app.delete('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se usuário é admin do grupo
+    const membro = await prisma.membroGrupo.findFirst({
+      where: {
+        grupoId: id,
+        usuarioId: req.usuario?.id,
+        funcao: 'admin'
+      }
+    });
+    
+    if (!membro) {
+      return res.status(403).json({ erro: 'Apenas admins podem deletar o grupo' });
+    }
+    
+    // Deletar todos os membros primeiro
+    await prisma.membroGrupo.deleteMany({
+      where: { grupoId: id }
+    });
+    
+    // Deletar o grupo
+    await prisma.grupo.delete({
+      where: { id }
+    });
+    
+    console.log(`🗑️  Grupo ${id} deletado por ${req.usuario?.nome}`);
+    res.json({ mensagem: 'Grupo deletado com sucesso' });
+  } catch (err) {
+    console.error('❌ Erro ao deletar grupo:', err);
+    res.status(500).json({ erro: 'Erro ao deletar grupo' });
   }
 });
 

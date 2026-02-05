@@ -51,6 +51,8 @@ model Usuario {
   notificacoes          Notificacao[]
   carrinho              ItemCarrinho[]
   videosExercicio       VideoExercicio[]
+  badgesConquistados    BadgeConquistado[]
+  sequencias            Sequencia[]
   
   // Relacionamento Professor/Nutri -> Alunos
   alunosComoProfessor   VinculoAlunoInstrutor[] @relation("Professor")
@@ -606,6 +608,59 @@ model ConteudoEducacional {
   @@index([categoria])
   @@index([tipo])
   @@index([publicado])
+}
+
+// Badges e Conquistas
+model Badge {
+  id          String   @id @default(cuid())
+  nome        String
+  descricao   String
+  icone       String   // nome do ícone
+  tipo        String   // TREINO, CARDIO, PESO, META, SEQUENCIA
+  criterio    String   // descrição do critério para desbloquear
+  valor       Float?   // valor necessário (ex: 100 para 100kg)
+  criadoEm    DateTime @default(now())
+  
+  conquistas  BadgeConquistado[]
+  
+  @@map("badges")
+  @@index([tipo])
+}
+
+model BadgeConquistado {
+  id          String   @id @default(cuid())
+  usuarioId   String
+  badgeId     String
+  progresso   Float    @default(0) // % de conclusão
+  conquistado Boolean  @default(false)
+  conquistadoEm DateTime?
+  criadoEm    DateTime @default(now())
+  
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  badge       Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@unique([usuarioId, badgeId])
+  @@map("badges_conquistados")
+  @@index([usuarioId])
+  @@index([conquistado])
+}
+
+// Sequências (Streaks)
+model Sequencia {
+  id          String   @id @default(cuid())
+  usuarioId   String
+  tipo        String   // TREINO, CARDIO, META_CALORICA, PESO
+  atual       Int      @default(0)
+  melhor      Int      @default(0)
+  ultimaData  DateTime @default(now())
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@unique([usuarioId, tipo])
+  @@map("sequencias")
+  @@index([usuarioId])
 }
 
 // Pagamentos e Mensalidades

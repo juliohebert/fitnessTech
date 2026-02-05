@@ -1911,6 +1911,8 @@ const EvolutionView = () => {
 const GoalsView = () => {
   const [activeGoalTab, setActiveGoalTab] = useState('personal');
   const [metas, setMetas] = useState<any[]>([]);
+  const [badges, setBadges] = useState<any[]>([]);
+  const [sequencias, setSequencias] = useState<any[]>([]);
   const [showNewGoalModal, setShowNewGoalModal] = useState(false);
   const [newGoal, setNewGoal] = useState({
     titulo: '',
@@ -1926,7 +1928,29 @@ const GoalsView = () => {
   // Carregar metas do banco
   useEffect(() => {
     carregarMetas();
+    carregarBadges();
+    carregarSequencias();
   }, []);
+
+  const carregarBadges = async () => {
+    try {
+      const { badgeAPI } = await import('./src/api');
+      const data = await badgeAPI.getMeus();
+      setBadges(data);
+    } catch (error) {
+      console.error('Erro ao carregar badges:', error);
+    }
+  };
+
+  const carregarSequencias = async () => {
+    try {
+      const { sequenciaAPI } = await import('./src/api');
+      const data = await sequenciaAPI.getAll();
+      setSequencias(data);
+    } catch (error) {
+      console.error('Erro ao carregar sequências:', error);
+    }
+  };
 
   const carregarMetas = async () => {
     const token = localStorage.getItem('fitness_token');
@@ -2005,21 +2029,29 @@ const GoalsView = () => {
       console.error('Erro ao atualizar meta:', error);
     }
   };
-  
-  const BADGES = [
-    { id: 1, name: 'Primeiro Treino', desc: 'Complete seu primeiro treino', icon: <Star />, earned: true, earnedDate: '15/Jan' },
-    { id: 2, name: 'Sequência de 7 dias', desc: 'Treinar 7 dias consecutivos', icon: <Flame />, earned: true, earnedDate: '22/Jan' },
-    { id: 3, name: 'Levantador de Peso', desc: 'Levante mais de 100kg', icon: <Zap />, earned: false, progress: 85 },
-    { id: 4, name: 'Cardio Master', desc: 'Complete 50 sessões de cardio', icon: <Heart />, earned: false, progress: 32 },
-    { id: 5, name: 'Transformação', desc: 'Perca 10kg', icon: <TrendingDown />, earned: false, progress: 43 },
-    { id: 6, name: 'Maratonista', desc: 'Corra 42km em uma sessão', icon: <Target />, earned: false, progress: 0 }
-  ];
 
-  const STREAKS = [
-    { type: 'Treinos Consecutivos', current: 12, best: 25, color: 'text-lime-400', bg: 'bg-lime-400/10' },
-    { type: 'Cardio Semanal', current: 3, best: 7, color: 'text-red-400', bg: 'bg-red-400/10' },
-    { type: 'Meta Calórica', current: 5, best: 14, color: 'text-blue-400', bg: 'bg-blue-400/10' }
-  ];
+  // Mapear ícones dos badges
+  const getIcone = (nome: string) => {
+    const icones: any = {
+      'Star': <Star />,
+      'Flame': <Flame />,
+      'Zap': <Zap />,
+      'Heart': <Heart />,
+      'TrendingDown': <TrendingDown />,
+      'Target': <Target />
+    };
+    return icones[nome] || <Star />;
+  };
+
+  // Mapear cores das sequências
+  const getCoresSequencia = (tipo: string) => {
+    const cores: any = {
+      'TREINO': { color: 'text-lime-400', bg: 'bg-lime-400/10', nome: 'Treinos Consecutivos' },
+      'CARDIO': { color: 'text-red-400', bg: 'bg-red-400/10', nome: 'Cardio Semanal' },
+      'META_CALORICA': { color: 'text-blue-400', bg: 'bg-blue-400/10', nome: 'Meta Calórica' }
+    };
+    return cores[tipo] || { color: 'text-lime-400', bg: 'bg-lime-400/10', nome: tipo };
+  };
 
   return (
     <div className="animate-in fade-in duration-700 space-y-6 md:space-y-8 min-h-screen text-white">
@@ -2151,47 +2183,68 @@ const GoalsView = () => {
 
       {activeGoalTab === 'badges' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {BADGES.map((badge) => (
-            <div key={badge.id} className={`p-5 md:p-6 rounded-2xl border transition-all ${badge.earned ? 'bg-zinc-900 border-lime-400/30' : 'bg-zinc-950 border-zinc-800'}`}>
-              <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl ${badge.earned ? 'bg-lime-400/20 text-lime-400' : 'bg-zinc-800 text-zinc-500'}`}>
-                  {badge.icon}
-                </div>
-                {badge.earned && <span className="text-xs font-bold text-lime-400 bg-lime-400/10 px-2 py-1 rounded-full">{badge.earnedDate}</span>}
-              </div>
-              <h3 className="font-bold text-sm md:text-base text-white mb-2">{badge.name}</h3>
-              <p className="text-xs md:text-sm text-zinc-400 mb-4">{badge.desc}</p>
-              {!badge.earned && badge.progress && (
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-zinc-500">Progresso</span>
-                    <span className="text-zinc-400">{badge.progress}%</span>
-                  </div>
-                  <div className="w-full bg-zinc-800 rounded-full h-2">
-                    <div className="bg-lime-400 h-2 rounded-full transition-all" style={{width: `${badge.progress}%`}}></div>
-                  </div>
-                </div>
-              )}
+          {badges.length === 0 ? (
+            <div className="col-span-full bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center">
+              <Target size={48} className="mx-auto mb-4 text-zinc-700" />
+              <p className="text-zinc-500">Carregando badges...</p>
             </div>
-          ))}
+          ) : (
+            badges.map((badge) => (
+              <div key={badge.id} className={`p-5 md:p-6 rounded-2xl border transition-all ${badge.conquistado ? 'bg-zinc-900 border-lime-400/30' : 'bg-zinc-950 border-zinc-800'}`}>
+                <div className="flex justify-between items-start mb-4">
+                  <div className={`p-3 rounded-xl ${badge.conquistado ? 'bg-lime-400/20 text-lime-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                    {getIcone(badge.icone)}
+                  </div>
+                  {badge.conquistado && badge.conquistadoEm && (
+                    <span className="text-xs font-bold text-lime-400 bg-lime-400/10 px-2 py-1 rounded-full">
+                      {new Date(badge.conquistadoEm).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                    </span>
+                  )}
+                </div>
+                <h3 className="font-bold text-sm md:text-base text-white mb-2">{badge.nome}</h3>
+                <p className="text-xs md:text-sm text-zinc-400 mb-4">{badge.descricao}</p>
+                {!badge.conquistado && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-zinc-500">Progresso</span>
+                      <span className="text-zinc-400">{badge.progresso.toFixed(0)}%</span>
+                    </div>
+                    <div className="w-full bg-zinc-800 rounded-full h-2">
+                      <div className="bg-lime-400 h-2 rounded-full transition-all" style={{width: `${badge.progresso}%`}}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       )}
 
       {activeGoalTab === 'streaks' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          {STREAKS.map((streak, i) => (
-            <div key={i} className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl">
-              <div className={`size-10 md:size-12 ${streak.bg} ${streak.color} rounded-xl flex items-center justify-center mb-4 md:mb-6`}>
-                <Flame size={20} className="md:size-6" />
-              </div>
-              <h3 className="font-bold text-sm md:text-base text-white mb-2">{streak.type}</h3>
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className={`text-2xl md:text-3xl font-black ${streak.color}`}>{streak.current}</span>
-                <span className="text-xs md:text-sm text-zinc-500">dias</span>
-              </div>
-              <p className="text-xs text-zinc-500">Melhor: {streak.best} dias</p>
+          {sequencias.length === 0 ? (
+            <div className="col-span-full bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center">
+              <Flame size={48} className="mx-auto mb-4 text-zinc-700" />
+              <p className="text-zinc-500">Carregando sequências...</p>
             </div>
-          ))}
+          ) : (
+            sequencias.map((seq: any) => {
+              const cores = getCoresSequencia(seq.tipo);
+              return (
+                <div key={seq.id} className="bg-zinc-900 border border-zinc-800 p-6 md:p-8 rounded-2xl">
+                  <div className={`size-10 md:size-12 ${cores.bg} ${cores.color} rounded-xl flex items-center justify-center mb-4 md:mb-6`}>
+                    <Flame size={20} className="md:size-6" />
+                  </div>
+                  <h3 className="font-bold text-sm md:text-base text-white mb-2">{cores.nome}</h3>
+                  <div className="flex items-baseline gap-2 mb-4">
+                    <span className={`text-2xl md:text-3xl font-black ${cores.color}`}>{seq.atual}</span>
+                    <span className="text-xs md:text-sm text-zinc-500">dias</span>
+                  </div>
+                  <p className="text-xs text-zinc-500">Melhor: {seq.melhor} dias</p>
+                </div>
+              );
+            })
+          )}
         </div>
       )}
 
@@ -2340,7 +2393,25 @@ const GroupsView = () => {
       setIsLoading(true);
       const { gruposAPI } = await import('./src/api');
       const data = await gruposAPI.getAll();
-      setGrupos(data);
+      
+      // Mapear meuPapel a partir do array de membros (já que estou logado, meu membro está lá)
+      const gruposComPapel = data.map((grupo: any) => {
+        // Se já tem meuPapel, retorna como está
+        if (grupo.meuPapel) return grupo;
+        
+        // Se tem membros e isMembro é true, pegar a função do primeiro membro (que sou eu)
+        if (grupo.isMembro && grupo.membros && grupo.membros.length > 0) {
+          return {
+            ...grupo,
+            meuPapel: grupo.membros[0].funcao
+          };
+        }
+        
+        return grupo;
+      });
+      
+      console.log('🔍 Grupos processados:', gruposComPapel.map((g: any) => ({ nome: g.nome, meuPapel: g.meuPapel })));
+      setGrupos(gruposComPapel);
     } catch (error) {
       console.error('Erro ao carregar grupos:', error);
       alert('❌ Erro ao carregar grupos');
@@ -2387,17 +2458,22 @@ const GroupsView = () => {
     }
   };
 
-  const gerarConvite = async () => {
-    if (!grupoSelecionado) return;
+  const gerarConvite = async (grupo?: any) => {
+    const grupoParaConvidar = grupo || grupoSelecionado;
+    if (!grupoParaConvidar) return;
+    
+    console.log('🔍 Gerando convite para grupo:', grupoParaConvidar.id);
+    console.log('🔍 Papel do usuário:', grupoParaConvidar.meuPapel);
     
     try {
       const { gruposAPI } = await import('./src/api');
-      const { linkConvite } = await gruposAPI.generateInvite(grupoSelecionado.id);
+      const { linkConvite } = await gruposAPI.generateInvite(grupoParaConvidar.id);
+      console.log('✅ Link gerado:', linkConvite);
       setLinkConvite(linkConvite);
       setShowInviteModal(true);
-    } catch (error) {
-      console.error('Erro ao gerar convite:', error);
-      alert('❌ Erro ao gerar convite');
+    } catch (error: any) {
+      console.error('❌ Erro ao gerar convite:', error);
+      alert(error.response?.data?.erro || '❌ Erro ao gerar convite');
     }
   };
 
@@ -2417,6 +2493,20 @@ const GroupsView = () => {
       alert('✅ Você saiu do grupo');
     } catch (error: any) {
       alert(error.message || '❌ Erro ao sair do grupo');
+    }
+  };
+
+  const deletarGrupo = async (grupoId: string) => {
+    if (!confirm('⚠️ ATENÇÃO: Isso vai deletar o grupo permanentemente para TODOS os membros. Confirma?')) return;
+    
+    try {
+      const { gruposAPI } = await import('./src/api');
+      await gruposAPI.delete(grupoId);
+      setShowGroupDetail(null);
+      await carregarGrupos();
+      alert('✅ Grupo deletado com sucesso');
+    } catch (error: any) {
+      alert(error.message || '❌ Erro ao deletar grupo');
     }
   };
 
@@ -2499,9 +2589,16 @@ const GroupsView = () => {
           </div>
         </div>
 
-        <button onClick={() => sairDoGrupo(grupoSelecionado.id)} className="w-full bg-zinc-900 border border-red-900 text-red-400 py-4 rounded-2xl font-black uppercase text-sm hover:bg-red-900/20 transition-all">
-          Sair do Grupo
-        </button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {grupoSelecionado.meuPapel === 'admin' && (
+            <button onClick={() => deletarGrupo(grupoSelecionado.id)} className="w-full bg-zinc-900 border-2 border-red-600 text-red-500 py-4 rounded-2xl font-black uppercase text-sm hover:bg-red-600 hover:text-white transition-all">
+              Deletar Grupo
+            </button>
+          )}
+          <button onClick={() => sairDoGrupo(grupoSelecionado.id)} className={`w-full bg-zinc-900 border border-red-900 text-red-400 py-4 rounded-2xl font-black uppercase text-sm hover:bg-red-900/20 transition-all ${grupoSelecionado.meuPapel === 'admin' ? '' : 'sm:col-span-2'}`}>
+            Sair do Grupo
+          </button>
+        </div>
       </div>
     );
   }
@@ -2536,43 +2633,61 @@ const GroupsView = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {grupos.map((grupo) => (
-            <div key={grupo.id} onClick={() => abrirGrupo(grupo.id)} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-lime-400/40 transition-all cursor-pointer group">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="size-16 bg-zinc-950 rounded-2xl flex items-center justify-center border-2 border-zinc-800 group-hover:border-lime-400 transition-all">
-                  {grupo.imagem ? (
-                    <img src={grupo.imagem} className="w-full h-full object-cover rounded-2xl" />
+          {grupos.map((grupo) => {
+            console.log(`🔍 Renderizando grupo ${grupo.nome}, meuPapel:`, grupo.meuPapel);
+            return (
+              <div key={grupo.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-lime-400/40 transition-all group">
+                <div className="flex items-start gap-4 mb-4">
+                  <div 
+                    onClick={() => abrirGrupo(grupo.id)}
+                    className="size-16 bg-zinc-950 rounded-2xl flex items-center justify-center border-2 border-zinc-800 group-hover:border-lime-400 transition-all cursor-pointer"
+                  >
+                    {grupo.imagem ? (
+                      <img src={grupo.imagem} className="w-full h-full object-cover rounded-2xl" />
+                    ) : (
+                      <Users size={28} className="text-zinc-600 group-hover:text-lime-400 transition-all" />
+                    )}
+                  </div>
+                  <div className="flex-1 cursor-pointer" onClick={() => abrirGrupo(grupo.id)}>
+                    <h3 className="text-xl font-black italic uppercase mb-1">{grupo.nome}</h3>
+                    <p className="text-xs text-zinc-500 font-bold uppercase">{grupo.categoria}</p>
+                  </div>
+                  {grupo.meuPapel === 'admin' ? (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('🎯 Botão compartilhar clicado para:', grupo.nome);
+                        gerarConvite(grupo);
+                      }}
+                      className="size-10 bg-lime-400/20 hover:bg-lime-400 text-lime-400 hover:text-black rounded-xl flex items-center justify-center transition-all shrink-0"
+                      title="Compartilhar convite"
+                    >
+                      <UserPlus size={18} />
+                    </button>
                   ) : (
-                    <Users size={28} className="text-zinc-600 group-hover:text-lime-400 transition-all" />
+                    <div className="size-10" />
                   )}
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-black italic uppercase mb-1">{grupo.nome}</h3>
-                  <p className="text-xs text-zinc-500 font-bold uppercase">{grupo.categoria}</p>
-                </div>
-                {grupo.meuPapel === 'admin' && (
-                  <span className="bg-lime-400/20 text-lime-400 px-3 py-1 rounded-full text-[10px] font-black uppercase">Admin</span>
+                
+                {grupo.descricao && (
+                  <p className="text-sm text-zinc-400 mb-4 line-clamp-2 cursor-pointer" onClick={() => abrirGrupo(grupo.id)}>{grupo.descricao}</p>
                 )}
-              </div>
-              
-              {grupo.descricao && (
-                <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{grupo.descricao}</p>
-              )}
-              
-              <div className="flex items-center gap-4 pt-4 border-t border-zinc-800">
-                <div className="flex -space-x-2">
-                  {grupo.membros?.slice(0, 3).map((membro: any, i: number) => (
-                    <div key={i} className="size-8 rounded-full bg-zinc-800 border-2 border-zinc-900 overflow-hidden">
-                      <img src={membro.usuario.imagemPerfil || 'https://picsum.photos/seed/user/100'} className="w-full h-full object-cover" />
-                    </div>
-                  ))}
+                
+                <div className="flex items-center gap-4 pt-4 border-t border-zinc-800 cursor-pointer" onClick={() => abrirGrupo(grupo.id)}>
+                  <div className="flex -space-x-2">
+                    {grupo.membros?.slice(0, 3).map((membro: any, i: number) => (
+                      <div key={i} className="size-8 rounded-full bg-zinc-800 border-2 border-zinc-900 overflow-hidden">
+                        <img src={membro?.usuario?.imagemPerfil || 'https://picsum.photos/seed/user/100'} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-zinc-500 font-bold">{grupo.totalMembros} {grupo.totalMembros === 1 ? 'membro' : 'membros'}</p>
+                  <div className="flex-1" />
+                  <ChevronRight size={20} className="text-zinc-600 group-hover:text-lime-400 transition-all" />
                 </div>
-                <p className="text-xs text-zinc-500 font-bold">{grupo.totalMembros} {grupo.totalMembros === 1 ? 'membro' : 'membros'}</p>
-                <div className="flex-1" />
-                <ChevronRight size={20} className="text-zinc-600 group-hover:text-lime-400 transition-all" />
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -2655,25 +2770,41 @@ const GroupsView = () => {
 
       {/* Modal Convite */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowInviteModal(false)}>
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-3xl p-8 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black italic uppercase">Convite Gerado</h3>
-              <button onClick={() => setShowInviteModal(false)} className="size-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+        <div className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setShowInviteModal(false)}>
+          <div className="bg-zinc-900 border-t-2 border-lime-400 sm:border sm:border-zinc-800 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 animate-in slide-in-from-bottom sm:zoom-in duration-300" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex-1">
+                <h3 className="text-2xl sm:text-3xl font-black italic uppercase text-white">🎉 Convite Gerado!</h3>
+                <p className="text-xs text-zinc-500 mt-1">Compartilhe e desafie seus amigos</p>
+              </div>
+              <button onClick={() => setShowInviteModal(false)} className="size-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0 ml-4">
                 <X size={18} />
               </button>
             </div>
             
-            <p className="text-sm text-zinc-400 mb-4">Compartilhe este link para convidar pessoas ao grupo:</p>
-            
-            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 mb-4">
-              <p className="text-xs text-lime-400 font-mono break-all">{linkConvite}</p>
+            <div className="bg-zinc-950 border-2 border-zinc-800 rounded-2xl p-4 mb-4">
+              <p className="text-xs text-lime-400 font-mono break-all leading-relaxed">{linkConvite}</p>
             </div>
             
-            <button onClick={copiarLink} className="w-full bg-lime-400 text-black py-4 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 hover:bg-lime-500 transition-all">
-              <Copy size={18} />
-              Copiar Link
-            </button>
+            <div className="space-y-3">
+              <button onClick={copiarLink} className="w-full bg-lime-400 text-black py-4 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 hover:bg-lime-500 active:scale-[0.98] transition-all">
+                <Copy size={18} />
+                Copiar Link
+              </button>
+              
+              <button 
+                onClick={() => {
+                  const mensagem = `🏋️ Entre no meu grupo de treino no FitnessTech! ${linkConvite}`;
+                  window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, '_blank');
+                }}
+                className="w-full bg-green-600 text-white py-4 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 hover:bg-green-700 active:scale-[0.98] transition-all"
+              >
+                <svg className="size-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+                Enviar WhatsApp
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -10950,7 +11081,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const carregarDadosPerfil = async () => {
       try {
-        const response = await fetch(`${API_URL}/usuario/perfil`, {
+        const response = await fetch(`${API_URL}/api/usuario/perfil`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('fitness_token')}`,
             'Content-Type': 'application/json'
