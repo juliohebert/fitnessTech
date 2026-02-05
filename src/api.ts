@@ -1,7 +1,7 @@
 // API Service para FitnessTech
 // Gerencia todas as chamadas ao backend
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:3002/api';
 
 // Helper para headers com autenticação
 const getHeaders = (includeAuth = true) => {
