@@ -9,7 +9,7 @@ import {
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, Shield, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
-  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu
+  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu, Edit3
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
@@ -494,6 +494,39 @@ const salvarTreino = async (token: string, dadosTreino: any) => {
     return resultado;
   } catch (error) {
     console.error('❌ Erro ao salvar treino:', error);
+    return null;
+  }
+};
+
+const atualizarTreino = async (token: string, treinoId: string, dadosTreino: any) => {
+  try {
+    console.log('🔄 ===== FUNÇÃO ATUALIZAR TREINO =====');
+    console.log('🔄 ID do treino:', treinoId);
+    console.log('🔄 Dados para atualização:', dadosTreino);
+    
+    const bodyData = JSON.stringify(dadosTreino);
+    console.log('🔄 Body que será enviado:', bodyData);
+    
+    const response = await fetch(`${API_URL}/api/historico-treinos/${treinoId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: bodyData
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('❌ Erro na resposta da API:', error);
+      return null;
+    }
+    
+    const resultado = await response.json();
+    console.log('✅ Treino atualizado com sucesso:', resultado);
+    return resultado;
+  } catch (error) {
+    console.error('❌ Erro ao atualizar treino:', error);
     return null;
   }
 };
@@ -1335,15 +1368,20 @@ const AIChatWidget = () => {
 // --- ALUNO COMPONENTS ---
 
 const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchConnected, connectedDeviceName }: any) => {
+  // Verificação de segurança para exercises
+  const exercises = Array.isArray(workout?.exercises) ? workout.exercises : [];
+  
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, number>>(() => {
     // Inicializa progresso zerado para cada exercício
     const initial: Record<string, number> = {};
-    workout.exercises?.forEach((ex: any) => {
-      initial[ex.id] = 0;
+    exercises.forEach((ex: any) => {
+      // Garantir que cada exercício tenha um ID único
+      const exerciseId = ex.id || ex.n || `ex-${Date.now()}-${Math.random()}`;
+      initial[exerciseId] = 0;
     });
     return initial;
   });
-  const [expandedId, setExpandedId] = useState<string | null>(workout.exercises[0]?.id || null);
+  const [expandedId, setExpandedId] = useState<string | null>(exercises[0]?.id || exercises[0]?.n || null);
   const [expandedVideo, setExpandedVideo] = useState<string | null>(null);
   const [restingExerciseId, setRestingExerciseId] = useState<string | null>(null);
   const [restSeconds, setRestSeconds] = useState<number>(0);
@@ -1375,23 +1413,25 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
     return () => clearInterval(interval);
   }, [watchConnected]);
 
-  const totalPossibleSets: number = (workout.exercises || []).reduce((acc: number, ex: any) => {
+  const totalPossibleSets: number = exercises.reduce((acc: number, ex: any) => {
     const sets = typeof ex.s === 'string' ? parseInt(ex.s) : Number(ex.s);
     return acc + (isNaN(sets) ? 0 : sets);
   }, 0);
   
-  const totalCompletedSets: number = (workout.exercises || []).reduce((acc: number, ex: any) => {
-    return acc + (exerciseProgress[ex.id] || 0);
+  const totalCompletedSets: number = exercises.reduce((acc: number, ex: any) => {
+    const exerciseId = ex.id || ex.n || `ex-${Date.now()}-${Math.random()}`;
+    return acc + (exerciseProgress[exerciseId] || 0);
   }, 0);
   
   const workoutPercentage = totalPossibleSets > 0 ? Math.min(100, (totalCompletedSets / totalPossibleSets) * 100) : 0;
 
   // Verificar se todos os exercícios foram completados
   useEffect(() => {
-    if (!workout.exercises || workout.exercises.length === 0) return;
+    if (!exercises || exercises.length === 0) return;
     
-    const allCompleted = workout.exercises.every((ex: any) => {
-      const completed = exerciseProgress[ex.id] || 0;
+    const allCompleted = exercises.every((ex: any) => {
+      const exerciseId = ex.id || ex.n || `ex-${Date.now()}-${Math.random()}`;
+      const completed = exerciseProgress[exerciseId] || 0;
       const required = typeof ex.s === 'string' ? parseInt(ex.s) : Number(ex.s);
       return !isNaN(required) && completed >= required;
     });
@@ -1404,7 +1444,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [exerciseProgress, workout.exercises, totalCompletedSets, totalPossibleSets, onFinish]);
+  }, [exerciseProgress, exercises, totalCompletedSets, totalPossibleSets, onFinish]);
 
   const handleVoiceGuidance = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -1482,19 +1522,20 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 
       <div className="space-y-6">
         <h2 className="text-3xl font-black italic uppercase tracking-tighter px-2 mb-2">{workout.title}</h2>
-        {workout.exercises.map((ex: any, idx: number) => {
-          const completed = exerciseProgress[ex.id] || 0;
+        {exercises.map((ex: any, idx: number) => {
+          const exerciseId = ex.id || ex.n || `ex-${idx}`;
+          const completed = exerciseProgress[exerciseId] || 0;
           const isDone = completed === Number(ex.s);
-          const isExpanded = expandedId === ex.id;
-          const isResting = restingExerciseId === ex.id;
+          const isExpanded = expandedId === exerciseId;
+          const isResting = restingExerciseId === exerciseId;
           return (
-            <div key={ex.id} className={`bg-zinc-900 border transition-all duration-300 rounded-[2.5rem] overflow-hidden ${isDone ? 'border-zinc-800/50 opacity-50' : isExpanded ? 'border-lime-400/40 shadow-2xl' : 'border-zinc-800 hover:border-zinc-700'}`}>
-              <div className="p-8 flex items-center justify-between cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : ex.id)}>
+            <div key={exerciseId} className={`bg-zinc-900 border transition-all duration-300 rounded-[2.5rem] overflow-hidden ${isDone ? 'border-zinc-800/50 opacity-50' : isExpanded ? 'border-lime-400/40 shadow-2xl' : 'border-zinc-800 hover:border-zinc-700'}`}>
+              <div className="p-8 flex items-center justify-between cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : exerciseId)}>
                 <div className="flex items-center gap-5">
                   <div className={`size-14 rounded-2xl border-2 flex items-center justify-center transition-all ${isDone ? 'bg-zinc-800 border-zinc-700 text-zinc-500' : isExpanded ? 'bg-lime-400 border-lime-400 text-black shadow-lg' : 'bg-zinc-950 border-zinc-800 text-zinc-400'}`}>{isDone ? <Check size={28} strokeWidth={4} /> : <span className="text-lg font-black italic tracking-tighter">{idx + 1}</span>}</div>
                   <div>
                     <h4 className={`font-black italic uppercase tracking-tight text-xl leading-none mb-1.5 ${isDone ? 'line-through text-zinc-600' : ''}`}>{ex.n}</h4>
-                    <div className="flex items-center gap-3"><span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">{ex.group}</span><div className="size-1 bg-zinc-800 rounded-full" /><span className="text-[10px] font-black uppercase text-lime-400 tracking-widest">{completed} de {ex.s} séries</span></div>
+                    <div className="flex items-center gap-3"><span className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">{ex.group || 'Geral'}</span><div className="size-1 bg-zinc-800 rounded-full" /><span className="text-[10px] font-black uppercase text-lime-400 tracking-widest">{completed} de {ex.s} séries</span></div>
                   </div>
                 </div>
                 {isExpanded ? <ChevronUp size={24} className="text-zinc-600" /> : <ChevronDown size={24} className="text-zinc-600" />}
@@ -1503,15 +1544,19 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                 <div className="px-8 pb-8 pt-2 animate-in slide-in-from-top-4 duration-300">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     <div className="aspect-video bg-black rounded-3xl overflow-hidden border border-zinc-800 relative group">
-                      {isYouTubeUrl(ex.video) ? (
+                      {ex.video && isYouTubeUrl(ex.video) ? (
                         <iframe 
                           src={getYouTubeEmbedUrl(ex.video) || ex.video} 
                           className="w-full h-full" 
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                           allowFullScreen
                         />
-                      ) : (
+                      ) : ex.video ? (
                         <video src={ex.video} loop muted playsInline controls className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                          <Video size={48} />
+                        </div>
                       )}
                       <button onClick={() => setExpandedVideo(ex.video)} className="absolute top-4 right-4 bg-black/80 hover:bg-lime-400 text-white hover:text-black p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 backdrop-blur-sm">
                         <ExternalLink size={20} />
@@ -1525,12 +1570,12 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                       <div className="bg-zinc-950/50 p-6 rounded-3xl border border-zinc-800/50">
                         <div className="flex justify-between items-center mb-3">
                            <p className="text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2"><BookOpen size={14}/> Técnica</p>
-                           <button onClick={() => handleVoiceGuidance(ex.orientations.join('. '))} className={`flex items-center gap-2 text-[10px] font-black uppercase transition-colors px-3 py-1.5 rounded-lg border ${isSpeaking ? 'bg-lime-400 text-black border-lime-400 animate-pulse' : 'bg-zinc-900 text-lime-400 border-zinc-800 hover:border-lime-400/50'}`}>
+                           <button onClick={() => handleVoiceGuidance((ex.orientations || ['Execute o movimento com boa técnica']).join('. '))} className={`flex items-center gap-2 text-[10px] font-black uppercase transition-colors px-3 py-1.5 rounded-lg border ${isSpeaking ? 'bg-lime-400 text-black border-lime-400 animate-pulse' : 'bg-zinc-900 text-lime-400 border-zinc-800 hover:border-lime-400/50'}`}>
                               {isSpeaking ? <Volume2 size={12} className="animate-bounce"/> : <Volume2 size={12}/>} 
                               {isSpeaking ? 'Falando...' : 'Ouvir Dicas'}
                            </button>
                         </div>
-                        <ul className="space-y-2">{ex.orientations.map((item: string, i: number) => (<li key={i} className="text-xs text-zinc-400 italic"><span className="text-lime-400 font-black mr-1">{i+1}.</span> {item}</li>))}</ul>
+                        <ul className="space-y-2">{(ex.orientations || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada']).map((item: string, i: number) => (<li key={i} className="text-xs text-zinc-400 italic"><span className="text-lime-400 font-black mr-1">{i+1}.</span> {item}</li>))}</ul>
                       </div>
                       <button onClick={() => setShowPostureModal(true)} className="w-full bg-zinc-900 border border-zinc-800 hover:border-blue-500/50 text-zinc-400 hover:text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all"><Video size={16} className="text-blue-500"/> Analisar Postura (AI)</button>
                     </div>
@@ -1544,20 +1589,20 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                          </div>
                        ) : (
                          <button onClick={() => { 
-                           const next = (exerciseProgress[ex.id] || 0) + 1; 
-                           setExerciseProgress({...exerciseProgress, [ex.id]: next}); 
+                           const next = (exerciseProgress[exerciseId] || 0) + 1; 
+                           setExerciseProgress({...exerciseProgress, [exerciseId]: next}); 
                            const requiredSets = typeof ex.s === 'string' ? parseInt(ex.s) : Number(ex.s);
                            if(next >= requiredSets) {
                              // Exercício completo - avançar para o próximo
-                             const currentIndex = workout.exercises.findIndex((e: any) => e.id === ex.id);
-                             const nextExercise = workout.exercises[currentIndex + 1];
+                             const currentIndex = exercises.findIndex((e: any) => (e.id || e.n) === exerciseId);
+                             const nextExercise = exercises[currentIndex + 1];
                              if(nextExercise) {
-                               setExpandedId(nextExercise.id);
+                               setExpandedId(nextExercise.id || nextExercise.n);
                              } else {
                                setExpandedId(null);
                              }
                            } else { 
-                             setRestingExerciseId(ex.id); 
+                             setRestingExerciseId(exerciseId); 
                              setRestSeconds(typeof ex.rest === 'string' ? parseInt(ex.rest) : Number(ex.rest) || 90); 
                            } 
                          }} className="w-full bg-lime-400 hover:bg-lime-300 text-black py-8 rounded-[2rem] font-black uppercase tracking-widest text-xl flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-all shadow-lime-400/20"><Zap size={28} fill="currentColor" /> Finalizar Série {completed + 1}</button>
@@ -1705,12 +1750,27 @@ const WorkoutDetailCard = ({ workout, onStart }: any) => {
       </p>
     </div>
   );
-  if (!workout.exercises || workout.exercises.length === 0) return (<div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center shadow-2xl"><div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700"><RotateCcw size={48} /></div><h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3><p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Foque na recuperação.</p></div>);
+  
+  // Verificação de segurança para exercises
+  const exercises = Array.isArray(workout.exercises) ? workout.exercises : [];
+  
+  if (exercises.length === 0) {
+    return (
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-8 md:p-20 text-center shadow-2xl">
+        <div className="size-24 bg-zinc-950 rounded-full flex items-center justify-center mx-auto mb-8 text-zinc-700">
+          <RotateCcw size={48} />
+        </div>
+        <h3 className="text-3xl font-black italic uppercase mb-2">Dia de Descanso</h3>
+        <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Foque na recuperação.</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-2xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl">
       <div className="flex items-center gap-4 mb-10"><span className="bg-lime-400 text-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">Série {workout.category}</span><span className="text-zinc-500 text-sm font-bold flex items-center gap-2"><Clock size={16} /> {workout.duration}</span></div>
       <h3 className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-12 leading-none">{workout.title}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">{workout.exercises.map((ex: any, i: number) => (<div key={i} className="flex items-center justify-between p-6 bg-zinc-950/60 rounded-3xl border border-zinc-800"><div className="flex items-center gap-4"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-lime-400 font-black italic">{i+1}</div><div className="min-w-0"><p className="font-bold text-sm truncate uppercase tracking-tight italic">{ex.n}</p><p className="text-[10px] text-zinc-500 font-bold uppercase">{ex.s}X {ex.r} • {ex.w} • {ex.rest}s descanso</p></div></div></div>))}</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">{exercises.map((ex: any, i: number) => (<div key={i} className="flex items-center justify-between p-6 bg-zinc-950/60 rounded-3xl border border-zinc-800"><div className="flex items-center gap-4"><div className="size-10 bg-zinc-900 rounded-xl flex items-center justify-center text-lime-400 font-black italic">{i+1}</div><div className="min-w-0"><p className="font-bold text-sm truncate uppercase tracking-tight italic">{ex.n}</p><p className="text-[10px] text-zinc-500 font-bold uppercase">{ex.s}X {ex.r} • {ex.w} • {ex.rest}s descanso</p></div></div></div>))}</div>
       <button onClick={onStart} className="w-full bg-lime-400 text-black py-7 rounded-[2rem] font-black uppercase tracking-widest text-xl flex items-center justify-center gap-4 shadow-xl active:scale-[0.98] transition-all shadow-lime-400/20"><Play size={28} fill="currentColor" /> COMEÇAR AGORA</button>
     </div>
   );
@@ -2425,17 +2485,21 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
          category: treinoHoje.tipo === 'ia' ? 'IA' : 'Manual',
          duration: '60 min',
          exercises: (treinoHoje.plano[diaAtualNome] || []).map((ex: any) => ({
+            id: ex.id || `ex-${Date.now()}-${Math.random()}`, // Adicionar ID único se não existir
             n: ex.nome,
             s: ex.series,
             r: ex.repeticoes,
             w: ex.carga,
-            rest: ex.descanso || '90s'
+            rest: ex.descanso || '90s',
+            group: ex.grupo || 'Geral', // Adicionar grupo padrão
+            orientations: ex.orientacoes || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada'], // Orientações padrão
+            video: ex.video || null // URL do vídeo se existir
          }))
       } : {
-         name: 'Treino não definido',
-         duration: 45,
+         title: 'Treino não definido',
+         duration: '45 min',
          exercises: [],
-         difficulty: 'medium'
+         category: 'Padrão'
       };
       
       return (
@@ -2537,12 +2601,16 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
          title: treinoDodia.titulo || 'Treino',
          category: treinoDodia.tipo === 'ia' ? 'IA' : 'Manual',
          duration: '60 min',
-         exercises: treinoDodia.plano[diaSelecionado].map((ex: any) => ({
+         exercises: (treinoDodia.plano[diaSelecionado] || []).map((ex: any) => ({
+           id: ex.id || `ex-${Date.now()}-${Math.random()}`, // Adicionar ID único se não existir
            n: ex.nome,
            s: ex.series,
            r: ex.repeticoes,
            w: ex.carga,
-           rest: ex.descanso || '90s'
+           rest: ex.descanso || '90s',
+           group: ex.grupo || 'Geral', // Adicionar grupo padrão
+           orientations: ex.orientacoes || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada'], // Orientações padrão
+           video: ex.video || null // URL do vídeo se existir
          }))
        } : null;
        
@@ -4568,6 +4636,18 @@ const AdminModule = ({ view, user, academia }: any) => {
    });
    const [gerandoComIA, setGerandoComIA] = useState(false);
    const [showIAConfigModal, setShowIAConfigModal] = useState(false);
+   const [showEditModal, setShowEditModal] = useState(false);
+   const [selectedTreinoEdit, setSelectedTreinoEdit] = useState(null);
+   const [activeDayEdit, setActiveDayEdit] = useState('segunda');
+   const [editingPlano, setEditingPlano] = useState({
+      segunda: [],
+      terca: [],
+      quarta: [],
+      quinta: [],
+      sexta: [],
+      sabado: [],
+      domingo: []
+   });
    const [iaConfig, setIaConfig] = useState({
       objetivo: '',
       nivel: '',
@@ -4938,6 +5018,67 @@ const AdminModule = ({ view, user, academia }: any) => {
       } catch (error) {
          console.error('❌ Erro ao cadastrar aluno:', error);
          alert('Erro ao cadastrar aluno');
+      }
+   };
+
+   const salvarEdicaoTreino = async () => {
+      if (!selectedTreinoEdit) {
+         alert('Nenhum treino selecionado para edição');
+         return;
+      }
+
+      const token = localStorage.getItem('fitness_token');
+      if (!token) {
+         alert('Token não encontrado');
+         return;
+      }
+
+      try {
+         // Mesclar planos editados com planos originais
+         const planoFinal = {
+            segunda: editingPlano.segunda.length > 0 ? editingPlano.segunda : selectedTreinoEdit.plano.segunda || [],
+            terca: editingPlano.terca.length > 0 ? editingPlano.terca : selectedTreinoEdit.plano.terca || [],
+            quarta: editingPlano.quarta.length > 0 ? editingPlano.quarta : selectedTreinoEdit.plano.quarta || [],
+            quinta: editingPlano.quinta.length > 0 ? editingPlano.quinta : selectedTreinoEdit.plano.quinta || [],
+            sexta: editingPlano.sexta.length > 0 ? editingPlano.sexta : selectedTreinoEdit.plano.sexta || [],
+            sabado: editingPlano.sabado.length > 0 ? editingPlano.sabado : selectedTreinoEdit.plano.sabado || [],
+            domingo: editingPlano.domingo.length > 0 ? editingPlano.domingo : selectedTreinoEdit.plano.domingo || []
+         };
+
+         const dadosAtualizacao = {
+            plano: planoFinal
+         };
+
+         const resultado = await atualizarTreino(token, selectedTreinoEdit.id, dadosAtualizacao);
+         
+         if (resultado) {
+            // Atualizar a lista local de treinos
+            setHistoricoTreinos(prev => prev.map(treino => 
+               treino.id === selectedTreinoEdit.id 
+                  ? { ...treino, plano: planoFinal }
+                  : treino
+            ));
+
+            // Fechar modal
+            setShowEditModal(false);
+            setSelectedTreinoEdit(null);
+            setEditingPlano({
+               segunda: [],
+               terca: [],
+               quarta: [],
+               quinta: [],
+               sexta: [],
+               sabado: [],
+               domingo: []
+            });
+
+            alert('Treino atualizado com sucesso!');
+         } else {
+            alert('Erro ao salvar alterações do treino');
+         }
+      } catch (error) {
+         console.error('Erro ao salvar edição do treino:', error);
+         alert('Erro ao salvar alterações do treino');
       }
    };
 
@@ -5615,9 +5756,9 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  {historicoTreinos
                                     .filter(t => t.alunoId === selectedStudent?.id)
                                     .map((treino, index) => (
-                                       <div key={treino.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                                       <div key={treino.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors">
                                           <div className="flex justify-between items-start mb-4">
-                                             <div>
+                                             <div className="flex-1">
                                                 <h4 className="font-black italic uppercase text-lg text-lime-400">{treino.titulo}</h4>
                                                 <div className="flex items-center gap-4 mt-2">
                                                    <p className="text-xs text-zinc-500 font-bold uppercase">📅 {treino.data}</p>
@@ -5628,13 +5769,28 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                    </span>
                                                 </div>
                                              </div>
-                                             <div className="text-right">
-                                                <p className="text-[10px] text-zinc-600 uppercase font-bold">Exercícios</p>
-                                                <p className="text-xl font-black text-white">
-                                                   {Object.values(treino.plano)
-                                                      .filter((dia: any) => Array.isArray(dia))
-                                                      .reduce((total: number, dia: any) => total + dia.length, 0)}
-                                                </p>
+                                             
+                                             <div className="flex items-center gap-4">
+                                                <div className="text-right">
+                                                   <p className="text-[10px] text-zinc-600 uppercase font-bold">Exercícios</p>
+                                                   <p className="text-xl font-black text-white">
+                                                      {Object.values(treino.plano)
+                                                         .filter((dia: any) => Array.isArray(dia))
+                                                         .reduce((total: number, dia: any) => total + dia.length, 0)}
+                                                   </p>
+                                                </div>
+                                                <button
+                                                   onClick={() => {
+                                                      setSelectedTreinoEdit(treino);
+                                                      setShowEditModal(true);
+                                                   }}
+                                                   className="bg-blue-500 hover:bg-blue-600 p-3 rounded-xl transition-colors"
+                                                   title="Editar Treino"
+                                                >
+                                                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                   </svg>
+                                                </button>
                                              </div>
                                           </div>
                                           
@@ -7011,6 +7167,309 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                  Gerar {prescriptionType === 'treino' ? 'Treino' : 'Dieta'}
                               </>
                            )}
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Modal de Edição de Treino */}
+         {showEditModal && selectedTreinoEdit && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-lime-400/30 rounded-3xl max-w-7xl w-full h-[90vh] shadow-2xl shadow-lime-400/20 flex flex-col">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-lime-400 to-lime-500 flex items-center justify-center">
+                           <Edit3 className="text-black" size={24} />
+                        </div>
+                        <div>
+                           <h2 className="text-2xl font-black">Editar Treino</h2>
+                           <p className="text-sm text-zinc-400">{selectedTreinoEdit.titulo} - {selectedTreinoEdit.data}</p>
+                        </div>
+                     </div>
+                     <button
+                        onClick={() => {
+                           setShowEditModal(false);
+                           setSelectedTreinoEdit(null);
+                           setEditingPlano({
+                              segunda: [],
+                              terca: [],
+                              quarta: [],
+                              quinta: [],
+                              sexta: [],
+                              sabado: [],
+                              domingo: []
+                           });
+                        }}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="flex-1 overflow-hidden flex">
+                     {/* Sidebar - Dias da Semana */}
+                     <div className="w-48 bg-zinc-950/50 border-r border-zinc-800 p-4">
+                        <h3 className="font-black uppercase text-xs text-zinc-500 mb-4">Dias da Semana</h3>
+                        <div className="space-y-2">
+                           {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
+                              const exercicios = editingPlano[dia] || selectedTreinoEdit.plano[dia] || [];
+                              const isActive = activeDayEdit === dia;
+                              
+                              return (
+                                 <button
+                                    key={dia}
+                                    onClick={() => {
+                                       setActiveDayEdit(dia);
+                                       if (!editingPlano[dia] || editingPlano[dia].length === 0) {
+                                          setEditingPlano(prev => ({
+                                             ...prev,
+                                             [dia]: selectedTreinoEdit.plano[dia] || []
+                                          }));
+                                       }
+                                    }}
+                                    className={`w-full text-left p-3 rounded-xl transition-colors ${
+                                       isActive
+                                          ? 'bg-lime-400 text-black font-black'
+                                          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                    }`}
+                                 >
+                                    <div className="flex justify-between items-center">
+                                       <span className="capitalize text-sm font-bold">
+                                          {dia === 'terca' ? 'Terça' : dia === 'quarta' ? 'Quarta' : dia}
+                                       </span>
+                                       <span className={`text-xs font-black ${isActive ? 'text-black' : 'text-zinc-600'}`}>
+                                          {exercicios.length}
+                                       </span>
+                                    </div>
+                                 </button>
+                              );
+                           })}
+                        </div>
+                     </div>
+
+                     {/* Conteúdo Principal - Exercícios */}
+                     <div className="flex-1 overflow-auto p-6">
+                        {activeDayEdit && (
+                           <div>
+                              <div className="flex justify-between items-center mb-6">
+                                 <h3 className="text-xl font-black uppercase">
+                                    Exercícios de {activeDayEdit === 'terca' ? 'Terça-feira' : 
+                                    activeDayEdit === 'quarta' ? 'Quarta-feira' : 
+                                    activeDayEdit.charAt(0).toUpperCase() + activeDayEdit.slice(1)}
+                                 </h3>
+                                 <button
+                                    onClick={() => {
+                                       const novoExercicio = {
+                                          exercicio: '',
+                                          series: '',
+                                          repeticoes: '',
+                                          carga: '',
+                                          descanso: '',
+                                          observacoes: ''
+                                       };
+                                       setEditingPlano(prev => ({
+                                          ...prev,
+                                          [activeDayEdit]: [...(prev[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []), novoExercicio]
+                                       }));
+                                    }}
+                                    className="bg-lime-400 hover:bg-lime-500 text-black px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
+                                 >
+                                    <Plus size={16} />
+                                    Adicionar Exercício
+                                 </button>
+                              </div>
+
+                              <div className="space-y-4">
+                                 {(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []).map((exercicio: any, index: number) => (
+                                    <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                                       <div className="flex justify-between items-start mb-4">
+                                          <h4 className="font-bold text-lg">Exercício {index + 1}</h4>
+                                          <button
+                                             onClick={() => {
+                                                const novosExercicios = (editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []).filter((_, i) => i !== index);
+                                                setEditingPlano(prev => ({
+                                                   ...prev,
+                                                   [activeDayEdit]: novosExercicios
+                                                }));
+                                             }}
+                                             className="text-red-400 hover:text-red-300 p-1"
+                                          >
+                                             <Trash2 size={16} />
+                                          </button>
+                                       </div>
+
+                                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                          <div className="lg:col-span-2">
+                                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Nome do Exercício</label>
+                                             <input
+                                                type="text"
+                                                value={exercicio.exercicio || ''}
+                                                onChange={(e) => {
+                                                   const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
+                                                   novosExercicios[index] = { ...novosExercicios[index], exercicio: e.target.value };
+                                                   setEditingPlano(prev => ({
+                                                      ...prev,
+                                                      [activeDayEdit]: novosExercicios
+                                                   }));
+                                                }}
+                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                                                placeholder="Ex: Supino reto com halter"
+                                             />
+                                          </div>
+
+                                          <div>
+                                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Observações</label>
+                                             <input
+                                                type="text"
+                                                value={exercicio.observacoes || ''}
+                                                onChange={(e) => {
+                                                   const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
+                                                   novosExercicios[index] = { ...novosExercicios[index], observacoes: e.target.value };
+                                                   setEditingPlano(prev => ({
+                                                      ...prev,
+                                                      [activeDayEdit]: novosExercicios
+                                                   }));
+                                                }}
+                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                                                placeholder="Ex: Movimento controlado"
+                                             />
+                                          </div>
+
+                                          <div className="grid grid-cols-2 gap-3">
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Séries</label>
+                                                <input
+                                                   type="text"
+                                                   value={exercicio.series || ''}
+                                                   onChange={(e) => {
+                                                      const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
+                                                      novosExercicios[index] = { ...novosExercicios[index], series: e.target.value };
+                                                      setEditingPlano(prev => ({
+                                                         ...prev,
+                                                         [activeDayEdit]: novosExercicios
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                                                   placeholder="3"
+                                                />
+                                             </div>
+
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Repetições</label>
+                                                <input
+                                                   type="text"
+                                                   value={exercicio.repeticoes || ''}
+                                                   onChange={(e) => {
+                                                      const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
+                                                      novosExercicios[index] = { ...novosExercicios[index], repeticoes: e.target.value };
+                                                      setEditingPlano(prev => ({
+                                                         ...prev,
+                                                         [activeDayEdit]: novosExercicios
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                                                   placeholder="10-12"
+                                                />
+                                             </div>
+                                          </div>
+
+                                          <div className="grid grid-cols-2 gap-3">
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Carga</label>
+                                                <input
+                                                   type="text"
+                                                   value={exercicio.carga || ''}
+                                                   onChange={(e) => {
+                                                      const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
+                                                      novosExercicios[index] = { ...novosExercicios[index], carga: e.target.value };
+                                                      setEditingPlano(prev => ({
+                                                         ...prev,
+                                                         [activeDayEdit]: novosExercicios
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                                                   placeholder="15kg"
+                                                />
+                                             </div>
+
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Descanso</label>
+                                                <input
+                                                   type="text"
+                                                   value={exercicio.descanso || ''}
+                                                   onChange={(e) => {
+                                                      const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
+                                                      novosExercicios[index] = { ...novosExercicios[index], descanso: e.target.value };
+                                                      setEditingPlano(prev => ({
+                                                         ...prev,
+                                                         [activeDayEdit]: novosExercicios
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-lime-400 transition-colors"
+                                                   placeholder="60s"
+                                                />
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 ))}
+
+                                 {(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []).length === 0 && (
+                                    <div className="text-center py-12">
+                                       <div className="text-zinc-600 mb-4">
+                                          <Dumbbell size={48} className="mx-auto mb-2" />
+                                          <p className="text-lg font-bold">Nenhum exercício para {activeDayEdit}</p>
+                                          <p className="text-sm">Clique em "Adicionar Exercício" para começar</p>
+                                       </div>
+                                    </div>
+                                 )}
+                              </div>
+                           </div>
+                        )}
+
+                        {!activeDayEdit && (
+                           <div className="text-center py-12">
+                              <div className="text-zinc-600 mb-4">
+                                 <Calendar size={48} className="mx-auto mb-2" />
+                                 <p className="text-lg font-bold">Selecione um dia da semana</p>
+                                 <p className="text-sm">Escolha um dia no menu lateral para editar os exercícios</p>
+                              </div>
+                           </div>
+                        )}
+                     </div>
+                  </div>
+
+                  {/* Footer com botões de ação */}
+                  <div className="border-t border-zinc-800 p-6">
+                     <div className="flex gap-3">
+                        <button
+                           onClick={() => {
+                              setShowEditModal(false);
+                              setSelectedTreinoEdit(null);
+                              setEditingPlano({
+                                 segunda: [],
+                                 terca: [],
+                                 quarta: [],
+                                 quinta: [],
+                                 sexta: [],
+                                 sabado: [],
+                                 domingo: []
+                              });
+                           }}
+                           className="flex-1 bg-zinc-800 text-white py-4 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
+                        >
+                           Cancelar
+                        </button>
+                        <button
+                           onClick={() => {
+                              salvarEdicaoTreino();
+                           }}
+                           className="flex-2 bg-gradient-to-r from-lime-400 to-lime-500 text-black py-4 px-8 rounded-xl font-black uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                        >
+                           <Save size={20} />
+                           Salvar Alterações
                         </button>
                      </div>
                   </div>

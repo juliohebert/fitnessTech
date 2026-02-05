@@ -389,6 +389,76 @@ export default async function handler(req, res) {
       console.log('✅ Treino salvo com ID:', historico.id);
       return res.status(201).json(historico);
     }
+
+    // PUT /api/historico-treinos/:id
+    if (method === 'PUT' && url?.match(/\/historico-treinos\/([^\/]+)$/)) {
+      console.log('📥 PUT /historico-treinos/:id - Body completo:', JSON.stringify(req.body, null, 2));
+      
+      const decoded = verificarToken();
+      const treinoId = url.match(/\/historico-treinos\/([^\/]+)$/)?.[1];
+      
+      if (!treinoId) {
+        return res.status(400).json({ erro: 'ID do treino é obrigatório' });
+      }
+      
+      // Verificar se o treino existe e pertence ao usuário ou se é admin
+      const treinoExistente = await prisma.historicoTreino.findUnique({
+        where: { id: treinoId }
+      });
+      
+      if (!treinoExistente) {
+        return res.status(404).json({ erro: 'Treino não encontrado' });
+      }
+      
+      // Verificar permissão (dono do treino ou admin)
+      const usuarioLogado = await prisma.usuario.findUnique({
+        where: { id: decoded.usuarioId }
+      });
+      
+      if (treinoExistente.usuarioId !== decoded.usuarioId && usuarioLogado.funcao !== 'ADMIN') {
+        return res.status(403).json({ erro: 'Sem permissão para editar este treino' });
+      }
+      
+      const { titulo, tituloTreino, exercicios, duracao, calorias, observacoes, plano } = req.body || {};
+      
+      // Preparar dados para atualização
+      const dadosAtualizacao = {};
+      
+      if (titulo || tituloTreino) {
+        dadosAtualizacao.tituloTreino = (titulo || tituloTreino).trim();
+      }
+      
+      if (exercicios !== undefined) {
+        dadosAtualizacao.exercicios = exercicios;
+      }
+      
+      if (duracao !== undefined) {
+        dadosAtualizacao.duracao = duracao;
+      }
+      
+      if (calorias !== undefined) {
+        dadosAtualizacao.calorias = calorias;
+      }
+      
+      if (observacoes !== undefined) {
+        dadosAtualizacao.observacoes = observacoes;
+      }
+      
+      if (plano !== undefined) {
+        dadosAtualizacao.exercicios = plano; // No schema atual, plano é armazenado em exercicios
+      }
+      
+      console.log('🔄 Atualizando treino ID:', treinoId);
+      console.log('📊 Dados para atualização:', dadosAtualizacao);
+      
+      const treinoAtualizado = await prisma.historicoTreino.update({
+        where: { id: treinoId },
+        data: dadosAtualizacao
+      });
+      
+      console.log('✅ Treino atualizado com sucesso:', treinoAtualizado.id);
+      return res.status(200).json(treinoAtualizado);
+    }
     
     // GET /api/notificacoes
     if (method === 'GET' && url?.includes('/notificacoes')) {
