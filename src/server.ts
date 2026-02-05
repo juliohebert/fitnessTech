@@ -2962,6 +2962,340 @@ app.post('/api/produtos/:id/ajustar-estoque', autenticar, verificarAdmin, async 
 // ===== INICIAR SERVIDOR =====
 
 // Exportar app para Vercel serverless functions
+// ===== ROTAS DE GRUPOS =====
+
+// Criar novo grupo
+app.post('/api/grupos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { nome, descricao, categoria, imagem } = req.body;
+    
+    if (!nome || !categoria) {
+      return res.status(400).json({ erro: 'Nome e categoria são obrigatórios' });
+    }
+    
+    const grupo = await prisma.grupo.create({
+      data: {
+        nome,
+        descricao: descricao || '',
+        categoria,
+        imagem: imagem || null,
+        totalMembros: 1
+      }
+    });
+    
+    // Adicionar criador como admin do grupo
+    await prisma.membroGrupo.create({
+      data: {
+        grupoId: grupo.id,
+        usuarioId: req.usuario?.id!,
+        funcao: 'admin'
+      }
+    });
+    
+    console.log(`✅ Grupo criado: ${grupo.nome} por ${req.usuario?.nome}`);
+    res.json(grupo);
+  } catch (err) {
+    console.error('❌ Erro ao criar grupo:', err);
+    res.status(500).json({ erro: 'Erro ao criar grupo' });
+  }
+});
+
+// Listar grupos do usuário
+app.get('/api/grupos', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const membros = await prisma.membroGrupo.findMany({
+      where: { usuarioId: req.usuario?.id },
+      include: {
+        grupo: {
+          include: {
+            membros: {
+              include: {
+                usuario: {
+                  select: {
+                    id: true,
+                    nome: true,
+                    imagemPerfil: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { entradoEm: 'desc' }
+    });
+    
+    const grupos = membros.map(m => ({
+      ...m.grupo,
+      meuPapel: m.funcao,
+      entradoEm: m.entradoEm
+    }));
+    
+    res.json(grupos);
+  } catch (err) {
+    console.error('❌ Erro ao listar grupos:', err);
+    res.status(500).json({ erro: 'Erro ao listar grupos' });
+  }
+});
+
+// Detalhes de um grupo
+app.get('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se usuário é membro
+    const membro = await prisma.membroGrupo.findFirst({
+      where: {
+        grupoId: id,
+        usuarioId: req.usuario?.id
+      }
+    });
+    
+    if (!membro) {
+      return res.status(403).json({ erro: 'Você não é membro deste grupo' });
+    }
+    
+    const grupo = await prisma.grupo.findUnique({
+      where: { id },
+      include: {
+        membros: {
+          include: {
+            usuario: {
+              select: {
+                id: true,
+                nome: true,
+                imagemPerfil: true,
+                historicoTreinos: {
+                  select: {
+                    id: true,
+                    dataInicio: true,
+                    dataFim: true,
+                    totalCaloriasQueimadas: true
+                  },
+                  orderBy: { dataInicio: 'desc' }
+                }
+              }
+            }
+          },
+          orderBy: { entradoEm: 'asc' }
+        }
+      }
+    });
+    
+    res.json({ ...grupo, meuPapel: membro.funcao });
+  } catch (err) {
+    console.error('❌ Erro ao buscar grupo:', err);
+    res.status(500).json({ erro: 'Erro ao buscar grupo' });
+  }
+});
+
+// Gerar link de convite
+app.post('/api/grupos/:id/convite', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se usuário é admin do grupo
+    const membro = await prisma.membroGrupo.findFirst({
+      where: {
+        grupoId: id,
+        usuarioId: req.usuario?.id,
+        funcao: 'admin'
+      }
+    });
+    
+    if (!membro) {
+      return res.status(403).json({ erro: 'Apenas admins podem gerar convites' });
+    }
+    
+    // Gerar token único para o convite
+    const token = Buffer.from(`${id}:${Date.now()}`).toString('base64');
+    const linkConvite = `${process.env.APP_URL || 'http://localhost:5173'}/convite/${token}`;
+    
+    res.json({ linkConvite, token });
+  } catch (err) {
+    console.error('❌ Erro ao gerar convite:', err);
+    res.status(500).json({ erro: 'Erro ao gerar convite' });
+  }
+});
+
+// Entrar no grupo via convite
+app.post('/api/grupos/entrar/:token', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { token } = req.params;
+    
+    // Decodificar token
+    const decoded = Buffer.from(token, 'base64').toString();
+    const [grupoId] = decoded.split(':');
+    
+    // Verificar se grupo existe
+    const grupo = await prisma.grupo.findUnique({
+      where: { id: grupoId }
+    });
+    
+    if (!grupo) {
+      return res.status(404).json({ erro: 'Grupo não encontrado' });
+    }
+    
+    // Verificar se já é membro
+    const jaEMembro = await prisma.membroGrupo.findFirst({
+      where: {
+        grupoId,
+        usuarioId: req.usuario?.id
+      }
+    });
+    
+    if (jaEMembro) {
+      return res.status(400).json({ erro: 'Você já é membro deste grupo' });
+    }
+    
+    // Adicionar ao grupo
+    await prisma.membroGrupo.create({
+      data: {
+        grupoId,
+        usuarioId: req.usuario?.id!,
+        funcao: 'membro'
+      }
+    });
+    
+    // Atualizar total de membros
+    await prisma.grupo.update({
+      where: { id: grupoId },
+      data: { totalMembros: { increment: 1 } }
+    });
+    
+    console.log(`✅ ${req.usuario?.nome} entrou no grupo ${grupo.nome}`);
+    res.json({ mensagem: 'Você entrou no grupo!', grupo });
+  } catch (err) {
+    console.error('❌ Erro ao entrar no grupo:', err);
+    res.status(500).json({ erro: 'Erro ao entrar no grupo' });
+  }
+});
+
+// Leaderboard do grupo
+app.get('/api/grupos/:id/leaderboard', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    const { periodo = '7' } = req.query; // dias
+    
+    // Verificar se usuário é membro
+    const membro = await prisma.membroGrupo.findFirst({
+      where: {
+        grupoId: id,
+        usuarioId: req.usuario?.id
+      }
+    });
+    
+    if (!membro) {
+      return res.status(403).json({ erro: 'Você não é membro deste grupo' });
+    }
+    
+    const diasAtras = parseInt(periodo as string);
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - diasAtras);
+    
+    // Buscar membros com estatísticas de treino
+    const membros = await prisma.membroGrupo.findMany({
+      where: { grupoId: id },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            imagemPerfil: true,
+            historicoTreinos: {
+              where: {
+                dataInicio: { gte: dataLimite }
+              },
+              select: {
+                id: true,
+                totalCaloriasQueimadas: true,
+                dataInicio: true,
+                dataFim: true
+              }
+            }
+          }
+        }
+      }
+    });
+    
+    // Calcular estatísticas
+    const ranking = membros.map(m => {
+      const treinos = m.usuario.historicoTreinos;
+      const totalTreinos = treinos.length;
+      const totalCalorias = treinos.reduce((acc, t) => acc + (t.totalCaloriasQueimadas || 0), 0);
+      const totalMinutos = treinos.reduce((acc, t) => {
+        if (t.dataFim) {
+          const diff = new Date(t.dataFim).getTime() - new Date(t.dataInicio).getTime();
+          return acc + Math.floor(diff / 60000);
+        }
+        return acc;
+      }, 0);
+      
+      return {
+        usuarioId: m.usuario.id,
+        nome: m.usuario.nome,
+        imagemPerfil: m.usuario.imagemPerfil,
+        funcao: m.funcao,
+        totalTreinos,
+        totalCalorias,
+        totalMinutos,
+        pontos: totalTreinos * 10 + Math.floor(totalCalorias / 10)
+      };
+    }).sort((a, b) => b.pontos - a.pontos);
+    
+    res.json({ ranking, periodo: diasAtras });
+  } catch (err) {
+    console.error('❌ Erro ao buscar leaderboard:', err);
+    res.status(500).json({ erro: 'Erro ao buscar leaderboard' });
+  }
+});
+
+// Sair do grupo
+app.delete('/api/grupos/:id/sair', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { id } = req.params;
+    
+    const membro = await prisma.membroGrupo.findFirst({
+      where: {
+        grupoId: id,
+        usuarioId: req.usuario?.id
+      }
+    });
+    
+    if (!membro) {
+      return res.status(404).json({ erro: 'Você não é membro deste grupo' });
+    }
+    
+    // Verificar se é o único admin
+    if (membro.funcao === 'admin') {
+      const totalAdmins = await prisma.membroGrupo.count({
+        where: {
+          grupoId: id,
+          funcao: 'admin'
+        }
+      });
+      
+      if (totalAdmins === 1) {
+        return res.status(400).json({ erro: 'Você é o único admin. Promova outro membro antes de sair' });
+      }
+    }
+    
+    await prisma.membroGrupo.delete({
+      where: { id: membro.id }
+    });
+    
+    await prisma.grupo.update({
+      where: { id },
+      data: { totalMembros: { decrement: 1 } }
+    });
+    
+    res.json({ mensagem: 'Você saiu do grupo' });
+  } catch (err) {
+    console.error('❌ Erro ao sair do grupo:', err);
+    res.status(500).json({ erro: 'Erro ao sair do grupo' });
+  }
+});
+
 export { app };
 
 // Iniciar servidor apenas em desenvolvimento

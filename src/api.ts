@@ -536,6 +536,76 @@ export const metaAPI = {
   },
 };
 
+// ===== GRUPOS =====
+
+export const gruposAPI = {
+  // Criar novo grupo
+  create: async (data: {
+    nome: string;
+    descricao?: string;
+    categoria: string;
+    imagem?: string;
+  }) => {
+    const response = await fetch(`${API_URL}/grupos`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  // Listar grupos do usuário
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/grupos`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Detalhes de um grupo
+  getById: async (id: string) => {
+    const response = await fetch(`${API_URL}/grupos/${id}`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Gerar link de convite
+  generateInvite: async (grupoId: string) => {
+    const response = await fetch(`${API_URL}/grupos/${grupoId}/convite`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Entrar no grupo via token
+  join: async (token: string) => {
+    const response = await fetch(`${API_URL}/grupos/entrar/${token}`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Buscar leaderboard
+  getLeaderboard: async (grupoId: string, periodo: number = 7) => {
+    const response = await fetch(`${API_URL}/grupos/${grupoId}/leaderboard?periodo=${periodo}`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Sair do grupo
+  leave: async (grupoId: string) => {
+    const response = await fetch(`${API_URL}/grupos/${grupoId}/sair`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+};
+
 // ===== HEALTH CHECK =====
 
 export const checkHealth = async () => {

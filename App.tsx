@@ -2312,6 +2312,375 @@ const GoalsView = () => {
   );
 };
 
+const GroupsView = () => {
+  const [grupos, setGrupos] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showNewGroupModal, setShowNewGroupModal] = useState(false);
+  const [showGroupDetail, setShowGroupDetail] = useState<string | null>(null);
+  const [grupoSelecionado, setGrupoSelecionado] = useState<any>(null);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [periodoLeaderboard, setPeriodoLeaderboard] = useState(7);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [linkConvite, setLinkConvite] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const [novoGrupo, setNovoGrupo] = useState({
+    nome: '',
+    descricao: '',
+    categoria: 'Treino Geral',
+    imagem: ''
+  });
+
+  useEffect(() => {
+    carregarGrupos();
+  }, []);
+
+  const carregarGrupos = async () => {
+    try {
+      setIsLoading(true);
+      const { gruposAPI } = await import('./src/api');
+      const data = await gruposAPI.getAll();
+      setGrupos(data);
+    } catch (error) {
+      console.error('Erro ao carregar grupos:', error);
+      alert('❌ Erro ao carregar grupos');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const criarGrupo = async () => {
+    if (!novoGrupo.nome) {
+      alert('⚠️ Digite um nome para o grupo');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { gruposAPI } = await import('./src/api');
+      await gruposAPI.create(novoGrupo);
+      setShowNewGroupModal(false);
+      setNovoGrupo({ nome: '', descricao: '', categoria: 'Treino Geral', imagem: '' });
+      await carregarGrupos();
+      alert('✅ Grupo criado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao criar grupo:', error);
+      alert('❌ Erro ao criar grupo');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const abrirGrupo = async (grupoId: string) => {
+    try {
+      const { gruposAPI } = await import('./src/api');
+      const [grupo, leaderboardData] = await Promise.all([
+        gruposAPI.getById(grupoId),
+        gruposAPI.getLeaderboard(grupoId, periodoLeaderboard)
+      ]);
+      setGrupoSelecionado(grupo);
+      setLeaderboard(leaderboardData.ranking);
+      setShowGroupDetail(grupoId);
+    } catch (error) {
+      console.error('Erro ao abrir grupo:', error);
+      alert('❌ Erro ao carregar grupo');
+    }
+  };
+
+  const gerarConvite = async () => {
+    if (!grupoSelecionado) return;
+    
+    try {
+      const { gruposAPI } = await import('./src/api');
+      const { linkConvite } = await gruposAPI.generateInvite(grupoSelecionado.id);
+      setLinkConvite(linkConvite);
+      setShowInviteModal(true);
+    } catch (error) {
+      console.error('Erro ao gerar convite:', error);
+      alert('❌ Erro ao gerar convite');
+    }
+  };
+
+  const copiarLink = () => {
+    navigator.clipboard.writeText(linkConvite);
+    alert('✅ Link copiado!');
+  };
+
+  const sairDoGrupo = async (grupoId: string) => {
+    if (!confirm('Tem certeza que deseja sair deste grupo?')) return;
+    
+    try {
+      const { gruposAPI } = await import('./src/api');
+      await gruposAPI.leave(grupoId);
+      setShowGroupDetail(null);
+      await carregarGrupos();
+      alert('✅ Você saiu do grupo');
+    } catch (error: any) {
+      alert(error.message || '❌ Erro ao sair do grupo');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 size={40} className="animate-spin text-lime-400" />
+      </div>
+    );
+  }
+
+  // Detalhes do grupo
+  if (showGroupDetail && grupoSelecionado) {
+    return (
+      <div className="animate-in fade-in duration-700 space-y-6">
+        <div className="flex items-center gap-4">
+          <button onClick={() => setShowGroupDetail(null)} className="size-12 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+            <ArrowLeft size={20} />
+          </button>
+          <div className="flex-1">
+            <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter">{grupoSelecionado.nome}</h2>
+            <p className="text-zinc-500 font-medium">{grupoSelecionado.totalMembros} membros • {grupoSelecionado.categoria}</p>
+          </div>
+          {grupoSelecionado.meuPapel === 'admin' && (
+            <button onClick={gerarConvite} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-sm flex items-center gap-2 hover:bg-lime-500 transition-all">
+              <UserPlus size={18} />
+              Convidar
+            </button>
+          )}
+        </div>
+
+        {grupoSelecionado.descricao && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <p className="text-zinc-300">{grupoSelecionado.descricao}</p>
+          </div>
+        )}
+
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-black italic uppercase flex items-center gap-2">
+              <Trophy size={20} className="text-lime-400" />
+              Leaderboard
+            </h3>
+            <select value={periodoLeaderboard} onChange={(e) => setPeriodoLeaderboard(Number(e.target.value))} className="bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-2 text-sm outline-none">
+              <option value={7}>Últimos 7 dias</option>
+              <option value={30}>Últimos 30 dias</option>
+              <option value={90}>Últimos 90 dias</option>
+            </select>
+          </div>
+
+          <div className="space-y-3">
+            {leaderboard.map((membro, index) => (
+              <div key={membro.usuarioId} className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${index < 3 ? 'bg-lime-400/10 border border-lime-400/30' : 'bg-zinc-950'}`}>
+                <div className="flex items-center gap-3 flex-1">
+                  <span className={`size-8 flex items-center justify-center rounded-full font-black text-sm ${index === 0 ? 'bg-yellow-500 text-black' : index === 1 ? 'bg-gray-400 text-black' : index === 2 ? 'bg-orange-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
+                    {index + 1}
+                  </span>
+                  <div className="size-12 rounded-full bg-zinc-800 overflow-hidden border-2 border-zinc-700">
+                    <img src={membro.imagemPerfil || 'https://picsum.photos/seed/user/100'} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-black text-white">{membro.nome}</p>
+                    <p className="text-xs text-zinc-500 font-bold uppercase">{membro.funcao}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-black italic text-lime-400">{membro.pontos}</p>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase">Pontos</p>
+                </div>
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-bold text-white">{membro.totalTreinos}</p>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase">Treinos</p>
+                </div>
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-bold text-white">{membro.totalCalorias}</p>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase">kcal</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <button onClick={() => sairDoGrupo(grupoSelecionado.id)} className="w-full bg-zinc-900 border border-red-900 text-red-400 py-4 rounded-2xl font-black uppercase text-sm hover:bg-red-900/20 transition-all">
+          Sair do Grupo
+        </button>
+      </div>
+    );
+  }
+
+  // Lista de grupos
+  return (
+    <div className="animate-in fade-in duration-700 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter">Grupos</h2>
+          <p className="text-zinc-500 font-medium">Compita com amigos</p>
+        </div>
+        <button onClick={() => setShowNewGroupModal(true)} className="bg-lime-400 text-black px-6 py-3 rounded-2xl font-black uppercase text-sm flex items-center gap-2 hover:bg-lime-500 transition-all">
+          <Plus size={18} />
+          Criar Grupo
+        </button>
+      </div>
+
+      {grupos.length === 0 ? (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-12 text-center">
+          <div className="size-20 bg-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Users size={40} className="text-zinc-600" />
+          </div>
+          <h3 className="text-2xl font-black italic uppercase mb-3">Nenhum grupo ainda</h3>
+          <p className="text-zinc-500 mb-6 max-w-md mx-auto">
+            Crie seu primeiro grupo e convide amigos para competir nos treinos!
+          </p>
+          <button onClick={() => setShowNewGroupModal(true)} className="bg-lime-400 text-black px-8 py-4 rounded-2xl font-black uppercase text-sm inline-flex items-center gap-3">
+            <Plus size={20} />
+            Criar Primeiro Grupo
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {grupos.map((grupo) => (
+            <div key={grupo.id} onClick={() => abrirGrupo(grupo.id)} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 hover:border-lime-400/40 transition-all cursor-pointer group">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="size-16 bg-zinc-950 rounded-2xl flex items-center justify-center border-2 border-zinc-800 group-hover:border-lime-400 transition-all">
+                  {grupo.imagem ? (
+                    <img src={grupo.imagem} className="w-full h-full object-cover rounded-2xl" />
+                  ) : (
+                    <Users size={28} className="text-zinc-600 group-hover:text-lime-400 transition-all" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-black italic uppercase mb-1">{grupo.nome}</h3>
+                  <p className="text-xs text-zinc-500 font-bold uppercase">{grupo.categoria}</p>
+                </div>
+                {grupo.meuPapel === 'admin' && (
+                  <span className="bg-lime-400/20 text-lime-400 px-3 py-1 rounded-full text-[10px] font-black uppercase">Admin</span>
+                )}
+              </div>
+              
+              {grupo.descricao && (
+                <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{grupo.descricao}</p>
+              )}
+              
+              <div className="flex items-center gap-4 pt-4 border-t border-zinc-800">
+                <div className="flex -space-x-2">
+                  {grupo.membros?.slice(0, 3).map((membro: any, i: number) => (
+                    <div key={i} className="size-8 rounded-full bg-zinc-800 border-2 border-zinc-900 overflow-hidden">
+                      <img src={membro.usuario.imagemPerfil || 'https://picsum.photos/seed/user/100'} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-zinc-500 font-bold">{grupo.totalMembros} {grupo.totalMembros === 1 ? 'membro' : 'membros'}</p>
+                <div className="flex-1" />
+                <ChevronRight size={20} className="text-zinc-600 group-hover:text-lime-400 transition-all" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal Novo Grupo */}
+      {showNewGroupModal && (
+        <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setShowNewGroupModal(false)}>
+          <div className="bg-zinc-900 border-t-2 border-lime-400 sm:border sm:border-zinc-800 w-full max-w-xl rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 animate-in slide-in-from-bottom sm:zoom-in duration-300 max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-start mb-6 sm:mb-8">
+              <div className="flex-1">
+                <h3 className="text-2xl sm:text-3xl font-black italic uppercase leading-tight text-white mb-1">
+                  🏆 Novo Grupo
+                </h3>
+                <p className="text-xs text-zinc-500 font-medium">Crie um grupo de competição</p>
+              </div>
+              <button onClick={() => setShowNewGroupModal(false)} className="size-10 sm:size-11 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white transition-all shrink-0 ml-4">
+                <X size={18} className="sm:size-5"/>
+              </button>
+            </div>
+            
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-zinc-300 block">📝 Nome do Grupo</label>
+                <input 
+                  type="text" 
+                  placeholder="Ex: Equipe Iron Gym"
+                  value={novoGrupo.nome} 
+                  onChange={e => setNovoGrupo({...novoGrupo, nome: e.target.value})} 
+                  className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none focus:border-lime-400 placeholder:text-zinc-600 transition-colors" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-zinc-300 block">💭 Descrição <span className="text-zinc-600 font-normal">(opcional)</span></label>
+                <textarea 
+                  rows={3}
+                  placeholder="Ex: Grupo para quem treina de manhã e quer bater metas juntos"
+                  value={novoGrupo.descricao} 
+                  onChange={e => setNovoGrupo({...novoGrupo, descricao: e.target.value})} 
+                  className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none focus:border-lime-400 placeholder:text-zinc-600 transition-colors resize-none" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-bold text-zinc-300 block">🎯 Categoria</label>
+                <select 
+                  value={novoGrupo.categoria} 
+                  onChange={e => setNovoGrupo({...novoGrupo, categoria: e.target.value})}
+                  className="w-full bg-zinc-950 border-2 border-zinc-800 rounded-2xl px-5 py-4 text-base text-white outline-none appearance-none focus:border-lime-400 transition-colors"
+                >
+                  <option value="Treino Geral">Treino Geral</option>
+                  <option value="Hipertrofia">Hipertrofia</option>
+                  <option value="Emagrecimento">Emagrecimento</option>
+                  <option value="Corrida">Corrida</option>
+                  <option value="Crossfit">Crossfit</option>
+                  <option value="Funcional">Funcional</option>
+                </select>
+              </div>
+              
+              <button 
+                onClick={criarGrupo} 
+                disabled={isSaving || !novoGrupo.nome} 
+                className="w-full bg-lime-400 text-black py-5 rounded-2xl font-black uppercase tracking-widest text-sm sm:text-base shadow-2xl shadow-lime-400/30 hover:bg-lime-500 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-6"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin"/> 
+                    <span>Criando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Users size={20}/> 
+                    <span>Criar Grupo</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Convite */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowInviteModal(false)}>
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-3xl p-8 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black italic uppercase">Convite Gerado</h3>
+              <button onClick={() => setShowInviteModal(false)} className="size-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white transition-all">
+                <X size={18} />
+              </button>
+            </div>
+            
+            <p className="text-sm text-zinc-400 mb-4">Compartilhe este link para convidar pessoas ao grupo:</p>
+            
+            <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 mb-4">
+              <p className="text-xs text-lime-400 font-mono break-all">{linkConvite}</p>
+            </div>
+            
+            <button onClick={copiarLink} className="w-full bg-lime-400 text-black py-4 rounded-2xl font-black uppercase text-sm flex items-center justify-center gap-2 hover:bg-lime-500 transition-all">
+              <Copy size={18} />
+              Copiar Link
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometricsChange, watchConnected, toggleWatch, deviceName }: any) => {
   console.log('🔍 ProfileView - user recebido:', user);
   const [isEditing, setIsEditing] = useState(false);
@@ -3324,6 +3693,7 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
        return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
     case 'evolution': return <EvolutionView />;
     case 'goals': return <GoalsView />;
+    case 'groups': return <GroupsView />;
     case 'profile': return <ProfileView user={user} profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={toggleWatch} deviceName={deviceName} />;
     default: return null;
           }
@@ -10743,6 +11113,7 @@ const AppContent: React.FC = () => {
               <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => { setActiveView('workouts'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
               <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => { setActiveView('diet'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
               <NavItem icon={<Trophy size={24}/>} label="Metas" active={activeView === 'goals'} onClick={() => { setActiveView('goals'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Users size={24}/>} label="Grupos" active={activeView === 'groups'} onClick={() => { setActiveView('groups'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
               <NavItem icon={<ShoppingBag size={24}/>} label="Loja" active={activeView === 'store'} onClick={() => { setActiveView('store'); if(activeView === 'store') setIsCartOpen(true); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} badge={cart.length} />
               <NavItem icon={<TrendingUp size={24}/>} label="Evolução" active={activeView === 'evolution'} onClick={() => { setActiveView('evolution'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
               <NavItem icon={<User size={24}/>} label="Perfil" active={activeView === 'profile'} onClick={() => { setActiveView('profile'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />

@@ -391,11 +391,14 @@ export default async function handler(req, res) {
     }
 
     // PUT /api/historico-treinos/:id
+    console.log('🔍 Verificando rota PUT:', { method, url, match: url?.match(/\/historico-treinos\/([^\/]+)$/) });
     if (method === 'PUT' && url?.match(/\/historico-treinos\/([^\/]+)$/)) {
+      console.log('✅ Match encontrado para PUT /historico-treinos/:id');
       console.log('📥 PUT /historico-treinos/:id - Body completo:', JSON.stringify(req.body, null, 2));
       
       const decoded = verificarToken();
       const treinoId = url.match(/\/historico-treinos\/([^\/]+)$/)?.[1];
+      console.log('🆔 Treino ID extraído:', treinoId);
       
       if (!treinoId) {
         return res.status(400).json({ erro: 'ID do treino é obrigatório' });
@@ -472,9 +475,12 @@ export default async function handler(req, res) {
       
       console.log('📋 GET /historico-dietas - Usuario alvo:', targetUserId);
       
-      const historico = await prisma.historicoDieta.findMany({
-        where: { usuarioId: targetUserId },
-        orderBy: { data: 'desc' }
+      const historico = await prisma.relatorio.findMany({
+        where: { 
+          usuarioId: targetUserId,
+          tipo: 'dieta'
+        },
+        orderBy: { criadoEm: 'desc' }
       });
       
       console.log('📋 Dietas encontradas:', historico.length);
@@ -486,7 +492,7 @@ export default async function handler(req, res) {
       console.log('📥 POST /historico-dietas - Body completo:', JSON.stringify(req.body, null, 2));
       
       const decoded = verificarToken();
-      const { titulo, plano, usuarioId } = req.body || {};
+      const { titulo, plano, usuarioId, objetivo, refeicoes, observacoes, origem } = req.body || {};
       
       const targetUserId = usuarioId || decoded.usuarioId;
       
@@ -501,11 +507,18 @@ export default async function handler(req, res) {
         });
       }
       
-      const historico = await prisma.historicoDieta.create({
+      const historico = await prisma.relatorio.create({
         data: {
           usuarioId: targetUserId,
-          titulo: titulo.trim(),
-          plano: plano || {}
+          tipo: 'dieta',
+          periodo: new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+          dados: {
+            titulo: titulo.trim(),
+            objetivo,
+            refeicoes: refeicoes || plano,
+            observacoes,
+            origem: origem || 'Manual'
+          }
         }
       });
       
@@ -525,11 +538,11 @@ export default async function handler(req, res) {
       }
       
       // Verificar se a dieta existe e pertence ao usuário ou se é admin
-      const dietaExistente = await prisma.historicoDieta.findUnique({
+      const dietaExistente = await prisma.relatorio.findUnique({
         where: { id: dietaId }
       });
       
-      if (!dietaExistente) {
+      if (!dietaExistente || dietaExistente.tipo !== 'dieta') {
         return res.status(404).json({ erro: 'Dieta não encontrada' });
       }
       
@@ -542,29 +555,66 @@ export default async function handler(req, res) {
         return res.status(403).json({ erro: 'Sem permissão para editar esta dieta' });
       }
       
-      const { titulo, plano } = req.body || {};
+      const { titulo, plano, objetivo, refeicoes, observacoes } = req.body || {};
       
-      // Preparar dados para atualização
-      const dadosAtualizacao = {};
-      
-      if (titulo) {
-        dadosAtualizacao.titulo = titulo.trim();
-      }
-      
-      if (plano !== undefined) {
-        dadosAtualizacao.plano = plano;
-      }
+      // Preparar dados atualizados
+      const dadosAtualizados = {
+        ...(dietaExistente.dados || {}),
+        ...(titulo && { titulo: titulo.trim() }),
+        ...(objetivo && { objetivo }),
+        ...(refeicoes && { refeicoes }),
+        ...(plano && { refeicoes: plano }),
+        ...(observacoes !== undefined && { observacoes })
+      };
       
       console.log('🔄 Atualizando dieta ID:', dietaId);
-      console.log('📊 Dados para atualização:', dadosAtualizacao);
+      console.log('📊 Dados para atualização:', dadosAtualizados);
       
-      const dietaAtualizada = await prisma.historicoDieta.update({
+      const dietaAtualizada = await prisma.relatorio.update({
         where: { id: dietaId },
-        data: dadosAtualizacao
+        data: {
+          dados: dadosAtualizados
+        }
       });
       
       console.log('✅ Dieta atualizada com sucesso:', dietaAtualizada.id);
       return res.status(200).json(dietaAtualizada);
+    }
+    
+    // DELETE /api/historico-dietas/:id
+    if (method === 'DELETE' && url?.match(/\/historico-dietas\/([^\/]+)$/)) {
+      const decoded = verificarToken();
+      const dietaId = url.match(/\/historico-dietas\/([^\/]+)$/)?.[1];
+      
+      if (!dietaId) {
+        return res.status(400).json({ erro: 'ID da dieta é obrigatório' });
+      }
+      
+      // Verificar se a dieta existe
+      const dietaExistente = await prisma.relatorio.findUnique({
+        where: { id: dietaId }
+      });
+      
+      if (!dietaExistente || dietaExistente.tipo !== 'dieta') {
+        return res.status(404).json({ erro: 'Dieta não encontrada' });
+      }
+      
+      // Verificar permissão (dono da dieta ou admin)
+      const usuarioLogado = await prisma.usuario.findUnique({
+        where: { id: decoded.usuarioId }
+      });
+      
+      if (dietaExistente.usuarioId !== decoded.usuarioId && usuarioLogado.funcao !== 'ADMIN') {
+        return res.status(403).json({ erro: 'Sem permissão para remover esta dieta' });
+      }
+      
+      // Remover a dieta
+      await prisma.relatorio.delete({
+        where: { id: dietaId }
+      });
+      
+      console.log('✅ Dieta removida:', dietaId);
+      return res.status(200).json({ mensagem: 'Dieta removida com sucesso' });
     }
     
     // GET /api/notificacoes
