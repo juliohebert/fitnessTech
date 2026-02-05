@@ -39,6 +39,7 @@ const useAuth = () => {
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [academia, setAcademia] = useState<Academia | null>(null);
+  const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('fitness_token');
   });
@@ -47,6 +48,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     if (token) {
       // Verificar token e carregar dados do usuário
       loadUserData();
+    } else {
+      setLoading(false);
     }
   }, [token]);
 
@@ -80,6 +83,7 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         
         setUser(userWithRole);
         setAcademia(userData.academia);
+        setLoading(false);
       } else {
         console.error('❌ Falha ao carregar dados do usuário:', response.status);
         logout();
@@ -87,6 +91,8 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     } catch (error) {
       console.error('❌ Erro ao carregar dados do usuário:', error);
       logout();
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,6 +192,17 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   };
 
   const isAuthenticated = !!user && !!token;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-lime-400 mb-4"></div>
+          <p className="text-lime-400 font-bold">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider value={{
