@@ -7365,7 +7365,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <h3 className="font-black uppercase text-xs text-zinc-500 mb-4">Dias da Semana</h3>
                         <div className="space-y-2">
                            {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
-                              const exercicios = editingPlano[dia]?.length > 0 ? editingPlano[dia] : (selectedTreinoEdit?.plano?.[dia] || []);
+                              const exerciciosDia = selectedTreinoEdit?.plano?.[dia] || [];
                               const isActive = activeDayEdit === dia;
                               
                               return (
@@ -7383,7 +7383,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                           {dia === 'terca' ? 'Terça' : dia === 'quarta' ? 'Quarta' : dia}
                                        </span>
                                        <span className={`text-xs font-black ${isActive ? 'text-black' : 'text-zinc-600'}`}>
-                                          {exercicios.length}
+                                          {exerciciosDia.length}
                                        </span>
                                     </div>
                                  </button>
@@ -7425,7 +7425,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               </div>
 
                               <div className="space-y-4">
-                                 {((editingPlano[activeDayEdit]?.length > 0 ? editingPlano[activeDayEdit] : selectedTreinoEdit?.plano?.[activeDayEdit]) || []).map((exercicio: any, index: number) => (
+                                 {(selectedTreinoEdit?.plano?.[activeDayEdit] || []).map((exercicio: any, index: number) => (
                                     <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
                                        <div className="flex justify-between items-start mb-4">
                                           <h4 className="font-bold text-lg">Exercício {index + 1}</h4>
@@ -7450,8 +7450,15 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                 type="text"
                                                 value={exercicio.exercicio || exercicio.nome || ''}
                                                 onChange={(e) => {
-                                                   const novosExercicios = [...(editingPlano[activeDayEdit] || [])];
+                                                   const novosExercicios = [...(selectedTreinoEdit.plano[activeDayEdit] || [])];
                                                    novosExercicios[index] = { ...novosExercicios[index], exercicio: e.target.value, nome: e.target.value };
+                                                   setSelectedTreinoEdit(prev => ({
+                                                      ...prev,
+                                                      plano: {
+                                                         ...prev.plano,
+                                                         [activeDayEdit]: novosExercicios
+                                                      }
+                                                   }));
                                                    setEditingPlano(prev => ({
                                                       ...prev,
                                                       [activeDayEdit]: novosExercicios
@@ -7559,7 +7566,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     </div>
                                  ))}
 
-                                 {((editingPlano[activeDayEdit]?.length > 0 ? editingPlano[activeDayEdit] : selectedTreinoEdit?.plano?.[activeDayEdit]) || []).length === 0 && (
+                                 {(selectedTreinoEdit?.plano?.[activeDayEdit] || []).length === 0 && (
                                     <div className="text-center py-12">
                                        <div className="text-zinc-600 mb-4">
                                           <Dumbbell size={48} className="mx-auto mb-2" />
