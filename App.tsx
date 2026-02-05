@@ -2147,7 +2147,16 @@ const CardioView = () => {
       }
       
       // Se não está conectado, iniciar OAuth
-      const { authUrl } = await integracoesAPI.stravaGetAuthUrl();
+      console.log('Buscando URL de autorização...');
+      const response = await integracoesAPI.stravaGetAuthUrl();
+      console.log('Resposta da API:', response);
+      
+      if (!response || !response.authUrl) {
+        throw new Error('URL de autorização não retornada pela API');
+      }
+      
+      const { authUrl } = response;
+      console.log('URL de autorização:', authUrl);
       
       // Abrir popup OAuth
       const width = 600;
