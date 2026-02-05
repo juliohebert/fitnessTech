@@ -1908,6 +1908,833 @@ const EvolutionView = () => {
   );
 };
 
+// ==================== CARDIO VIEW ====================
+
+const CardioView = () => {
+  const [activeTab, setActiveTab] = useState<'historico' | 'registrar' | 'gps' | 'integracoes' | 'stats'>('historico');
+  const [atividades, setAtividades] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [integracoes, setIntegracoes] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Registro manual
+  const [showRegistroModal, setShowRegistroModal] = useState(false);
+  const [novaAtividade, setNovaAtividade] = useState({
+    tipo: 'CORRIDA',
+    duracao: '',
+    distancia: '',
+    calorias: '',
+    fcMedia: '',
+    fcMaxima: '',
+    sensacao: '5',
+    clima: '',
+    observacoes: ''
+  });
+
+  // GPS ao vivo
+  const [gpsAtiva, setGpsAtiva] = useState(false);
+  const [sessaoAtual, setSessaoAtual] = useState<any>(null);
+  const [tempoDecorrido, setTempoDecorrido] = useState(0);
+  const [distanciaPercorrida, setDistanciaPercorrida] = useState(0);
+  const [velocidadeAtual, setVelocidadeAtual] = useState(0);
+  const [rotaGPS, setRotaGPS] = useState<any[]>([]);
+
+  useEffect(() => {
+    carregarAtividades();
+    carregarStats();
+    carregarIntegracoes();
+  }, []);
+
+  // Timer GPS
+  useEffect(() => {
+    if (gpsAtiva && sessaoAtual) {
+      const interval = setInterval(() => {
+        setTempoDecorrido(prev => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [gpsAtiva, sessaoAtual]);
+
+  const carregarAtividades = async () => {
+    try {
+      setIsLoading(true);
+      const { cardioAPI } = await import('./src/api');
+      const data = await cardioAPI.getAll({ limit: 20 });
+      setAtividades(data);
+    } catch (error) {
+      console.error('Erro ao carregar atividades:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const carregarStats = async () => {
+    try {
+      const { cardioAPI } = await import('./src/api');
+      const data = await cardioAPI.getStats('mes');
+      setStats(data);
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
+    }
+  };
+
+  const carregarIntegracoes = async () => {
+    try {
+      const { integracoesAPI } = await import('./src/api');
+      const data = await integracoesAPI.getAll();
+      setIntegracoes(data);
+    } catch (error) {
+      console.error('Erro ao carregar integrações:', error);
+    }
+  };
+
+  const registrarAtividade = async () => {
+    try {
+      const { cardioAPI } = await import('./src/api');
+      await cardioAPI.create({
+        tipo: novaAtividade.tipo,
+        duracao: parseInt(novaAtividade.duracao) * 60, // converter minutos para segundos
+        distancia: novaAtividade.distancia ? parseFloat(novaAtividade.distancia) : undefined,
+        calorias: novaAtividade.calorias ? parseInt(novaAtividade.calorias) : undefined,
+        fcMedia: novaAtividade.fcMedia ? parseInt(novaAtividade.fcMedia) : undefined,
+        fcMaxima: novaAtividade.fcMaxima ? parseInt(novaAtividade.fcMaxima) : undefined,
+        sensacao: parseInt(novaAtividade.sensacao),
+        clima: novaAtividade.clima || undefined,
+        observacoes: novaAtividade.observacoes || undefined
+      });
+      
+      alert('✅ Atividade registrada com sucesso!');
+      setShowRegistroModal(false);
+      setNovaAtividade({
+        tipo: 'CORRIDA',
+        duracao: '',
+        distancia: '',
+        calorias: '',
+        fcMedia: '',
+        fcMaxima: '',
+        sensacao: '5',
+        clima: '',
+        observacoes: ''
+      });
+      await carregarAtividades();
+      await carregarStats();
+    } catch (error) {
+      console.error('Erro ao registrar atividade:', error);
+      alert('❌ Erro ao registrar atividade');
+    }
+  };
+
+  const iniciarGPS = async () => {
+    try {
+      const { cardioAPI } = await import('./src/api');
+      const sessao = await cardioAPI.gpsStart(novaAtividade.tipo);
+      setSessaoAtual(sessao);
+      setGpsAtiva(true);
+      setTempoDecorrido(0);
+      setDistanciaPercorrida(0);
+      setRotaGPS([]);
+      
+      // Iniciar rastreamento GPS
+      if ('geolocation' in navigator) {
+        navigator.geolocation.watchPosition((position) => {
+          const novoPonto = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            timestamp: Date.now(),
+            elevation: position.coords.altitude
+          };
+          
+          setRotaGPS(prev => {
+            const novaRota = [...prev, novoPonto];
+            
+            // Calcular distância
+            if (prev.length > 0) {
+              const ultimoPonto = prev[prev.length - 1];
+              const dist = calcularDistancia(ultimoPonto.lat, ultimoPonto.lng, novoPonto.lat, novoPonto.lng);
+              setDistanciaPercorrida(d => d + dist);
+              
+              // Calcular velocidade (km/h)
+              const tempoDecorridoHoras = (novoPonto.timestamp - ultimoPonto.timestamp) / 3600000;
+              if (tempoDecorridoHoras > 0) {
+                setVelocidadeAtual(dist / tempoDecorridoHoras);
+              }
+            }
+            
+            return novaRota;
+          });
+        }, (error) => {
+          console.error('Erro no GPS:', error);
+        }, {
+          enableHighAccuracy: true,
+          maximumAge: 0
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao iniciar GPS:', error);
+      alert('❌ Erro ao iniciar GPS');
+    }
+  };
+
+  const finalizarGPS = async () => {
+    try {
+      if (!sessaoAtual) return;
+      
+      const { cardioAPI } = await import('./src/api');
+      
+      // Atualizar rota final
+      await cardioAPI.gpsUpdate(sessaoAtual.id, {
+        pontos: rotaGPS,
+        duracao: tempoDecorrido,
+        distancia: distanciaPercorrida,
+        velocidade: velocidadeAtual
+      });
+      
+      // Finalizar sessão
+      await cardioAPI.gpsFinish(sessaoAtual.id, {
+        calorias: parseInt(novaAtividade.calorias) || undefined,
+        fcMedia: parseInt(novaAtividade.fcMedia) || undefined,
+        fcMaxima: parseInt(novaAtividade.fcMaxima) || undefined,
+        sensacao: parseInt(novaAtividade.sensacao),
+        observacoes: novaAtividade.observacoes || undefined
+      });
+      
+      setGpsAtiva(false);
+      setSessaoAtual(null);
+      alert('✅ Treino finalizado com sucesso!');
+      await carregarAtividades();
+      await carregarStats();
+    } catch (error) {
+      console.error('Erro ao finalizar GPS:', error);
+      alert('❌ Erro ao finalizar treino');
+    }
+  };
+
+  const sincronizarAppleHealth = async () => {
+    try {
+      // TODO: Implementar integração real com HealthKit
+      alert('🍎 Apple Health: Em breve! Use o HealthKit para importar workouts.');
+    } catch (error) {
+      console.error('Erro ao sincronizar Apple Health:', error);
+    }
+  };
+
+  const sincronizarGoogleFit = async () => {
+    try {
+      // TODO: Implementar integração real com Google Fit API
+      alert('🟢 Google Fit: Em breve! Use a API do Google Fit para importar sessões.');
+    } catch (error) {
+      console.error('Erro ao sincronizar Google Fit:', error);
+    }
+  };
+
+  const conectarStrava = async () => {
+    try {
+      // TODO: Implementar OAuth do Strava
+      alert('🟠 Strava: Em breve! Conecte sua conta Strava via OAuth.');
+    } catch (error) {
+      console.error('Erro ao conectar Strava:', error);
+    }
+  };
+
+  const deletarAtividade = async (id: string) => {
+    if (!confirm('Tem certeza que deseja deletar esta atividade?')) return;
+    
+    try {
+      const { cardioAPI } = await import('./src/api');
+      await cardioAPI.delete(id);
+      await carregarAtividades();
+      await carregarStats();
+    } catch (error) {
+      console.error('Erro ao deletar atividade:', error);
+      alert('❌ Erro ao deletar atividade');
+    }
+  };
+
+  const formatarDuracao = (segundos: number) => {
+    const horas = Math.floor(segundos / 3600);
+    const minutos = Math.floor((segundos % 3600) / 60);
+    const segs = segundos % 60;
+    
+    if (horas > 0) {
+      return `${horas}h ${minutos}min`;
+    }
+    return `${minutos}min ${segs}s`;
+  };
+
+  const formatarTempo = (segundos: number) => {
+    const horas = Math.floor(segundos / 3600);
+    const mins = Math.floor((segundos % 3600) / 60);
+    const segs = segundos % 60;
+    return `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(segs).padStart(2, '0')}`;
+  };
+
+  const calcularDistancia = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Raio da Terra em km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const getTipoIcon = (tipo: string) => {
+    const icons: any = {
+      'CORRIDA': '🏃',
+      'CICLISMO': '🚴',
+      'NATACAO': '🏊',
+      'CAMINHADA': '🚶',
+      'ELIPTICO': '🔄',
+      'REMO': '🚣',
+      'PULAR_CORDA': '🪢'
+    };
+    return icons[tipo] || '💪';
+  };
+
+  const getTipoNome = (tipo: string) => {
+    const nomes: any = {
+      'CORRIDA': 'Corrida',
+      'CICLISMO': 'Ciclismo',
+      'NATACAO': 'Natação',
+      'CAMINHADA': 'Caminhada',
+      'ELIPTICO': 'Elíptico',
+      'REMO': 'Remo',
+      'PULAR_CORDA': 'Pular Corda'
+    };
+    return nomes[tipo] || tipo;
+  };
+
+  return (
+    <div className="animate-in fade-in duration-700 space-y-6 md:space-y-8 min-h-screen text-white">
+      <header className="mb-6 md:mb-8">
+        <h1 className="text-3xl md:text-4xl lg:text-6xl font-black italic uppercase tracking-tighter mb-1 md:mb-2 text-white leading-tight">Cardio & Aeróbico</h1>
+        <p className="text-xs md:text-sm text-zinc-500 font-medium">Registre, monitore e sincronize suas atividades</p>
+      </header>
+
+      {/* Tabs */}
+      <div className="flex gap-2 md:gap-3 overflow-x-auto no-scrollbar pb-2">
+        <button 
+          onClick={() => setActiveTab('historico')}
+          className={`px-4 md:px-5 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'historico' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+        >
+          📊 HISTÓRICO
+        </button>
+        <button 
+          onClick={() => { setActiveTab('registrar'); setShowRegistroModal(true); }}
+          className={`px-4 md:px-5 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'registrar' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+        >
+          ✏️ REGISTRAR
+        </button>
+        <button 
+          onClick={() => setActiveTab('gps')}
+          className={`px-4 md:px-5 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'gps' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+        >
+          📍 GPS AO VIVO
+        </button>
+        <button 
+          onClick={() => setActiveTab('integracoes')}
+          className={`px-4 md:px-5 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'integracoes' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+        >
+          🔗 INTEGRAÇÕES
+        </button>
+        <button 
+          onClick={() => setActiveTab('stats')}
+          className={`px-4 md:px-5 py-2.5 md:py-3 rounded-xl font-bold text-xs md:text-sm transition-all whitespace-nowrap ${activeTab === 'stats' ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-400'}`}
+        >
+          📈 ESTATÍSTICAS
+        </button>
+      </div>
+
+      {/* HISTÓRICO */}
+      {activeTab === 'historico' && (
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <Loader2 className="animate-spin mx-auto mb-4" size={32} />
+              <p className="text-zinc-500">Carregando atividades...</p>
+            </div>
+          ) : atividades.length === 0 ? (
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 md:p-12 text-center">
+              <Activity size={48} className="mx-auto mb-4 text-zinc-700" />
+              <h3 className="text-xl font-black italic uppercase mb-2">Nenhuma Atividade Registrada</h3>
+              <p className="text-zinc-500 text-sm mb-6">Comece a registrar suas atividades de cardio!</p>
+              <button
+                onClick={() => setShowRegistroModal(true)}
+                className="bg-lime-400 text-black px-6 py-3 rounded-xl font-black uppercase text-xs"
+              >
+                Registrar Primeira Atividade
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {atividades.map((atividade) => (
+                <div key={atividade.id} className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl hover:border-lime-400/30 transition-all">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl">{getTipoIcon(atividade.tipo)}</div>
+                      <div>
+                        <h3 className="font-bold text-white">{getTipoNome(atividade.tipo)}</h3>
+                        <p className="text-xs text-zinc-500">
+                          {new Date(atividade.dataInicio).toLocaleDateString('pt-BR', { 
+                            day: '2-digit', 
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => deletarAtividade(atividade.id)}
+                      className="text-zinc-500 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-zinc-950 p-3 rounded-xl">
+                      <div className="text-xs text-zinc-500 mb-1">Duração</div>
+                      <div className="font-bold text-white">{formatarDuracao(atividade.duracao)}</div>
+                    </div>
+                    {atividade.distancia && (
+                      <div className="bg-zinc-950 p-3 rounded-xl">
+                        <div className="text-xs text-zinc-500 mb-1">Distância</div>
+                        <div className="font-bold text-white">{atividade.distancia.toFixed(2)} km</div>
+                      </div>
+                    )}
+                    {atividade.calorias && (
+                      <div className="bg-zinc-950 p-3 rounded-xl">
+                        <div className="text-xs text-zinc-500 mb-1">Calorias</div>
+                        <div className="font-bold text-lime-400">{atividade.calorias} kcal</div>
+                      </div>
+                    )}
+                    {atividade.fcMedia && (
+                      <div className="bg-zinc-950 p-3 rounded-xl">
+                        <div className="text-xs text-zinc-500 mb-1">FC Média</div>
+                        <div className="font-bold text-red-400">{atividade.fcMedia} bpm</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {atividade.velocidade && (
+                    <div className="text-xs text-zinc-500">
+                      ⚡ {atividade.velocidade.toFixed(1)} km/h
+                    </div>
+                  )}
+                  
+                  {atividade.origem !== 'MANUAL' && (
+                    <div className="mt-2 text-xs text-blue-400">
+                      Importado: {atividade.origem.replace('_', ' ')}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* GPS AO VIVO */}
+      {activeTab === 'gps' && (
+        <div className="space-y-6">
+          {!gpsAtiva ? (
+            <div className="bg-gradient-to-br from-lime-400/10 to-green-400/10 border border-lime-400/30 rounded-2xl p-8 md:p-12 text-center">
+              <div className="size-20 bg-lime-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                <MapPin size={40} className="text-black" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-black italic uppercase mb-4">Rastreamento GPS</h2>
+              <p className="text-zinc-400 mb-8 max-w-md mx-auto">
+                Inicie uma sessão de treino com GPS em tempo real. Acompanhe distância, velocidade e rota.
+              </p>
+              
+              <div className="max-w-md mx-auto mb-8">
+                <label className="block text-left text-sm font-bold text-zinc-400 mb-2">Tipo de Atividade</label>
+                <select
+                  value={novaAtividade.tipo}
+                  onChange={(e) => setNovaAtividade({ ...novaAtividade, tipo: e.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                >
+                  <option value="CORRIDA">🏃 Corrida</option>
+                  <option value="CICLISMO">🚴 Ciclismo</option>
+                  <option value="CAMINHADA">🚶 Caminhada</option>
+                  <option value="NATACAO">🏊 Natação</option>
+                </select>
+              </div>
+
+              <button
+                onClick={iniciarGPS}
+                className="bg-lime-400 text-black px-8 py-4 rounded-xl font-black uppercase text-sm shadow-xl hover:bg-lime-300 transition-all"
+              >
+                🚀 Iniciar Treino
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Dashboard em tempo real */}
+              <div className="bg-zinc-900 border-2 border-lime-400 rounded-2xl p-6 md:p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-black uppercase text-lime-400">🔴 GRAVANDO</h3>
+                  <div className="text-4xl font-black text-white">{formatarTempo(tempoDecorrido)}</div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-zinc-950 p-4 rounded-xl text-center">
+                    <div className="text-xs text-zinc-500 mb-2">Distância</div>
+                    <div className="text-2xl font-black text-white">{distanciaPercorrida.toFixed(2)}</div>
+                    <div className="text-xs text-zinc-500">km</div>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl text-center">
+                    <div className="text-xs text-zinc-500 mb-2">Velocidade</div>
+                    <div className="text-2xl font-black text-lime-400">{velocidadeAtual.toFixed(1)}</div>
+                    <div className="text-xs text-zinc-500">km/h</div>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl text-center">
+                    <div className="text-xs text-zinc-500 mb-2">Ritmo</div>
+                    <div className="text-2xl font-black text-blue-400">
+                      {velocidadeAtual > 0 ? (60 / velocidadeAtual).toFixed(1) : '0'}
+                    </div>
+                    <div className="text-xs text-zinc-500">min/km</div>
+                  </div>
+                  <div className="bg-zinc-950 p-4 rounded-xl text-center">
+                    <div className="text-xs text-zinc-500 mb-2">Pontos GPS</div>
+                    <div className="text-2xl font-black text-purple-400">{rotaGPS.length}</div>
+                    <div className="text-xs text-zinc-500">registrados</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    onClick={finalizarGPS}
+                    className="bg-lime-400 text-black px-6 py-4 rounded-xl font-black uppercase text-sm"
+                  >
+                    ✅ Finalizar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Tem certeza que deseja cancelar?')) {
+                        setGpsAtiva(false);
+                        setSessaoAtual(null);
+                      }
+                    }}
+                    className="bg-red-500 text-white px-6 py-4 rounded-xl font-black uppercase text-sm"
+                  >
+                    ❌ Cancelar
+                  </button>
+                </div>
+              </div>
+
+              {/* Mapa placeholder */}
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center">
+                <MapPin size={48} className="mx-auto mb-4 text-zinc-700" />
+                <p className="text-zinc-500 text-sm">
+                  Mapa da rota será exibido aqui
+                  <br />
+                  {rotaGPS.length > 0 && `${rotaGPS.length} pontos registrados`}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* INTEGRAÇÕES */}
+      {activeTab === 'integracoes' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Apple Health */}
+          <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 p-6 rounded-2xl">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="size-14 bg-gradient-to-br from-pink-500 to-red-500 rounded-2xl flex items-center justify-center">
+                <Heart size={28} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-black text-white">Apple Health</h3>
+                <p className="text-xs text-zinc-500">HealthKit</p>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-400 mb-6">
+              Importe workouts do seu Apple Watch automaticamente
+            </p>
+            <button
+              onClick={sincronizarAppleHealth}
+              className="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white px-4 py-3 rounded-xl font-bold text-sm"
+            >
+              Sincronizar
+            </button>
+          </div>
+
+          {/* Google Fit */}
+          <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 p-6 rounded-2xl">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="size-14 bg-gradient-to-br from-green-500 to-blue-500 rounded-2xl flex items-center justify-center">
+                <Activity size={28} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-black text-white">Google Fit</h3>
+                <p className="text-xs text-zinc-500">Android & Wear OS</p>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-400 mb-6">
+              Conecte dispositivos Android e smartwatches
+            </p>
+            <button
+              onClick={sincronizarGoogleFit}
+              className="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white px-4 py-3 rounded-xl font-bold text-sm"
+            >
+              Conectar
+            </button>
+          </div>
+
+          {/* Strava */}
+          <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 p-6 rounded-2xl">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="size-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center">
+                <Zap size={28} className="text-white" />
+              </div>
+              <div>
+                <h3 className="font-black text-white">Strava</h3>
+                <p className="text-xs text-zinc-500">Rede social fitness</p>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-400 mb-6">
+              Importe atividades da plataforma Strava
+            </p>
+            <button
+              onClick={conectarStrava}
+              className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-3 rounded-xl font-bold text-sm"
+            >
+              Conectar Strava
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ESTATÍSTICAS */}
+      {activeTab === 'stats' && stats && (
+        <div className="space-y-6">
+          {/* Cards principais */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-gradient-to-br from-lime-400/20 to-lime-400/5 border border-lime-400/30 p-6 rounded-2xl">
+              <div className="text-sm text-zinc-400 mb-2">Total Atividades</div>
+              <div className="text-3xl font-black text-lime-400">{stats.totalAtividades}</div>
+            </div>
+            <div className="bg-gradient-to-br from-blue-400/20 to-blue-400/5 border border-blue-400/30 p-6 rounded-2xl">
+              <div className="text-sm text-zinc-400 mb-2">Distância Total</div>
+              <div className="text-3xl font-black text-blue-400">{stats.totalDistancia.toFixed(1)}</div>
+              <div className="text-xs text-zinc-500">km</div>
+            </div>
+            <div className="bg-gradient-to-br from-red-400/20 to-red-400/5 border border-red-400/30 p-6 rounded-2xl">
+              <div className="text-sm text-zinc-400 mb-2">Calorias Queimadas</div>
+              <div className="text-3xl font-black text-red-400">{stats.totalCalorias}</div>
+              <div className="text-xs text-zinc-500">kcal</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-400/20 to-purple-400/5 border border-purple-400/30 p-6 rounded-2xl">
+              <div className="text-sm text-zinc-400 mb-2">Tempo Total</div>
+              <div className="text-3xl font-black text-purple-400">{formatarDuracao(stats.totalDuracao)}</div>
+            </div>
+          </div>
+
+          {/* Por tipo */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <h3 className="text-xl font-black uppercase mb-6">Por Tipo de Atividade</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(stats.porTipo || {}).map(([tipo, dados]: [string, any]) => (
+                <div key={tipo} className="bg-zinc-950 p-5 rounded-xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="text-3xl">{getTipoIcon(tipo)}</div>
+                    <div>
+                      <h4 className="font-bold text-white">{getTipoNome(tipo)}</h4>
+                      <p className="text-xs text-zinc-500">{dados.count} atividades</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-zinc-500">Distância</span>
+                      <span className="text-white font-bold">{dados.distancia.toFixed(1)} km</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-zinc-500">Tempo</span>
+                      <span className="text-white font-bold">{formatarDuracao(dados.duracao)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Médias */}
+          {(stats.mediaFCMedia > 0 || stats.mediaVelocidade > 0) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {stats.mediaFCMedia > 0 && (
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+                  <h3 className="text-lg font-black uppercase mb-4">FC Média</h3>
+                  <div className="text-4xl font-black text-red-400 mb-2">{Math.round(stats.mediaFCMedia)}</div>
+                  <div className="text-sm text-zinc-500">batimentos por minuto</div>
+                </div>
+              )}
+              {stats.mediaVelocidade > 0 && (
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+                  <h3 className="text-lg font-black uppercase mb-4">Velocidade Média</h3>
+                  <div className="text-4xl font-black text-lime-400 mb-2">{stats.mediaVelocidade.toFixed(1)}</div>
+                  <div className="text-sm text-zinc-500">km/h</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal Registro Manual */}
+      {showRegistroModal && (
+        <div className="fixed inset-0 z-[120] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setShowRegistroModal(false)}>
+          <div className="bg-zinc-950 w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black uppercase">Registrar Atividade</h2>
+              <button onClick={() => setShowRegistroModal(false)} className="text-zinc-500 hover:text-white">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-zinc-400 mb-2">Tipo de Atividade *</label>
+                <select
+                  value={novaAtividade.tipo}
+                  onChange={(e) => setNovaAtividade({ ...novaAtividade, tipo: e.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                >
+                  <option value="CORRIDA">🏃 Corrida</option>
+                  <option value="CICLISMO">🚴 Ciclismo</option>
+                  <option value="NATACAO">🏊 Natação</option>
+                  <option value="CAMINHADA">🚶 Caminhada</option>
+                  <option value="ELIPTICO">🔄 Elíptico</option>
+                  <option value="REMO">🚣 Remo</option>
+                  <option value="PULAR_CORDA">🪢 Pular Corda</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-zinc-400 mb-2">Duração (min) *</label>
+                  <input
+                    type="number"
+                    placeholder="30"
+                    value={novaAtividade.duracao}
+                    onChange={(e) => setNovaAtividade({ ...novaAtividade, duracao: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-zinc-400 mb-2">Distância (km)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="5.0"
+                    value={novaAtividade.distancia}
+                    onChange={(e) => setNovaAtividade({ ...novaAtividade, distancia: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-zinc-400 mb-2">Calorias (kcal)</label>
+                  <input
+                    type="number"
+                    placeholder="300"
+                    value={novaAtividade.calorias}
+                    onChange={(e) => setNovaAtividade({ ...novaAtividade, calorias: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-zinc-400 mb-2">FC Média (bpm)</label>
+                  <input
+                    type="number"
+                    placeholder="145"
+                    value={novaAtividade.fcMedia}
+                    onChange={(e) => setNovaAtividade({ ...novaAtividade, fcMedia: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-zinc-400 mb-2">FC Máxima (bpm)</label>
+                  <input
+                    type="number"
+                    placeholder="170"
+                    value={novaAtividade.fcMaxima}
+                    onChange={(e) => setNovaAtividade({ ...novaAtividade, fcMaxima: e.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-zinc-400 mb-2">Sensação (1-10)</label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={novaAtividade.sensacao}
+                    onChange={(e) => setNovaAtividade({ ...novaAtividade, sensacao: e.target.value })}
+                    className="w-full mt-3"
+                  />
+                  <div className="text-center text-2xl font-black text-lime-400 mt-1">{novaAtividade.sensacao}</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-zinc-400 mb-2">Clima</label>
+                <select
+                  value={novaAtividade.clima}
+                  onChange={(e) => setNovaAtividade({ ...novaAtividade, clima: e.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="ENSOLARADO">☀️ Ensolarado</option>
+                  <option value="NUBLADO">☁️ Nublado</option>
+                  <option value="CHUVA">🌧️ Chuva</option>
+                  <option value="VENTO">💨 Ventoso</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-zinc-400 mb-2">Observações</label>
+                <textarea
+                  placeholder="Como foi o treino..."
+                  value={novaAtividade.observacoes}
+                  onChange={(e) => setNovaAtividade({ ...novaAtividade, observacoes: e.target.value })}
+                  rows={3}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white resize-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => setShowRegistroModal(false)}
+                className="flex-1 bg-zinc-800 text-white px-6 py-4 rounded-xl font-bold uppercase text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={registrarAtividade}
+                disabled={!novaAtividade.tipo || !novaAtividade.duracao}
+                className="flex-1 bg-lime-400 text-black px-6 py-4 rounded-xl font-bold uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ✅ Registrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const GoalsView = () => {
   const [activeGoalTab, setActiveGoalTab] = useState('personal');
   const [metas, setMetas] = useState<any[]>([]);
@@ -3823,6 +4650,7 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
     case 'store':
        return <StoreView products={products} addToCart={addToCart} cartCount={cartCount} openCart={() => setIsCartOpen(true)} />;
     case 'evolution': return <EvolutionView />;
+    case 'cardio': return <CardioView />;
     case 'goals': return <GoalsView />;
     case 'groups': return <GroupsView />;
     case 'profile': return <ProfileView user={user} profileImage={profileImage} onImageChange={onImageChange} biometrics={biometrics} onBiometricsChange={onBiometricsChange} watchConnected={watchConnected} toggleWatch={toggleWatch} deviceName={deviceName} />;
@@ -11242,6 +12070,7 @@ const AppContent: React.FC = () => {
           {user.role === 'ALUNO' && (
             <>
               <NavItem icon={<Dumbbell size={24}/>} label="Treinos" active={activeView === 'workouts'} onClick={() => { setActiveView('workouts'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
+              <NavItem icon={<Activity size={24}/>} label="Cardio" active={activeView === 'cardio'} onClick={() => { setActiveView('cardio'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
               <NavItem icon={<Apple size={24}/>} label="Nutrição" active={activeView === 'diet'} onClick={() => { setActiveView('diet'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
               <NavItem icon={<Trophy size={24}/>} label="Metas" active={activeView === 'goals'} onClick={() => { setActiveView('goals'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />
               <NavItem icon={<Users size={24}/>} label="Grupos" active={activeView === 'groups'} onClick={() => { setActiveView('groups'); setMobileMenuOpen(false); }} collapsed={!sidebarOpen} />

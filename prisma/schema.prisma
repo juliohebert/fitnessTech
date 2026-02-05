@@ -36,6 +36,8 @@ model Usuario {
   // Relações
   academia              Academia?              @relation(fields: [academiaId], references: [id])
   historicoTreinos      HistoricoTreino[]
+  atividadesCardio      AtividadeCardio[]
+  integracoesExternas   IntegracaoExterna[]
   fotosProgresso        FotoProgresso[]
   medicoesCorporais     MedicaoCorporal[]
   metas                 Meta[]
@@ -113,6 +115,89 @@ model HistoricoTreino {
   @@map("historico_treinos")
   @@index([usuarioId])
   @@index([data])
+}
+
+// Cardio e Atividades Aeróbicas
+model AtividadeCardio {
+  id                String   @id @default(cuid())
+  usuarioId         String
+  tipo              String   // CORRIDA, CICLISMO, NATACAO, CAMINHADA, ELIPTICO, REMO, PULAR_CORDA
+  origem            String   @default("MANUAL") // MANUAL, APPLE_HEALTH, GOOGLE_FIT, STRAVA, GPS_INTERNO
+  
+  // Dados básicos
+  duracao           Int      // segundos
+  distancia         Float?   // km
+  calorias          Int?
+  dataInicio        DateTime
+  dataFim           DateTime?
+  
+  // Métricas de performance
+  ritmo             Float?   // min/km
+  velocidade        Float?   // km/h
+  passos            Int?
+  cadencia          Int?     // passos/min ou rpm para bike
+  
+  // Frequência cardíaca
+  fcMedia           Int?     // bpm
+  fcMaxima          Int?     // bpm
+  fcMinima          Int?     // bpm
+  zonaFC            String?  // Z1, Z2, Z3, Z4, Z5
+  
+  // Elevação (para corrida/bike)
+  elevacaoGanha     Float?   // metros
+  elevacaoPerdida   Float?   // metros
+  
+  // Dados GPS (se disponível)
+  rotaGPS           Json?    // Array de {lat, lng, timestamp, elevation}
+  mapaSnapshot      String?  // URL do mapa estático
+  
+  // Dados de origem externa
+  stravaId          String?  // ID da atividade no Strava
+  appleHealthId     String?  // ID do workout no Apple Health
+  googleFitId       String?  // ID da sessão no Google Fit
+  
+  // Sensação e notas
+  sensacao          Int?     // 1-10 (dificuldade percebida)
+  clima             String?  // ENSOLARADO, NUBLADO, CHUVA, VENTO
+  observacoes       String?
+  
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+  
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@map("atividades_cardio")
+  @@index([usuarioId])
+  @@index([tipo])
+  @@index([origem])
+  @@index([dataInicio])
+  @@index([stravaId])
+}
+
+// Integração com Apps Externos
+model IntegracaoExterna {
+  id                String   @id @default(cuid())
+  usuarioId         String
+  plataforma        String   // STRAVA, APPLE_HEALTH, GOOGLE_FIT
+  ativo             Boolean  @default(true)
+  
+  // Tokens de acesso (criptografados)
+  accessToken       String?
+  refreshToken      String?
+  tokenExpira       DateTime?
+  
+  // Configurações
+  sincronizarAuto   Boolean  @default(true)
+  ultimaSync        DateTime?
+  
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+  
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  
+  @@unique([usuarioId, plataforma])
+  @@map("integracoes_externas")
+  @@index([usuarioId])
 }
 
 model AnotacaoTreino {

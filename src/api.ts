@@ -667,9 +667,165 @@ export const gruposAPI = {
   },
 };
 
-// ===== HEALTH CHECK =====
+// ===== CARDIO =====
 
-export const checkHealth = async () => {
-  const response = await fetch(`${API_URL}/health`);
-  return handleResponse(response);
+export const cardioAPI = {
+  // Criar atividade manual (Opção 1)
+  create: async (data: {
+    tipo: string;
+    duracao: number;
+    distancia?: number;
+    calorias?: number;
+    ritmo?: number;
+    velocidade?: number;
+    passos?: number;
+    cadencia?: number;
+    fcMedia?: number;
+    fcMaxima?: number;
+    fcMinima?: number;
+    zonaFC?: string;
+    elevacaoGanha?: number;
+    elevacaoPerdida?: number;
+    sensacao?: number;
+    clima?: string;
+    observacoes?: string;
+  }) => {
+    const response = await fetch(`${API_URL}/cardio`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  // Listar atividades
+  getAll: async (filtros?: { tipo?: string; dataInicio?: string; dataFim?: string; limit?: number }) => {
+    const params = new URLSearchParams();
+    if (filtros?.tipo) params.append('tipo', filtros.tipo);
+    if (filtros?.dataInicio) params.append('dataInicio', filtros.dataInicio);
+    if (filtros?.dataFim) params.append('dataFim', filtros.dataFim);
+    if (filtros?.limit) params.append('limit', filtros.limit.toString());
+
+    const response = await fetch(`${API_URL}/cardio?${params}`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Buscar atividade específica
+  getById: async (id: string) => {
+    const response = await fetch(`${API_URL}/cardio/${id}`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Atualizar atividade
+  update: async (id: string, data: any) => {
+    const response = await fetch(`${API_URL}/cardio/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  // Deletar atividade
+  delete: async (id: string) => {
+    const response = await fetch(`${API_URL}/cardio/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Estatísticas
+  getStats: async (periodo: 'semana' | 'mes' | 'ano' = 'mes') => {
+    const response = await fetch(`${API_URL}/cardio/stats/resumo?periodo=${periodo}`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // GPS Interno - Iniciar sessão (Opção 3)
+  gpsStart: async (tipo: string) => {
+    const response = await fetch(`${API_URL}/cardio/gps/start`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ tipo }),
+    });
+    return handleResponse(response);
+  },
+
+  // GPS Interno - Atualizar rota
+  gpsUpdate: async (id: string, data: { pontos: any[]; duracao: number; distancia: number; velocidade: number }) => {
+    const response = await fetch(`${API_URL}/cardio/gps/${id}/update`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
+
+  // GPS Interno - Finalizar sessão
+  gpsFinish: async (id: string, data: { calorias?: number; fcMedia?: number; fcMaxima?: number; sensacao?: number; observacoes?: string }) => {
+    const response = await fetch(`${API_URL}/cardio/gps/${id}/finish`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
 };
+
+// ===== INTEGRAÇÕES EXTERNAS =====
+
+export const integracoesAPI = {
+  // Listar integrações
+  getAll: async () => {
+    const response = await fetch(`${API_URL}/integracoes`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Conectar Strava (Opção 4)
+  stravaConnect: async (code: string) => {
+    const response = await fetch(`${API_URL}/integracoes/strava/connect`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ code }),
+    });
+    return handleResponse(response);
+  },
+
+  // Sincronizar Strava
+  stravaSync: async () => {
+    const response = await fetch(`${API_URL}/integracoes/strava/sync`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Sincronizar Apple Health (Opção 2)
+  appleHealthSync: async (workouts: any[]) => {
+    const response = await fetch(`${API_URL}/integracoes/apple-health/sync`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ workouts }),
+    });
+    return handleResponse(response);
+  },
+
+  // Sincronizar Google Fit (Opção 2)
+  googleFitSync: async (sessions: any[]) => {
+    const response = await fetch(`${API_URL}/integracoes/google-fit/sync`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ sessions }),
+    });
+    return handleResponse(response);
+  },
+};
+

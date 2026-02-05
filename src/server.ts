@@ -3500,6 +3500,518 @@ app.delete('/api/grupos/:id', autenticar, async (req: AuthRequest, res) => {
   }
 });
 
+// ==================== CARDIO E ATIVIDADES AERÓBICAS ====================
+
+// Criar nova atividade de cardio (Opção 1: Manual)
+app.post('/api/cardio', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const {
+      tipo,
+      duracao,
+      distancia,
+      calorias,
+      ritmo,
+      velocidade,
+      passos,
+      cadencia,
+      fcMedia,
+      fcMaxima,
+      fcMinima,
+      zonaFC,
+      elevacaoGanha,
+      elevacaoPerdida,
+      sensacao,
+      clima,
+      observacoes
+    } = req.body;
+
+    const atividade = await prisma.atividadeCardio.create({
+      data: {
+        usuarioId: req.usuario?.id!,
+        tipo,
+        origem: 'MANUAL',
+        duracao,
+        distancia: distancia ? parseFloat(distancia) : null,
+        calorias: calorias ? parseInt(calorias) : null,
+        dataInicio: new Date(),
+        ritmo: ritmo ? parseFloat(ritmo) : null,
+        velocidade: velocidade ? parseFloat(velocidade) : null,
+        passos: passos ? parseInt(passos) : null,
+        cadencia: cadencia ? parseInt(cadencia) : null,
+        fcMedia: fcMedia ? parseInt(fcMedia) : null,
+        fcMaxima: fcMaxima ? parseInt(fcMaxima) : null,
+        fcMinima: fcMinima ? parseInt(fcMinima) : null,
+        zonaFC,
+        elevacaoGanha: elevacaoGanha ? parseFloat(elevacaoGanha) : null,
+        elevacaoPerdida: elevacaoPerdida ? parseFloat(elevacaoPerdida) : null,
+        sensacao: sensacao ? parseInt(sensacao) : null,
+        clima,
+        observacoes
+      }
+    });
+
+    // Atualizar sequência de cardio
+    await atualizarSequenciaCardio(req.usuario?.id!);
+
+    res.json(atividade);
+  } catch (err) {
+    console.error('Erro ao criar atividade de cardio:', err);
+    res.status(500).json({ erro: 'Erro ao criar atividade' });
+  }
+});
+
+// Listar atividades de cardio do usuário
+app.get('/api/cardio', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { tipo, dataInicio, dataFim, limit } = req.query;
+    
+    const where: any = { usuarioId: req.usuario?.id };
+    
+    if (tipo) where.tipo = tipo;
+    if (dataInicio || dataFim) {
+      where.dataInicio = {};
+      if (dataInicio) where.dataInicio.gte = new Date(dataInicio as string);
+      if (dataFim) where.dataInicio.lte = new Date(dataFim as string);
+    }
+
+    const atividades = await prisma.atividadeCardio.findMany({
+      where,
+      orderBy: { dataInicio: 'desc' },
+      take: limit ? parseInt(limit as string) : undefined
+    });
+
+    res.json(atividades);
+  } catch (err) {
+    console.error('Erro ao buscar atividades:', err);
+    res.status(500).json({ erro: 'Erro ao buscar atividades' });
+  }
+});
+
+// Buscar atividade específica
+app.get('/api/cardio/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const atividade = await prisma.atividadeCardio.findFirst({
+      where: {
+        id: req.params.id,
+        usuarioId: req.usuario?.id
+      }
+    });
+
+    if (!atividade) {
+      return res.status(404).json({ erro: 'Atividade não encontrada' });
+    }
+
+    res.json(atividade);
+  } catch (err) {
+    console.error('Erro ao buscar atividade:', err);
+    res.status(500).json({ erro: 'Erro ao buscar atividade' });
+  }
+});
+
+// Atualizar atividade
+app.put('/api/cardio/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const atividade = await prisma.atividadeCardio.findFirst({
+      where: {
+        id: req.params.id,
+        usuarioId: req.usuario?.id
+      }
+    });
+
+    if (!atividade) {
+      return res.status(404).json({ erro: 'Atividade não encontrada' });
+    }
+
+    const atualizada = await prisma.atividadeCardio.update({
+      where: { id: req.params.id },
+      data: req.body
+    });
+
+    res.json(atualizada);
+  } catch (err) {
+    console.error('Erro ao atualizar atividade:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar atividade' });
+  }
+});
+
+// Deletar atividade
+app.delete('/api/cardio/:id', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const atividade = await prisma.atividadeCardio.findFirst({
+      where: {
+        id: req.params.id,
+        usuarioId: req.usuario?.id
+      }
+    });
+
+    if (!atividade) {
+      return res.status(404).json({ erro: 'Atividade não encontrada' });
+    }
+
+    await prisma.atividadeCardio.delete({
+      where: { id: req.params.id }
+    });
+
+    res.json({ mensagem: 'Atividade deletada' });
+  } catch (err) {
+    console.error('Erro ao deletar atividade:', err);
+    res.status(500).json({ erro: 'Erro ao deletar atividade' });
+  }
+});
+
+// Estatísticas de cardio
+app.get('/api/cardio/stats/resumo', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { periodo } = req.query; // semana, mes, ano
+    
+    let dataInicio = new Date();
+    switch (periodo) {
+      case 'semana':
+        dataInicio.setDate(dataInicio.getDate() - 7);
+        break;
+      case 'mes':
+        dataInicio.setMonth(dataInicio.getMonth() - 1);
+        break;
+      case 'ano':
+        dataInicio.setFullYear(dataInicio.getFullYear() - 1);
+        break;
+      default:
+        dataInicio.setMonth(dataInicio.getMonth() - 1);
+    }
+
+    const atividades = await prisma.atividadeCardio.findMany({
+      where: {
+        usuarioId: req.usuario?.id,
+        dataInicio: { gte: dataInicio }
+      }
+    });
+
+    const stats = {
+      totalAtividades: atividades.length,
+      totalDuracao: atividades.reduce((sum, a) => sum + a.duracao, 0),
+      totalDistancia: atividades.reduce((sum, a) => sum + (a.distancia || 0), 0),
+      totalCalorias: atividades.reduce((sum, a) => sum + (a.calorias || 0), 0),
+      porTipo: {} as any,
+      mediaFCMedia: 0,
+      mediaVelocidade: 0
+    };
+
+    // Agrupar por tipo
+    atividades.forEach(a => {
+      if (!stats.porTipo[a.tipo]) {
+        stats.porTipo[a.tipo] = { count: 0, duracao: 0, distancia: 0 };
+      }
+      stats.porTipo[a.tipo].count++;
+      stats.porTipo[a.tipo].duracao += a.duracao;
+      stats.porTipo[a.tipo].distancia += a.distancia || 0;
+    });
+
+    // Médias
+    const comFC = atividades.filter(a => a.fcMedia);
+    if (comFC.length > 0) {
+      stats.mediaFCMedia = comFC.reduce((sum, a) => sum + a.fcMedia!, 0) / comFC.length;
+    }
+
+    const comVel = atividades.filter(a => a.velocidade);
+    if (comVel.length > 0) {
+      stats.mediaVelocidade = comVel.reduce((sum, a) => sum + a.velocidade!, 0) / comVel.length;
+    }
+
+    res.json(stats);
+  } catch (err) {
+    console.error('Erro ao buscar estatísticas:', err);
+    res.status(500).json({ erro: 'Erro ao buscar estatísticas' });
+  }
+});
+
+// ==================== INTEGRAÇÕES EXTERNAS ====================
+
+// Listar integrações do usuário
+app.get('/api/integracoes', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const integracoes = await prisma.integracaoExterna.findMany({
+      where: { usuarioId: req.usuario?.id },
+      select: {
+        id: true,
+        plataforma: true,
+        ativo: true,
+        sincronizarAuto: true,
+        ultimaSync: true,
+        criadoEm: true
+        // Não retornar tokens por segurança
+      }
+    });
+
+    res.json(integracoes);
+  } catch (err) {
+    console.error('Erro ao buscar integrações:', err);
+    res.status(500).json({ erro: 'Erro ao buscar integrações' });
+  }
+});
+
+// Conectar Strava (Opção 4)
+app.post('/api/integracoes/strava/connect', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { code } = req.body;
+    
+    // TODO: Implementar OAuth do Strava
+    // 1. Trocar code por access_token
+    // 2. Salvar tokens no banco
+    // 3. Retornar sucesso
+    
+    res.json({ mensagem: 'Strava OAuth - A implementar', code });
+  } catch (err) {
+    console.error('Erro ao conectar Strava:', err);
+    res.status(500).json({ erro: 'Erro ao conectar Strava' });
+  }
+});
+
+// Sincronizar do Strava
+app.post('/api/integracoes/strava/sync', autenticar, async (req: AuthRequest, res) => {
+  try {
+    // TODO: Buscar atividades do Strava via API
+    // 1. Pegar access_token do banco
+    // 2. Chamar API do Strava
+    // 3. Salvar atividades como origem=STRAVA
+    
+    res.json({ mensagem: 'Strava sync - A implementar' });
+  } catch (err) {
+    console.error('Erro ao sincronizar Strava:', err);
+    res.status(500).json({ erro: 'Erro ao sincronizar' });
+  }
+});
+
+// Conectar Apple Health (Opção 2)
+app.post('/api/integracoes/apple-health/sync', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { workouts } = req.body; // Array de workouts do HealthKit
+    
+    if (!workouts || !Array.isArray(workouts)) {
+      return res.status(400).json({ erro: 'Workouts inválidos' });
+    }
+
+    // Salvar workouts do Apple Health
+    const criados = [];
+    for (const workout of workouts) {
+      const atividade = await prisma.atividadeCardio.create({
+        data: {
+          usuarioId: req.usuario?.id!,
+          tipo: mapearTipoAppleHealth(workout.type),
+          origem: 'APPLE_HEALTH',
+          duracao: workout.duration,
+          distancia: workout.distance,
+          calorias: workout.calories,
+          dataInicio: new Date(workout.startDate),
+          dataFim: workout.endDate ? new Date(workout.endDate) : null,
+          fcMedia: workout.averageHeartRate,
+          fcMaxima: workout.maxHeartRate,
+          fcMinima: workout.minHeartRate,
+          appleHealthId: workout.id
+        }
+      });
+      criados.push(atividade);
+    }
+
+    res.json({ importados: criados.length, atividades: criados });
+  } catch (err) {
+    console.error('Erro ao sincronizar Apple Health:', err);
+    res.status(500).json({ erro: 'Erro ao sincronizar' });
+  }
+});
+
+// Conectar Google Fit (Opção 2)
+app.post('/api/integracoes/google-fit/sync', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { sessions } = req.body; // Array de sessões do Google Fit
+    
+    if (!sessions || !Array.isArray(sessions)) {
+      return res.status(400).json({ erro: 'Sessões inválidas' });
+    }
+
+    const criados = [];
+    for (const session of sessions) {
+      const atividade = await prisma.atividadeCardio.create({
+        data: {
+          usuarioId: req.usuario?.id!,
+          tipo: mapearTipoGoogleFit(session.activityType),
+          origem: 'GOOGLE_FIT',
+          duracao: session.duration,
+          distancia: session.distance,
+          calorias: session.calories,
+          dataInicio: new Date(session.startTime),
+          dataFim: session.endTime ? new Date(session.endTime) : null,
+          passos: session.steps,
+          fcMedia: session.averageHeartRate,
+          googleFitId: session.id
+        }
+      });
+      criados.push(atividade);
+    }
+
+    res.json({ importados: criados.length, atividades: criados });
+  } catch (err) {
+    console.error('Erro ao sincronizar Google Fit:', err);
+    res.status(500).json({ erro: 'Erro ao sincronizar' });
+  }
+});
+
+// GPS Interno - Iniciar sessão (Opção 3)
+app.post('/api/cardio/gps/start', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { tipo } = req.body;
+    
+    const atividade = await prisma.atividadeCardio.create({
+      data: {
+        usuarioId: req.usuario?.id!,
+        tipo,
+        origem: 'GPS_INTERNO',
+        duracao: 0,
+        dataInicio: new Date(),
+        rotaGPS: []
+      }
+    });
+
+    res.json(atividade);
+  } catch (err) {
+    console.error('Erro ao iniciar sessão GPS:', err);
+    res.status(500).json({ erro: 'Erro ao iniciar sessão' });
+  }
+});
+
+// GPS Interno - Atualizar rota em tempo real
+app.put('/api/cardio/gps/:id/update', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { pontos, duracao, distancia, velocidade } = req.body;
+    
+    const atividade = await prisma.atividadeCardio.findFirst({
+      where: {
+        id: req.params.id,
+        usuarioId: req.usuario?.id
+      }
+    });
+
+    if (!atividade) {
+      return res.status(404).json({ erro: 'Atividade não encontrada' });
+    }
+
+    const atualizada = await prisma.atividadeCardio.update({
+      where: { id: req.params.id },
+      data: {
+        rotaGPS: pontos,
+        duracao,
+        distancia,
+        velocidade
+      }
+    });
+
+    res.json(atualizada);
+  } catch (err) {
+    console.error('Erro ao atualizar GPS:', err);
+    res.status(500).json({ erro: 'Erro ao atualizar' });
+  }
+});
+
+// GPS Interno - Finalizar sessão
+app.post('/api/cardio/gps/:id/finish', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const { calorias, fcMedia, fcMaxima, sensacao, observacoes } = req.body;
+    
+    const atividade = await prisma.atividadeCardio.findFirst({
+      where: {
+        id: req.params.id,
+        usuarioId: req.usuario?.id
+      }
+    });
+
+    if (!atividade) {
+      return res.status(404).json({ erro: 'Atividade não encontrada' });
+    }
+
+    const finalizada = await prisma.atividadeCardio.update({
+      where: { id: req.params.id },
+      data: {
+        dataFim: new Date(),
+        calorias,
+        fcMedia,
+        fcMaxima,
+        sensacao,
+        observacoes
+      }
+    });
+
+    // Atualizar sequência de cardio
+    await atualizarSequenciaCardio(req.usuario?.id!);
+
+    res.json(finalizada);
+  } catch (err) {
+    console.error('Erro ao finalizar sessão:', err);
+    res.status(500).json({ erro: 'Erro ao finalizar' });
+  }
+});
+
+// Funções auxiliares
+function mapearTipoAppleHealth(tipo: string): string {
+  const mapa: any = {
+    'running': 'CORRIDA',
+    'cycling': 'CICLISMO',
+    'swimming': 'NATACAO',
+    'walking': 'CAMINHADA',
+    'elliptical': 'ELIPTICO',
+    'rowing': 'REMO'
+  };
+  return mapa[tipo] || 'CORRIDA';
+}
+
+function mapearTipoGoogleFit(tipo: number): string {
+  const mapa: any = {
+    8: 'CORRIDA',
+    1: 'CICLISMO',
+    82: 'NATACAO',
+    7: 'CAMINHADA',
+    16: 'ELIPTICO'
+  };
+  return mapa[tipo] || 'CORRIDA';
+}
+
+async function atualizarSequenciaCardio(usuarioId: string) {
+  try {
+    // Verificar se treinou hoje
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    
+    const treinouHoje = await prisma.atividadeCardio.findFirst({
+      where: {
+        usuarioId,
+        dataInicio: { gte: hoje }
+      }
+    });
+
+    if (treinouHoje) {
+      await prisma.sequencia.upsert({
+        where: {
+          usuarioId_tipo: {
+            usuarioId,
+            tipo: 'CARDIO'
+          }
+        },
+        update: {
+          atual: { increment: 1 },
+          melhor: { set: prisma.$queryRaw`GREATEST(melhor, atual + 1)` } as any,
+          ultimaData: new Date()
+        },
+        create: {
+          usuarioId,
+          tipo: 'CARDIO',
+          atual: 1,
+          melhor: 1
+        }
+      });
+    }
+  } catch (err) {
+    console.error('Erro ao atualizar sequência:', err);
+  }
+}
+
 export { app };
 
 // Iniciar servidor apenas em desenvolvimento
