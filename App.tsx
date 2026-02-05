@@ -7448,10 +7448,10 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                              <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Nome do Exercício</label>
                                              <input
                                                 type="text"
-                                                value={exercicio.exercicio || ''}
+                                                value={exercicio.exercicio || exercicio.nome || ''}
                                                 onChange={(e) => {
-                                                   const novosExercicios = [...(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || [])];
-                                                   novosExercicios[index] = { ...novosExercicios[index], exercicio: e.target.value };
+                                                   const novosExercicios = [...(editingPlano[activeDayEdit] || [])];
+                                                   novosExercicios[index] = { ...novosExercicios[index], exercicio: e.target.value, nome: e.target.value };
                                                    setEditingPlano(prev => ({
                                                       ...prev,
                                                       [activeDayEdit]: novosExercicios
