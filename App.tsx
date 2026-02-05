@@ -7365,7 +7365,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <h3 className="font-black uppercase text-xs text-zinc-500 mb-4">Dias da Semana</h3>
                         <div className="space-y-2">
                            {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
-                              const exercicios = editingPlano[dia] || [];
+                              const exercicios = editingPlano[dia]?.length > 0 ? editingPlano[dia] : (selectedTreinoEdit?.plano?.[dia] || []);
                               const isActive = activeDayEdit === dia;
                               
                               return (
@@ -7425,7 +7425,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               </div>
 
                               <div className="space-y-4">
-                                 {(editingPlano[activeDayEdit] || []).map((exercicio: any, index: number) => (
+                                 {((editingPlano[activeDayEdit]?.length > 0 ? editingPlano[activeDayEdit] : selectedTreinoEdit?.plano?.[activeDayEdit]) || []).map((exercicio: any, index: number) => (
                                     <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
                                        <div className="flex justify-between items-start mb-4">
                                           <h4 className="font-bold text-lg">Exercício {index + 1}</h4>
@@ -7559,7 +7559,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                     </div>
                                  ))}
 
-                                 {(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []).length === 0 && (
+                                 {((editingPlano[activeDayEdit]?.length > 0 ? editingPlano[activeDayEdit] : selectedTreinoEdit?.plano?.[activeDayEdit]) || []).length === 0 && (
                                     <div className="text-center py-12">
                                        <div className="text-zinc-600 mb-4">
                                           <Dumbbell size={48} className="mx-auto mb-2" />
