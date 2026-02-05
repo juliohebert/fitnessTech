@@ -3726,6 +3726,25 @@ app.get('/api/cardio/stats/resumo', autenticar, async (req: AuthRequest, res) =>
 
 // ==================== INTEGRAÇÕES EXTERNAS ====================
 
+// ==================== STRAVA OAUTH & SINCRONIZAÇÃO ====================
+
+// Gerar URL de autorização do Strava (DEVE VIR ANTES DO GET /api/integracoes)
+app.get('/api/integracoes/strava/auth-url', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
+    const REDIRECT_URI = process.env.STRAVA_REDIRECT_URI || 'http://localhost:5173/strava-callback.html';
+    
+    console.log('Gerando URL Strava:', { STRAVA_CLIENT_ID, REDIRECT_URI });
+    
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all,activity:read&state=${req.usuario?.id}`;
+    
+    res.json({ authUrl });
+  } catch (err) {
+    console.error('Erro ao gerar URL:', err);
+    res.status(500).json({ erro: 'Erro ao gerar URL' });
+  }
+});
+
 // Listar integrações do usuário
 app.get('/api/integracoes', autenticar, async (req: AuthRequest, res) => {
   try {
@@ -3746,23 +3765,6 @@ app.get('/api/integracoes', autenticar, async (req: AuthRequest, res) => {
   } catch (err) {
     console.error('Erro ao buscar integrações:', err);
     res.status(500).json({ erro: 'Erro ao buscar integrações' });
-  }
-});
-
-// ==================== STRAVA OAUTH & SINCRONIZAÇÃO ====================
-
-// Gerar URL de autorização do Strava
-app.get('/api/integracoes/strava/auth-url', autenticar, async (req: AuthRequest, res) => {
-  try {
-    const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
-    const REDIRECT_URI = process.env.STRAVA_REDIRECT_URI || 'http://localhost:5173/strava/callback';
-    
-    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all,activity:read&state=${req.usuario?.id}`;
-    
-    res.json({ authUrl });
-  } catch (err) {
-    console.error('Erro ao gerar URL:', err);
-    res.status(500).json({ erro: 'Erro ao gerar URL' });
   }
 });
 
