@@ -5114,11 +5114,15 @@ const AdminModule = ({ view, user, academia }: any) => {
    // Forçar atualização quando o modal abrir
    useEffect(() => {
       if (showEditModal && selectedTreinoEdit) {
-         console.log('🔄 Modal aberto - Estado atual do editingPlano:', editingPlano);
+         console.log('🔄 Modal aberto - selectedTreinoEdit:', selectedTreinoEdit);
+         console.log('🔄 Plano completo:', selectedTreinoEdit.plano);
          console.log('🔄 Dia ativo:', activeDayEdit);
-         console.log('🔄 Exercícios do dia ativo:', editingPlano[activeDayEdit]);
+         console.log('🔄 Exercícios da segunda:', selectedTreinoEdit.plano?.segunda);
+         // Forçar re-render resetando e setando o dia novamente
+         setActiveDayEdit('');
+         setTimeout(() => setActiveDayEdit('segunda'), 0);
       }
-   }, [showEditModal, activeDayEdit]);
+   }, [showEditModal, selectedTreinoEdit]);
 
    const salvarEdicaoTreino = async () => {
       if (!selectedTreinoEdit) {
