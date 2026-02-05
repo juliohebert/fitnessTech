@@ -3749,37 +3749,323 @@ app.get('/api/integracoes', autenticar, async (req: AuthRequest, res) => {
   }
 });
 
-// Conectar Strava (Opção 4)
+// ==================== STRAVA OAUTH & SINCRONIZAÇÃO ====================
+
+// Gerar URL de autorização do Strava
+app.get('/api/integracoes/strava/auth-url', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
+    const REDIRECT_URI = process.env.STRAVA_REDIRECT_URI || 'http://localhost:5173/strava/callback';
+    
+    const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all,activity:read&state=${req.usuario?.id}`;
+    
+    res.json({ authUrl });
+  } catch (err) {
+    console.error('Erro ao gerar URL:', err);
+    res.status(500).json({ erro: 'Erro ao gerar URL' });
+  }
+});
+
+// Conectar Strava - Exchange code por tokens
 app.post('/api/integracoes/strava/connect', autenticar, async (req: AuthRequest, res) => {
   try {
     const { code } = req.body;
     
-    // TODO: Implementar OAuth do Strava
-    // 1. Trocar code por access_token
-    // 2. Salvar tokens no banco
-    // 3. Retornar sucesso
+    if (!code) {
+      return res.status(400).json({ erro: 'Código de autorização não fornecido' });
+    }
+
+    const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
+    const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
     
-    res.json({ mensagem: 'Strava OAuth - A implementar', code });
+    // Trocar code por access_token
+    const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: STRAVA_CLIENT_ID,
+        client_secret: STRAVA_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code'
+      })
+    });
+
+    if (!tokenResponse.ok) {
+      const error = await tokenResponse.json();
+      console.error('Erro Strava OAuth:', error);
+      return res.status(400).json({ erro: 'Erro ao trocar código por token', detalhes: error });
+    }
+
+    const tokenData = await tokenResponse.json();
+    
+    // Calcular data de expiração
+    const expiresAt = new Date(tokenData.expires_at * 1000);
+    
+    // Salvar ou atualizar integração
+    const integracao = await prisma.integracaoExterna.upsert({
+      where: {
+        usuarioId_plataforma: {
+          usuarioId: req.usuario?.id!,
+          plataforma: 'STRAVA'
+        }
+      },
+      update: {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenExpira: expiresAt,
+        ativo: true,
+        ultimaSync: new Date()
+      },
+      create: {
+        usuarioId: req.usuario?.id!,
+        plataforma: 'STRAVA',
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenExpira: expiresAt,
+        ativo: true,
+        sincronizarAuto: true
+      }
+    });
+
+    // Buscar informações do atleta
+    const athleteResponse = await fetch('https://www.strava.com/api/v3/athlete', {
+      headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+    });
+
+    const athleteData = await athleteResponse.json();
+
+    res.json({ 
+      sucesso: true,
+      mensagem: 'Strava conectado com sucesso!',
+      atleta: {
+        nome: `${athleteData.firstname} ${athleteData.lastname}`,
+        foto: athleteData.profile
+      }
+    });
   } catch (err) {
     console.error('Erro ao conectar Strava:', err);
     res.status(500).json({ erro: 'Erro ao conectar Strava' });
   }
 });
 
-// Sincronizar do Strava
+// Renovar token do Strava
+async function renovarTokenStrava(integracao: any) {
+  try {
+    const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
+    const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
+
+    const response = await fetch('https://www.strava.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: STRAVA_CLIENT_ID,
+        client_secret: STRAVA_CLIENT_SECRET,
+        refresh_token: integracao.refreshToken,
+        grant_type: 'refresh_token'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao renovar token');
+    }
+
+    const tokenData = await response.json();
+    const expiresAt = new Date(tokenData.expires_at * 1000);
+
+    await prisma.integracaoExterna.update({
+      where: { id: integracao.id },
+      data: {
+        accessToken: tokenData.access_token,
+        refreshToken: tokenData.refresh_token,
+        tokenExpira: expiresAt
+      }
+    });
+
+    return tokenData.access_token;
+  } catch (error) {
+    console.error('Erro ao renovar token Strava:', error);
+    throw error;
+  }
+}
+
+// Sincronizar atividades do Strava
 app.post('/api/integracoes/strava/sync', autenticar, async (req: AuthRequest, res) => {
   try {
-    // TODO: Buscar atividades do Strava via API
-    // 1. Pegar access_token do banco
-    // 2. Chamar API do Strava
-    // 3. Salvar atividades como origem=STRAVA
+    // Buscar integração do usuário
+    const integracao = await prisma.integracaoExterna.findUnique({
+      where: {
+        usuarioId_plataforma: {
+          usuarioId: req.usuario?.id!,
+          plataforma: 'STRAVA'
+        }
+      }
+    });
+
+    if (!integracao) {
+      return res.status(404).json({ erro: 'Strava não conectado' });
+    }
+
+    // Verificar se token está válido
+    let accessToken = integracao.accessToken;
+    if (integracao.tokenExpira && new Date() > integracao.tokenExpira) {
+      console.log('Token expirado, renovando...');
+      accessToken = await renovarTokenStrava(integracao);
+    }
+
+    // Buscar atividades dos últimos 30 dias
+    const dataInicio = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
     
-    res.json({ mensagem: 'Strava sync - A implementar' });
+    const atividadesResponse = await fetch(
+      `https://www.strava.com/api/v3/athlete/activities?after=${dataInicio}&per_page=50`,
+      {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }
+    );
+
+    if (!atividadesResponse.ok) {
+      const error = await atividadesResponse.json();
+      console.error('Erro ao buscar atividades:', error);
+      return res.status(400).json({ erro: 'Erro ao buscar atividades do Strava', detalhes: error });
+    }
+
+    const atividadesStrava = await atividadesResponse.json();
+    
+    // Mapear e salvar atividades
+    const atividadesImportadas = [];
+    const atividadesAtualizadas = [];
+    
+    for (const atv of atividadesStrava) {
+      // Verificar se já existe
+      const existente = await prisma.atividadeCardio.findFirst({
+        where: {
+          usuarioId: req.usuario?.id,
+          stravaId: atv.id.toString()
+        }
+      });
+
+      const dadosAtividade = {
+        tipo: mapearTipoStrava(atv.type),
+        origem: 'STRAVA',
+        duracao: atv.moving_time,
+        distancia: atv.distance / 1000, // converter metros para km
+        calorias: atv.calories ? Math.round(atv.calories) : null,
+        dataInicio: new Date(atv.start_date),
+        dataFim: atv.start_date ? new Date(new Date(atv.start_date).getTime() + atv.elapsed_time * 1000) : null,
+        velocidade: atv.average_speed ? atv.average_speed * 3.6 : null, // m/s para km/h
+        fcMedia: atv.average_heartrate ? Math.round(atv.average_heartrate) : null,
+        fcMaxima: atv.max_heartrate ? Math.round(atv.max_heartrate) : null,
+        elevacaoGanha: atv.total_elevation_gain || null,
+        stravaId: atv.id.toString(),
+        observacoes: atv.name
+      };
+
+      if (existente) {
+        // Atualizar existente
+        await prisma.atividadeCardio.update({
+          where: { id: existente.id },
+          data: dadosAtividade
+        });
+        atividadesAtualizadas.push(atv.name);
+      } else {
+        // Criar nova
+        await prisma.atividadeCardio.create({
+          data: {
+            usuarioId: req.usuario?.id!,
+            ...dadosAtividade
+          }
+        });
+        atividadesImportadas.push(atv.name);
+      }
+    }
+
+    // Atualizar data da última sincronização
+    await prisma.integracaoExterna.update({
+      where: { id: integracao.id },
+      data: { ultimaSync: new Date() }
+    });
+
+    res.json({
+      sucesso: true,
+      importadas: atividadesImportadas.length,
+      atualizadas: atividadesAtualizadas.length,
+      total: atividadesStrava.length,
+      detalhes: {
+        novas: atividadesImportadas,
+        atualizadas: atividadesAtualizadas
+      }
+    });
   } catch (err) {
     console.error('Erro ao sincronizar Strava:', err);
-    res.status(500).json({ erro: 'Erro ao sincronizar' });
+    res.status(500).json({ erro: 'Erro ao sincronizar', detalhes: err instanceof Error ? err.message : 'Erro desconhecido' });
   }
 });
+
+// Desconectar Strava
+app.delete('/api/integracoes/strava/disconnect', autenticar, async (req: AuthRequest, res) => {
+  try {
+    const integracao = await prisma.integracaoExterna.findUnique({
+      where: {
+        usuarioId_plataforma: {
+          usuarioId: req.usuario?.id!,
+          plataforma: 'STRAVA'
+        }
+      }
+    });
+
+    if (!integracao) {
+      return res.status(404).json({ erro: 'Strava não conectado' });
+    }
+
+    // Revogar acesso no Strava
+    try {
+      await fetch('https://www.strava.com/oauth/deauthorize', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${integracao.accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao revogar no Strava:', error);
+    }
+
+    // Deletar integração local
+    await prisma.integracaoExterna.delete({
+      where: { id: integracao.id }
+    });
+
+    res.json({ sucesso: true, mensagem: 'Strava desconectado com sucesso' });
+  } catch (err) {
+    console.error('Erro ao desconectar Strava:', err);
+    res.status(500).json({ erro: 'Erro ao desconectar' });
+  }
+});
+
+// Função auxiliar para mapear tipos do Strava
+function mapearTipoStrava(tipo: string): string {
+  const mapa: any = {
+    'Run': 'CORRIDA',
+    'Ride': 'CICLISMO',
+    'Swim': 'NATACAO',
+    'Walk': 'CAMINHADA',
+    'Hike': 'CAMINHADA',
+    'AlpineSki': 'CORRIDA',
+    'BackcountrySki': 'CORRIDA',
+    'Canoeing': 'REMO',
+    'Kayaking': 'REMO',
+    'Rowing': 'REMO',
+    'Elliptical': 'ELIPTICO',
+    'RockClimbing': 'CORRIDA',
+    'IceSkate': 'CORRIDA',
+    'InlineSkate': 'CORRIDA',
+    'NordicSki': 'CORRIDA',
+    'RollerSki': 'CORRIDA',
+    'VirtualRide': 'CICLISMO',
+    'VirtualRun': 'CORRIDA',
+    'Workout': 'CORRIDA'
+  };
+  return mapa[tipo] || 'CORRIDA';
+}
 
 // Conectar Apple Health (Opção 2)
 app.post('/api/integracoes/apple-health/sync', autenticar, async (req: AuthRequest, res) => {

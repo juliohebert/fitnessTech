@@ -789,6 +789,14 @@ export const integracoesAPI = {
     return handleResponse(response);
   },
 
+  // Obter URL de autorização do Strava
+  stravaGetAuthUrl: async () => {
+    const response = await fetch(`${API_URL}/integracoes/strava/auth-url`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
   // Conectar Strava (Opção 4)
   stravaConnect: async (code: string) => {
     const response = await fetch(`${API_URL}/integracoes/strava/connect`, {
@@ -803,6 +811,15 @@ export const integracoesAPI = {
   stravaSync: async () => {
     const response = await fetch(`${API_URL}/integracoes/strava/sync`, {
       method: 'POST',
+      headers: getHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  // Desconectar Strava
+  stravaDisconnect: async () => {
+    const response = await fetch(`${API_URL}/integracoes/strava/disconnect`, {
+      method: 'DELETE',
       headers: getHeaders(),
     });
     return handleResponse(response);

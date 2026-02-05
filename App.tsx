@@ -2129,10 +2129,79 @@ const CardioView = () => {
 
   const conectarStrava = async () => {
     try {
-      // TODO: Implementar OAuth do Strava
-      alert('🟠 Strava: Em breve! Conecte sua conta Strava via OAuth.');
+      const { integracoesAPI } = await import('./src/api');
+      
+      // Verificar se já está conectado
+      const integracoes = await integracoesAPI.getAll();
+      const stravaConectado = integracoes.some((i: any) => i.plataforma === 'STRAVA' && i.ativo);
+      
+      if (stravaConectado) {
+        // Se já está conectado, sincronizar
+        if (!confirm('Strava já conectado. Deseja sincronizar atividades?')) return;
+        
+        const resultado = await integracoesAPI.stravaSync();
+        alert(`✅ ${resultado.importadas} novas atividades importadas!\n${resultado.atualizadas} atividades atualizadas.`);
+        await carregarAtividades();
+        await carregarStats();
+        return;
+      }
+      
+      // Se não está conectado, iniciar OAuth
+      const { authUrl } = await integracoesAPI.stravaGetAuthUrl();
+      
+      // Abrir popup OAuth
+      const width = 600;
+      const height = 700;
+      const left = window.screenX + (window.outerWidth - width) / 2;
+      const top = window.screenY + (window.outerHeight - height) / 2;
+      
+      const popup = window.open(
+        authUrl,
+        'Conectar Strava',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
+
+      // Escutar mensagem do callback
+      const messageHandler = async (event: MessageEvent) => {
+        if (event.data.type === 'strava-auth') {
+          window.removeEventListener('message', messageHandler);
+          
+          if (event.data.code) {
+            try {
+              const resultado = await integracoesAPI.stravaConnect(event.data.code);
+              alert(`✅ ${resultado.mensagem}\nAtleta: ${resultado.atleta.nome}`);
+              await carregarIntegracoes();
+              
+              // Perguntar se deseja sincronizar agora
+              if (confirm('Deseja sincronizar atividades agora?')) {
+                const sync = await integracoesAPI.stravaSync();
+                alert(`🔄 ${sync.importadas} atividades importadas!`);
+                await carregarAtividades();
+                await carregarStats();
+              }
+            } catch (error: any) {
+              console.error('Erro ao conectar:', error);
+              alert('❌ Erro ao conectar Strava: ' + (error.erro || 'Erro desconhecido'));
+            }
+          } else {
+            alert('❌ Autorização cancelada');
+          }
+        }
+      };
+
+      window.addEventListener('message', messageHandler);
+
+      // Timeout de 5 minutos
+      setTimeout(() => {
+        window.removeEventListener('message', messageHandler);
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+      }, 5 * 60 * 1000);
+
     } catch (error) {
       console.error('Erro ao conectar Strava:', error);
+      alert('❌ Erro ao conectar Strava');
     }
   };
 
@@ -2497,15 +2566,73 @@ const CardioView = () => {
                 <p className="text-xs text-zinc-500">Rede social fitness</p>
               </div>
             </div>
-            <p className="text-sm text-zinc-400 mb-6">
-              Importe atividades da plataforma Strava
-            </p>
-            <button
-              onClick={conectarStrava}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-3 rounded-xl font-bold text-sm"
-            >
-              Conectar Strava
-            </button>
+            
+            {integracoes.some((i: any) => i.plataforma === 'STRAVA' && i.ativo) ? (
+              <>
+                <div className="bg-lime-400/10 border border-lime-400/30 rounded-xl p-3 mb-4">
+                  <div className="flex items-center gap-2 text-lime-400 text-sm font-bold">
+                    <div className="size-2 bg-lime-400 rounded-full animate-pulse" />
+                    Conectado
+                  </div>
+                  {integracoes.find((i: any) => i.plataforma === 'STRAVA')?.ultimaSync && (
+                    <div className="text-xs text-zinc-500 mt-1">
+                      Última sincronização: {new Date(integracoes.find((i: any) => i.plataforma === 'STRAVA').ultimaSync).toLocaleDateString('pt-BR', { 
+                        day: '2-digit', 
+                        month: 'short', 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const { integracoesAPI } = await import('./src/api');
+                        const resultado = await integracoesAPI.stravaSync();
+                        alert(`✅ Sincronizado!\n${resultado.importadas} novas\n${resultado.atualizadas} atualizadas`);
+                        await carregarAtividades();
+                        await carregarStats();
+                      } catch (error: any) {
+                        alert('❌ ' + (error.erro || 'Erro ao sincronizar'));
+                      }
+                    }}
+                    className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-3 rounded-xl font-bold text-sm"
+                  >
+                    🔄 Sync
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Desconectar Strava?')) return;
+                      try {
+                        const { integracoesAPI } = await import('./src/api');
+                        await integracoesAPI.stravaDisconnect();
+                        alert('✅ Desconectado');
+                        await carregarIntegracoes();
+                      } catch (error) {
+                        alert('❌ Erro ao desconectar');
+                      }
+                    }}
+                    className="bg-zinc-800 text-zinc-400 px-4 py-3 rounded-xl font-bold text-sm hover:bg-zinc-700"
+                  >
+                    ❌
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-zinc-400 mb-6">
+                  Importe atividades da plataforma Strava
+                </p>
+                <button
+                  onClick={conectarStrava}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-3 rounded-xl font-bold text-sm"
+                >
+                  Conectar Strava
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
