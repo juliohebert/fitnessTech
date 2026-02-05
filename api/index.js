@@ -460,6 +460,113 @@ export default async function handler(req, res) {
       return res.status(200).json(treinoAtualizado);
     }
     
+    // GET /api/historico-dietas
+    if (method === 'GET' && url?.includes('/historico-dietas') && !url.match(/\/historico-dietas\/[^\/]+$/)) {
+      const decoded = verificarToken();
+      
+      // Extrair usuarioId da query string se existir
+      const urlParams = new URLSearchParams(url.split('?')[1] || '');
+      const usuarioIdParam = urlParams.get('usuarioId');
+      
+      const targetUserId = usuarioIdParam || decoded.usuarioId;
+      
+      console.log('📋 GET /historico-dietas - Usuario alvo:', targetUserId);
+      
+      const historico = await prisma.historicoDieta.findMany({
+        where: { usuarioId: targetUserId },
+        orderBy: { data: 'desc' }
+      });
+      
+      console.log('📋 Dietas encontradas:', historico.length);
+      return res.status(200).json(historico);
+    }
+    
+    // POST /api/historico-dietas
+    if (method === 'POST' && url?.includes('/historico-dietas') && !url.match(/\/historico-dietas\/[^\/]+$/)) {
+      console.log('📥 POST /historico-dietas - Body completo:', JSON.stringify(req.body, null, 2));
+      
+      const decoded = verificarToken();
+      const { titulo, plano, usuarioId } = req.body || {};
+      
+      const targetUserId = usuarioId || decoded.usuarioId;
+      
+      console.log('👤 Usuario alvo:', targetUserId);
+      console.log('📋 Titulo:', titulo);
+      
+      if (!titulo || titulo.trim() === '') {
+        console.error('❌ Titulo está vazio');
+        return res.status(400).json({ 
+          erro: 'Título da dieta é obrigatório',
+          recebido: req.body 
+        });
+      }
+      
+      const historico = await prisma.historicoDieta.create({
+        data: {
+          usuarioId: targetUserId,
+          titulo: titulo.trim(),
+          plano: plano || {}
+        }
+      });
+      
+      console.log('✅ Dieta salva com ID:', historico.id);
+      return res.status(201).json(historico);
+    }
+    
+    // PUT /api/historico-dietas/:id
+    if (method === 'PUT' && url?.match(/\/historico-dietas\/([^\/]+)$/)) {
+      console.log('📥 PUT /historico-dietas/:id - Body completo:', JSON.stringify(req.body, null, 2));
+      
+      const decoded = verificarToken();
+      const dietaId = url.match(/\/historico-dietas\/([^\/]+)$/)?.[1];
+      
+      if (!dietaId) {
+        return res.status(400).json({ erro: 'ID da dieta é obrigatório' });
+      }
+      
+      // Verificar se a dieta existe e pertence ao usuário ou se é admin
+      const dietaExistente = await prisma.historicoDieta.findUnique({
+        where: { id: dietaId }
+      });
+      
+      if (!dietaExistente) {
+        return res.status(404).json({ erro: 'Dieta não encontrada' });
+      }
+      
+      // Verificar permissão (dono da dieta ou admin)
+      const usuarioLogado = await prisma.usuario.findUnique({
+        where: { id: decoded.usuarioId }
+      });
+      
+      if (dietaExistente.usuarioId !== decoded.usuarioId && usuarioLogado.funcao !== 'ADMIN') {
+        return res.status(403).json({ erro: 'Sem permissão para editar esta dieta' });
+      }
+      
+      const { titulo, plano } = req.body || {};
+      
+      // Preparar dados para atualização
+      const dadosAtualizacao = {};
+      
+      if (titulo) {
+        dadosAtualizacao.titulo = titulo.trim();
+      }
+      
+      if (plano !== undefined) {
+        dadosAtualizacao.plano = plano;
+      }
+      
+      console.log('🔄 Atualizando dieta ID:', dietaId);
+      console.log('📊 Dados para atualização:', dadosAtualizacao);
+      
+      const dietaAtualizada = await prisma.historicoDieta.update({
+        where: { id: dietaId },
+        data: dadosAtualizacao
+      });
+      
+      console.log('✅ Dieta atualizada com sucesso:', dietaAtualizada.id);
+      return res.status(200).json(dietaAtualizada);
+    }
+    
     // GET /api/notificacoes
     if (method === 'GET' && url?.includes('/notificacoes')) {
       const decoded = verificarToken();

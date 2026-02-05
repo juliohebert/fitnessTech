@@ -531,6 +531,39 @@ const atualizarTreino = async (token: string, treinoId: string, dadosTreino: any
   }
 };
 
+const atualizarDieta = async (token: string, dietaId: string, dadosDieta: any) => {
+  try {
+    console.log('🔄 ===== FUNÇÃO ATUALIZAR DIETA =====');
+    console.log('🔄 ID da dieta:', dietaId);
+    console.log('🔄 Dados para atualização:', dadosDieta);
+    
+    const bodyData = JSON.stringify(dadosDieta);
+    console.log('🔄 Body que será enviado:', bodyData);
+    
+    const response = await fetch(`${API_URL}/api/historico-dietas/${dietaId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: bodyData
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('❌ Erro na resposta da API:', error);
+      return null;
+    }
+    
+    const resultado = await response.json();
+    console.log('✅ Dieta atualizada com sucesso:', resultado);
+    return resultado;
+  } catch (error) {
+    console.error('❌ Erro ao atualizar dieta:', error);
+    return null;
+  }
+};
+
 const salvarDieta = async (token: string, dadosDieta: any) => {
   try {
     const response = await fetch('/api/historico-dietas', {
@@ -3033,9 +3066,9 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                               .filter(d => d.alunoId === selectedStudent?.id)
                               .slice(0, 3)
                               .map((dieta) => (
-                                 <div key={dieta.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                                 <div key={dieta.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 hover:border-zinc-700 transition-colors">
                                     <div className="flex justify-between items-start mb-4">
-                                       <div>
+                                       <div className="flex-1">
                                           <h4 className="font-black italic uppercase text-lg text-green-400">{dieta.titulo}</h4>
                                           <div className="flex items-center gap-4 mt-2">
                                              <p className="text-xs text-zinc-500 font-bold uppercase">📅 {dieta.data}</p>
@@ -3046,11 +3079,23 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                                              </span>
                                           </div>
                                        </div>
-                                       <div className="text-right">
-                                          <p className="text-[10px] text-zinc-600 uppercase font-bold">Objetivo Calórico</p>
-                                          <p className="text-xl font-black text-white">
-                                             {dieta.plano.objetivoCalorico || 'N/D'}
-                                          </p>
+                                       
+                                       <div className="flex items-center gap-4">
+                                          <div className="text-right">
+                                             <p className="text-[10px] text-zinc-600 uppercase font-bold">Objetivo Calórico</p>
+                                             <p className="text-xl font-black text-white">
+                                                {dieta.plano.objetivoCalorico || 'N/D'}
+                                             </p>
+                                          </div>
+                                          <button
+                                             onClick={() => abrirModalEdicaoDieta(dieta)}
+                                             className="bg-green-500 hover:bg-green-600 p-3 rounded-xl transition-colors"
+                                             title="Editar Dieta"
+                                          >
+                                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                             </svg>
+                                          </button>
                                        </div>
                                     </div>
                                  </div>
@@ -4648,6 +4693,20 @@ const AdminModule = ({ view, user, academia }: any) => {
       sabado: [],
       domingo: []
    });
+   
+   // Estados para edição de dieta
+   const [showEditDietaModal, setShowEditDietaModal] = useState(false);
+   const [selectedDietaEdit, setSelectedDietaEdit] = useState(null);
+   const [activeMealEdit, setActiveMealEdit] = useState('cafeDaManha');
+   const [editingDietaPlano, setEditingDietaPlano] = useState({
+      cafeDaManha: [],
+      lancheManha: [],
+      almoco: [],
+      lancheTarde: [],
+      jantar: [],
+      ceia: [],
+      objetivoCalorico: ''
+   });
    const [iaConfig, setIaConfig] = useState({
       objetivo: '',
       nivel: '',
@@ -5021,6 +5080,22 @@ const AdminModule = ({ view, user, academia }: any) => {
       }
    };
 
+   const abrirModalEdicaoTreino = (treino: any) => {
+      setSelectedTreinoEdit(treino);
+      // Carregar os dados do plano atual
+      setEditingPlano({
+         segunda: treino.plano.segunda || [],
+         terca: treino.plano.terca || [],
+         quarta: treino.plano.quarta || [],
+         quinta: treino.plano.quinta || [],
+         sexta: treino.plano.sexta || [],
+         sabado: treino.plano.sabado || [],
+         domingo: treino.plano.domingo || []
+      });
+      setActiveDayEdit('segunda');
+      setShowEditModal(true);
+   };
+
    const salvarEdicaoTreino = async () => {
       if (!selectedTreinoEdit) {
          alert('Nenhum treino selecionado para edição');
@@ -5034,19 +5109,8 @@ const AdminModule = ({ view, user, academia }: any) => {
       }
 
       try {
-         // Mesclar planos editados com planos originais
-         const planoFinal = {
-            segunda: editingPlano.segunda.length > 0 ? editingPlano.segunda : selectedTreinoEdit.plano.segunda || [],
-            terca: editingPlano.terca.length > 0 ? editingPlano.terca : selectedTreinoEdit.plano.terca || [],
-            quarta: editingPlano.quarta.length > 0 ? editingPlano.quarta : selectedTreinoEdit.plano.quarta || [],
-            quinta: editingPlano.quinta.length > 0 ? editingPlano.quinta : selectedTreinoEdit.plano.quinta || [],
-            sexta: editingPlano.sexta.length > 0 ? editingPlano.sexta : selectedTreinoEdit.plano.sexta || [],
-            sabado: editingPlano.sabado.length > 0 ? editingPlano.sabado : selectedTreinoEdit.plano.sabado || [],
-            domingo: editingPlano.domingo.length > 0 ? editingPlano.domingo : selectedTreinoEdit.plano.domingo || []
-         };
-
          const dadosAtualizacao = {
-            plano: planoFinal
+            plano: editingPlano
          };
 
          const resultado = await atualizarTreino(token, selectedTreinoEdit.id, dadosAtualizacao);
@@ -5055,7 +5119,7 @@ const AdminModule = ({ view, user, academia }: any) => {
             // Atualizar a lista local de treinos
             setHistoricoTreinos(prev => prev.map(treino => 
                treino.id === selectedTreinoEdit.id 
-                  ? { ...treino, plano: planoFinal }
+                  ? { ...treino, plano: editingPlano }
                   : treino
             ));
 
@@ -5079,6 +5143,72 @@ const AdminModule = ({ view, user, academia }: any) => {
       } catch (error) {
          console.error('Erro ao salvar edição do treino:', error);
          alert('Erro ao salvar alterações do treino');
+      }
+   };
+
+   const abrirModalEdicaoDieta = (dieta: any) => {
+      setSelectedDietaEdit(dieta);
+      // Carregar os dados do plano atual
+      setEditingDietaPlano({
+         cafeDaManha: dieta.plano.cafeDaManha || [],
+         lancheManha: dieta.plano.lancheManha || [],
+         almoco: dieta.plano.almoco || [],
+         lancheTarde: dieta.plano.lancheTarde || [],
+         jantar: dieta.plano.jantar || [],
+         ceia: dieta.plano.ceia || [],
+         objetivoCalorico: dieta.plano.objetivoCalorico || ''
+      });
+      setActiveMealEdit('cafeDaManha');
+      setShowEditDietaModal(true);
+   };
+
+   const salvarEdicaoDieta = async () => {
+      if (!selectedDietaEdit) {
+         alert('Nenhuma dieta selecionada para edição');
+         return;
+      }
+
+      const token = localStorage.getItem('fitness_token');
+      if (!token) {
+         alert('Token não encontrado');
+         return;
+      }
+
+      try {
+         const dadosAtualizacao = {
+            plano: editingDietaPlano
+         };
+
+         const resultado = await atualizarDieta(token, selectedDietaEdit.id, dadosAtualizacao);
+         
+         if (resultado) {
+            // Atualizar a lista local de dietas
+            setHistoricoDietas(prev => prev.map(dieta => 
+               dieta.id === selectedDietaEdit.id 
+                  ? { ...dieta, plano: editingDietaPlano }
+                  : dieta
+            ));
+
+            // Fechar modal
+            setShowEditDietaModal(false);
+            setSelectedDietaEdit(null);
+            setEditingDietaPlano({
+               cafeDaManha: [],
+               lancheManha: [],
+               almoco: [],
+               lancheTarde: [],
+               jantar: [],
+               ceia: [],
+               objetivoCalorico: ''
+            });
+
+            alert('Dieta atualizada com sucesso!');
+         } else {
+            alert('Erro ao salvar alterações da dieta');
+         }
+      } catch (error) {
+         console.error('Erro ao salvar edição da dieta:', error);
+         alert('Erro ao salvar alterações da dieta');
       }
    };
 
@@ -5780,10 +5910,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                                                    </p>
                                                 </div>
                                                 <button
-                                                   onClick={() => {
-                                                      setSelectedTreinoEdit(treino);
-                                                      setShowEditModal(true);
-                                                   }}
+                                                   onClick={() => abrirModalEdicaoTreino(treino)}
                                                    className="bg-blue-500 hover:bg-blue-600 p-3 rounded-xl transition-colors"
                                                    title="Editar Treino"
                                                 >
@@ -7214,21 +7341,13 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                         <h3 className="font-black uppercase text-xs text-zinc-500 mb-4">Dias da Semana</h3>
                         <div className="space-y-2">
                            {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map((dia) => {
-                              const exercicios = editingPlano[dia] || selectedTreinoEdit.plano[dia] || [];
+                              const exercicios = editingPlano[dia] || [];
                               const isActive = activeDayEdit === dia;
                               
                               return (
                                  <button
                                     key={dia}
-                                    onClick={() => {
-                                       setActiveDayEdit(dia);
-                                       if (!editingPlano[dia] || editingPlano[dia].length === 0) {
-                                          setEditingPlano(prev => ({
-                                             ...prev,
-                                             [dia]: selectedTreinoEdit.plano[dia] || []
-                                          }));
-                                       }
-                                    }}
+                                    onClick={() => setActiveDayEdit(dia)}
                                     className={`w-full text-left p-3 rounded-xl transition-colors ${
                                        isActive
                                           ? 'bg-lime-400 text-black font-black'
@@ -7282,7 +7401,7 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               </div>
 
                               <div className="space-y-4">
-                                 {(editingPlano[activeDayEdit] || selectedTreinoEdit.plano[activeDayEdit] || []).map((exercicio: any, index: number) => (
+                                 {(editingPlano[activeDayEdit] || []).map((exercicio: any, index: number) => (
                                     <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
                                        <div className="flex justify-between items-start mb-4">
                                           <h4 className="font-bold text-lg">Exercício {index + 1}</h4>
@@ -7467,6 +7586,314 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
                               salvarEdicaoTreino();
                            }}
                            className="flex-2 bg-gradient-to-r from-lime-400 to-lime-500 text-black py-4 px-8 rounded-xl font-black uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                        >
+                           <Save size={20} />
+                           Salvar Alterações
+                        </button>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Modal de Edição de Dieta */}
+         {showEditDietaModal && selectedDietaEdit && (
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+               <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-2 border-green-400/30 rounded-3xl max-w-7xl w-full h-[90vh] shadow-2xl shadow-green-400/20 flex flex-col">
+                  <div className="flex justify-between items-center p-6 border-b border-zinc-800">
+                     <div className="flex items-center gap-3">
+                        <div className="size-12 rounded-2xl bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center">
+                           <Edit3 className="text-black" size={24} />
+                        </div>
+                        <div>
+                           <h2 className="text-2xl font-black">Editar Dieta</h2>
+                           <p className="text-sm text-zinc-400">{selectedDietaEdit.titulo} - {selectedDietaEdit.data}</p>
+                        </div>
+                     </div>
+                     <button
+                        onClick={() => {
+                           setShowEditDietaModal(false);
+                           setSelectedDietaEdit(null);
+                           setEditingDietaPlano({
+                              cafeDaManha: [],
+                              lancheManha: [],
+                              almoco: [],
+                              lancheTarde: [],
+                              jantar: [],
+                              ceia: [],
+                              objetivoCalorico: ''
+                           });
+                        }}
+                        className="size-10 bg-zinc-800 rounded-xl flex items-center justify-center hover:bg-zinc-700 transition-colors"
+                     >
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="flex-1 overflow-hidden flex">
+                     {/* Sidebar - Refeições */}
+                     <div className="w-56 bg-zinc-950/50 border-r border-zinc-800 p-4">
+                        <h3 className="font-black uppercase text-xs text-zinc-500 mb-4">Refeições</h3>
+                        
+                        {/* Objetivo Calórico */}
+                        <div className="mb-6 p-3 bg-zinc-900 rounded-xl">
+                           <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Objetivo Calórico</label>
+                           <input
+                              type="text"
+                              value={editingDietaPlano.objetivoCalorico || ''}
+                              onChange={(e) => setEditingDietaPlano(prev => ({ ...prev, objetivoCalorico: e.target.value }))}
+                              className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm focus:outline-none focus:border-green-400 transition-colors"
+                              placeholder="2500 kcal"
+                           />
+                        </div>
+
+                        <div className="space-y-2">
+                           {[
+                              { id: 'cafeDaManha', label: 'Café da Manhã', emoji: '☕' },
+                              { id: 'lancheManha', label: 'Lanche Manhã', emoji: '🍎' },
+                              { id: 'almoco', label: 'Almoço', emoji: '🍽️' },
+                              { id: 'lancheTarde', label: 'Lanche Tarde', emoji: '🥪' },
+                              { id: 'jantar', label: 'Jantar', emoji: '🍲' },
+                              { id: 'ceia', label: 'Ceia', emoji: '🥛' }
+                           ].map((refeicao) => {
+                              const alimentos = editingDietaPlano[refeicao.id] || [];
+                              const isActive = activeMealEdit === refeicao.id;
+                              
+                              return (
+                                 <button
+                                    key={refeicao.id}
+                                    onClick={() => setActiveMealEdit(refeicao.id)}
+                                    className={`w-full text-left p-3 rounded-xl transition-colors ${
+                                       isActive
+                                          ? 'bg-green-400 text-black font-black'
+                                          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                    }`}
+                                 >
+                                    <div className="flex justify-between items-center">
+                                       <span className="text-sm font-bold flex items-center gap-2">
+                                          <span>{refeicao.emoji}</span>
+                                          {refeicao.label}
+                                       </span>
+                                       <span className={`text-xs font-black ${isActive ? 'text-black' : 'text-zinc-600'}`}>
+                                          {alimentos.length}
+                                       </span>
+                                    </div>
+                                 </button>
+                              );
+                           })}
+                        </div>
+                     </div>
+
+                     {/* Conteúdo Principal - Alimentos */}
+                     <div className="flex-1 overflow-auto p-6">
+                        {activeMealEdit && (
+                           <div>
+                              <div className="flex justify-between items-center mb-6">
+                                 <h3 className="text-xl font-black uppercase">
+                                    {activeMealEdit === 'cafeDaManha' ? '☕ Café da Manhã' :
+                                     activeMealEdit === 'lancheManha' ? '🍎 Lanche da Manhã' :
+                                     activeMealEdit === 'almoco' ? '🍽️ Almoço' :
+                                     activeMealEdit === 'lancheTarde' ? '🥪 Lanche da Tarde' :
+                                     activeMealEdit === 'jantar' ? '🍲 Jantar' : '🥛 Ceia'}
+                                 </h3>
+                                 <button
+                                    onClick={() => {
+                                       const novoAlimento = {
+                                          alimento: '',
+                                          quantidade: '',
+                                          calorias: '',
+                                          proteinas: '',
+                                          carboidratos: '',
+                                          gorduras: ''
+                                       };
+                                       setEditingDietaPlano(prev => ({
+                                          ...prev,
+                                          [activeMealEdit]: [...(prev[activeMealEdit] || []), novoAlimento]
+                                       }));
+                                    }}
+                                    className="bg-green-400 hover:bg-green-500 text-black px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
+                                 >
+                                    <Plus size={16} />
+                                    Adicionar Alimento
+                                 </button>
+                              </div>
+
+                              <div className="space-y-4">
+                                 {(editingDietaPlano[activeMealEdit] || []).map((alimento: any, index: number) => (
+                                    <div key={index} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+                                       <div className="flex justify-between items-start mb-4">
+                                          <h4 className="font-bold text-lg">Alimento {index + 1}</h4>
+                                          <button
+                                             onClick={() => {
+                                                const novosAlimentos = (editingDietaPlano[activeMealEdit] || []).filter((_, i) => i !== index);
+                                                setEditingDietaPlano(prev => ({
+                                                   ...prev,
+                                                   [activeMealEdit]: novosAlimentos
+                                                }));
+                                             }}
+                                             className="text-red-400 hover:text-red-300 p-1"
+                                          >
+                                             <Trash2 size={16} />
+                                          </button>
+                                       </div>
+
+                                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                          <div>
+                                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Nome do Alimento</label>
+                                             <input
+                                                type="text"
+                                                value={alimento.alimento || ''}
+                                                onChange={(e) => {
+                                                   const novosAlimentos = [...(editingDietaPlano[activeMealEdit] || [])];
+                                                   novosAlimentos[index] = { ...novosAlimentos[index], alimento: e.target.value };
+                                                   setEditingDietaPlano(prev => ({
+                                                      ...prev,
+                                                      [activeMealEdit]: novosAlimentos
+                                                   }));
+                                                }}
+                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-green-400 transition-colors"
+                                                placeholder="Ex: Peito de frango grelhado"
+                                             />
+                                          </div>
+
+                                          <div>
+                                             <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Quantidade</label>
+                                             <input
+                                                type="text"
+                                                value={alimento.quantidade || ''}
+                                                onChange={(e) => {
+                                                   const novosAlimentos = [...(editingDietaPlano[activeMealEdit] || [])];
+                                                   novosAlimentos[index] = { ...novosAlimentos[index], quantidade: e.target.value };
+                                                   setEditingDietaPlano(prev => ({
+                                                      ...prev,
+                                                      [activeMealEdit]: novosAlimentos
+                                                   }));
+                                                }}
+                                                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-green-400 transition-colors"
+                                                placeholder="Ex: 150g"
+                                             />
+                                          </div>
+
+                                          <div className="grid grid-cols-2 gap-3">
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Calorias</label>
+                                                <input
+                                                   type="text"
+                                                   value={alimento.calorias || ''}
+                                                   onChange={(e) => {
+                                                      const novosAlimentos = [...(editingDietaPlano[activeMealEdit] || [])];
+                                                      novosAlimentos[index] = { ...novosAlimentos[index], calorias: e.target.value };
+                                                      setEditingDietaPlano(prev => ({
+                                                         ...prev,
+                                                         [activeMealEdit]: novosAlimentos
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-green-400 transition-colors"
+                                                   placeholder="250"
+                                                />
+                                             </div>
+
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Proteínas (g)</label>
+                                                <input
+                                                   type="text"
+                                                   value={alimento.proteinas || ''}
+                                                   onChange={(e) => {
+                                                      const novosAlimentos = [...(editingDietaPlano[activeMealEdit] || [])];
+                                                      novosAlimentos[index] = { ...novosAlimentos[index], proteinas: e.target.value };
+                                                      setEditingDietaPlano(prev => ({
+                                                         ...prev,
+                                                         [activeMealEdit]: novosAlimentos
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-green-400 transition-colors"
+                                                   placeholder="30"
+                                                />
+                                             </div>
+                                          </div>
+
+                                          <div className="grid grid-cols-2 gap-3">
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Carboidratos (g)</label>
+                                                <input
+                                                   type="text"
+                                                   value={alimento.carboidratos || ''}
+                                                   onChange={(e) => {
+                                                      const novosAlimentos = [...(editingDietaPlano[activeMealEdit] || [])];
+                                                      novosAlimentos[index] = { ...novosAlimentos[index], carboidratos: e.target.value };
+                                                      setEditingDietaPlano(prev => ({
+                                                         ...prev,
+                                                         [activeMealEdit]: novosAlimentos
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-green-400 transition-colors"
+                                                   placeholder="0"
+                                                />
+                                             </div>
+
+                                             <div>
+                                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Gorduras (g)</label>
+                                                <input
+                                                   type="text"
+                                                   value={alimento.gorduras || ''}
+                                                   onChange={(e) => {
+                                                      const novosAlimentos = [...(editingDietaPlano[activeMealEdit] || [])];
+                                                      novosAlimentos[index] = { ...novosAlimentos[index], gorduras: e.target.value };
+                                                      setEditingDietaPlano(prev => ({
+                                                         ...prev,
+                                                         [activeMealEdit]: novosAlimentos
+                                                      }));
+                                                   }}
+                                                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 focus:outline-none focus:border-green-400 transition-colors"
+                                                   placeholder="5"
+                                                />
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 ))}
+
+                                 {(editingDietaPlano[activeMealEdit] || []).length === 0 && (
+                                    <div className="text-center py-12">
+                                       <div className="text-zinc-600 mb-4">
+                                          <Apple size={48} className="mx-auto mb-2" />
+                                          <p className="text-lg font-bold">Nenhum alimento nesta refeição</p>
+                                          <p className="text-sm">Clique em "Adicionar Alimento" para começar</p>
+                                       </div>
+                                    </div>
+                                 )}
+                              </div>
+                           </div>
+                        )}
+                     </div>
+                  </div>
+
+                  {/* Footer com botões de ação */}
+                  <div className="border-t border-zinc-800 p-6">
+                     <div className="flex gap-3">
+                        <button
+                           onClick={() => {
+                              setShowEditDietaModal(false);
+                              setSelectedDietaEdit(null);
+                              setEditingDietaPlano({
+                                 cafeDaManha: [],
+                                 lancheManha: [],
+                                 almoco: [],
+                                 lancheTarde: [],
+                                 jantar: [],
+                                 ceia: [],
+                                 objetivoCalorico: ''
+                              });
+                           }}
+                           className="flex-1 bg-zinc-800 text-white py-4 rounded-xl font-black uppercase hover:bg-zinc-700 transition-colors"
+                        >
+                           Cancelar
+                        </button>
+                        <button
+                           onClick={() => {
+                              salvarEdicaoDieta();
+                           }}
+                           className="flex-2 bg-gradient-to-r from-green-400 to-green-500 text-black py-4 px-8 rounded-xl font-black uppercase hover:opacity-90 transition-all flex items-center justify-center gap-2"
                         >
                            <Save size={20} />
                            Salvar Alterações
