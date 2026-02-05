@@ -5081,20 +5081,44 @@ const AdminModule = ({ view, user, academia }: any) => {
    };
 
    const abrirModalEdicaoTreino = (treino: any) => {
+      console.log('🎯 Abrindo modal de edição - Treino completo:', treino);
+      console.log('🎯 Plano do treino:', treino.plano);
+      console.log('🎯 Segunda-feira:', treino.plano?.segunda);
+      console.log('🎯 Tipo de plano:', typeof treino.plano);
+      console.log('🎯 Exercícios como JSON:', JSON.stringify(treino.plano, null, 2));
+      
       setSelectedTreinoEdit(treino);
-      // Carregar os dados do plano atual
-      setEditingPlano({
-         segunda: treino.plano.segunda || [],
-         terca: treino.plano.terca || [],
-         quarta: treino.plano.quarta || [],
-         quinta: treino.plano.quinta || [],
-         sexta: treino.plano.sexta || [],
-         sabado: treino.plano.sabado || [],
-         domingo: treino.plano.domingo || []
-      });
+      
+      // Verificar se plano existe e tem a estrutura correta
+      const planoAtual = treino.plano || treino.exercicios || {};
+      console.log('🎯 Plano a ser usado:', planoAtual);
+      
+      const planoFormatado = {
+         segunda: Array.isArray(planoAtual.segunda) ? planoAtual.segunda : [],
+         terca: Array.isArray(planoAtual.terca) ? planoAtual.terca : [],
+         quarta: Array.isArray(planoAtual.quarta) ? planoAtual.quarta : [],
+         quinta: Array.isArray(planoAtual.quinta) ? planoAtual.quinta : [],
+         sexta: Array.isArray(planoAtual.sexta) ? planoAtual.sexta : [],
+         sabado: Array.isArray(planoAtual.sabado) ? planoAtual.sabado : [],
+         domingo: Array.isArray(planoAtual.domingo) ? planoAtual.domingo : []
+      };
+      
+      console.log('🎯 Plano formatado:', planoFormatado);
+      console.log('🎯 Total de exercícios na segunda:', planoFormatado.segunda.length);
+      
+      setEditingPlano(planoFormatado);
       setActiveDayEdit('segunda');
       setShowEditModal(true);
    };
+
+   // Forçar atualização quando o modal abrir
+   useEffect(() => {
+      if (showEditModal && selectedTreinoEdit) {
+         console.log('🔄 Modal aberto - Estado atual do editingPlano:', editingPlano);
+         console.log('🔄 Dia ativo:', activeDayEdit);
+         console.log('🔄 Exercícios do dia ativo:', editingPlano[activeDayEdit]);
+      }
+   }, [showEditModal, activeDayEdit]);
 
    const salvarEdicaoTreino = async () => {
       if (!selectedTreinoEdit) {
