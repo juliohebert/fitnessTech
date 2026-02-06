@@ -823,6 +823,95 @@ export default async function handler(req, res) {
       return res.status(200).json(alunos);
     }
     
+    // ==================== INTEGRAÇÃO STRAVA ====================
+    
+    // GET /api/integracoes/strava/auth-url (DEVE VIR ANTES DO /api/integracoes GENÉRICO)
+    if (url?.includes('/integracoes/strava/auth-url') && method === 'GET') {
+      const decoded = verificarToken();
+      const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
+      const REDIRECT_URI = process.env.STRAVA_REDIRECT_URI || 'http://localhost:3000/strava-callback.html';
+      const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all,activity:read&state=${decoded.usuarioId}`;
+      return res.status(200).json({ authUrl });
+    }
+    
+    // POST /api/integracoes/strava/connect
+    if (url?.includes('/integracoes/strava/connect') && method === 'POST') {
+      const decoded = verificarToken();
+      const { code } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ erro: 'Código de autorização não fornecido' });
+      }
+      
+      const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID;
+      const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
+      
+      try {
+        const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            client_id: STRAVA_CLIENT_ID,
+            client_secret: STRAVA_CLIENT_SECRET,
+            code,
+            grant_type: 'authorization_code'
+          })
+        });
+        
+        if (!tokenResponse.ok) {
+          const error = await tokenResponse.json();
+          return res.status(400).json({ erro: 'Erro ao trocar código por token', detalhes: error });
+        }
+        
+        const tokenData = await tokenResponse.json();
+        const expiresAt = new Date(tokenData.expires_at * 1000);
+        
+        const integracao = await prisma.integracaoExterna.upsert({
+          where: {
+            usuarioId_plataforma: {
+              usuarioId: decoded.usuarioId,
+              plataforma: 'STRAVA'
+            }
+          },
+          update: {
+            accessToken: tokenData.access_token,
+            refreshToken: tokenData.refresh_token,
+            tokenExpira: expiresAt,
+            ativo: true,
+            ultimaSync: new Date()
+          },
+          create: {
+            usuarioId: decoded.usuarioId,
+            plataforma: 'STRAVA',
+            accessToken: tokenData.access_token,
+            refreshToken: tokenData.refresh_token,
+            tokenExpira: expiresAt,
+            ativo: true
+          }
+        });
+        
+        return res.status(200).json({
+          mensagem: 'Strava conectado com sucesso!',
+          atleta: {
+            id: tokenData.athlete.id,
+            nome: `${tokenData.athlete.firstname} ${tokenData.athlete.lastname}`
+          }
+        });
+      } catch (error) {
+        console.error('Erro Strava OAuth:', error);
+        return res.status(500).json({ erro: 'Erro ao conectar com Strava' });
+      }
+    }
+    
+    // GET /api/integracoes
+    if (url?.match(/^\/api\/integracoes$/) && method === 'GET') {
+      const decoded = verificarToken();
+      const integracoes = await prisma.integracaoExterna.findMany({
+        where: { usuarioId: decoded.usuarioId }
+      });
+      return res.status(200).json(integracoes);
+    }
+    
     // Rotas que retornam arrays/objetos vazios
     const rotasVazias = [
       '/treinos', '/videos-exercicio', '/progresso/fotos', '/progresso/medicoes',
