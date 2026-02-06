@@ -790,8 +790,11 @@ export const integracoesAPI = {
   },
 
   // Obter URL de autorização do Strava
-  stravaGetAuthUrl: async () => {
-    const response = await fetch(`${API_URL}/integracoes/strava/auth-url`, {
+  stravaGetAuthUrl: async (timestamp?: number) => {
+    const url = timestamp 
+      ? `${API_URL}/integracoes/strava/auth-url?timestamp=${timestamp}`
+      : `${API_URL}/integracoes/strava/auth-url`;
+    const response = await fetch(url, {
       headers: getHeaders(),
     });
     return handleResponse(response);

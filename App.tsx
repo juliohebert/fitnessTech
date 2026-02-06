@@ -2150,7 +2150,11 @@ const CardioView = () => {
       
       // Se não está conectado, iniciar OAuth
       console.log('Buscando URL de autorização...');
-      const response = await integracoesAPI.stravaGetAuthUrl();
+      
+      // Timestamp único para esta tentativa de auth
+      const authTimestamp = Date.now();
+      
+      const response = await integracoesAPI.stravaGetAuthUrl(authTimestamp);
       console.log('Resposta da API:', response);
       
       if (!response || !response.authUrl) {
@@ -2170,7 +2174,7 @@ const CardioView = () => {
       const top = window.screenY + (window.outerHeight - height) / 2;
       
       const popup = window.open(
-        authUrl + `&state=${authTimestamp}`,
+        authUrl,
         'Conectar Strava',
         `width=${width},height=${height},left=${left},top=${top}`
       );
