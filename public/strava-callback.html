@@ -110,6 +110,7 @@
         // Extrair código da URL
         const urlParams = new URLSearchParams(window.location.search);
         const code = urlParams.get('code');
+        const state = urlParams.get('state'); // timestamp único
         const error = urlParams.get('error');
         
         if (error) {
@@ -124,10 +125,14 @@
           return;
         }
         
-        // Enviar código para a janela pai
+        // Enviar código para a janela pai com timestamp
         if (window.opener) {
           window.opener.postMessage(
-            { type: 'strava-auth', code },
+            { 
+              type: 'strava-auth', 
+              code,
+              timestamp: state ? parseInt(state) : Date.now()
+            },
             window.location.origin
           );
           

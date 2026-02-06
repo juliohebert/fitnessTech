@@ -2160,6 +2160,9 @@ const CardioView = () => {
       const { authUrl } = response;
       console.log('URL de autorização:', authUrl);
       
+      // Timestamp único para esta tentativa de auth
+      const authTimestamp = Date.now();
+      
       // Abrir popup OAuth
       const width = 600;
       const height = 700;
@@ -2167,14 +2170,14 @@ const CardioView = () => {
       const top = window.screenY + (window.outerHeight - height) / 2;
       
       const popup = window.open(
-        authUrl,
+        authUrl + `&state=${authTimestamp}`,
         'Conectar Strava',
         `width=${width},height=${height},left=${left},top=${top}`
       );
 
       // Escutar mensagem do callback
       const messageHandler = async (event: MessageEvent) => {
-        if (event.data.type === 'strava-auth') {
+        if (event.data.type === 'strava-auth' && event.data.timestamp === authTimestamp) {
           window.removeEventListener('message', messageHandler);
           
           if (event.data.code) {
