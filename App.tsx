@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { 
   Dumbbell, LayoutDashboard, Apple, TrendingUp, Trophy,
   ArrowLeft, ArrowRight, Flame, DollarSign, Search, ShoppingCart, 
@@ -2405,6 +2407,34 @@ const CardioView = () => {
                   {atividade.origem !== 'MANUAL' && (
                     <div className="mt-2 text-xs text-blue-400">
                       Importado: {atividade.origem.replace('_', ' ')}
+                    </div>
+                  )}
+
+                  {/* Mapa GPS */}
+                  {atividade.rotaGPS && Array.isArray(atividade.rotaGPS) && atividade.rotaGPS.length > 0 && (
+                    <div className="mt-4 rounded-xl overflow-hidden border border-zinc-800">
+                      <MapContainer
+                        center={[atividade.rotaGPS[0].lat, atividade.rotaGPS[0].lng]}
+                        zoom={14}
+                        style={{ height: '200px', width: '100%' }}
+                        scrollWheelZoom={false}
+                      >
+                        <TileLayer
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        />
+                        <Polyline
+                          positions={atividade.rotaGPS.map((p: any) => [p.lat, p.lng])}
+                          color="#D9FF00"
+                          weight={4}
+                        />
+                        <Marker position={[atividade.rotaGPS[0].lat, atividade.rotaGPS[0].lng]}>
+                          <Popup>Início</Popup>
+                        </Marker>
+                        <Marker position={[atividade.rotaGPS[atividade.rotaGPS.length - 1].lat, atividade.rotaGPS[atividade.rotaGPS.length - 1].lng]}>
+                          <Popup>Fim</Popup>
+                        </Marker>
+                      </MapContainer>
                     </div>
                   )}
                 </div>

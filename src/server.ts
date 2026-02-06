@@ -3730,6 +3730,7 @@ app.get('/api/cardio/stats/resumo', autenticar, async (req: AuthRequest, res) =>
 
 // Gerar URL de autorização do Strava (DEVE VIR ANTES DO GET /api/integracoes)
 app.get('/api/integracoes/strava/auth-url', autenticar, async (req: AuthRequest, res) => {
+  console.log('🔥 CHAMOU /api/integracoes/strava/auth-url');
   try {
     const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
     const REDIRECT_URI = process.env.STRAVA_REDIRECT_URI || 'http://localhost:5173/strava-callback.html';
@@ -3738,15 +3739,17 @@ app.get('/api/integracoes/strava/auth-url', autenticar, async (req: AuthRequest,
     
     const authUrl = `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=activity:read_all,activity:read&state=${req.usuario?.id}`;
     
+    console.log('✅ Retornando authUrl:', authUrl);
     res.json({ authUrl });
   } catch (err) {
-    console.error('Erro ao gerar URL:', err);
+    console.error('❌ Erro ao gerar URL:', err);
     res.status(500).json({ erro: 'Erro ao gerar URL' });
   }
 });
 
 // Listar integrações do usuário
 app.get('/api/integracoes', autenticar, async (req: AuthRequest, res) => {
+  console.log('📋 CHAMOU /api/integracoes (lista geral)');
   try {
     const integracoes = await prisma.integracaoExterna.findMany({
       where: { usuarioId: req.usuario?.id },
@@ -3779,6 +3782,13 @@ app.post('/api/integracoes/strava/connect', autenticar, async (req: AuthRequest,
 
     const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID || 'YOUR_CLIENT_ID';
     const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
+    
+    console.log('🔐 Dados OAuth:', {
+      client_id: STRAVA_CLIENT_ID,
+      client_secret: STRAVA_CLIENT_SECRET?.substring(0, 8) + '...',
+      code: code?.substring(0, 20) + '...',
+      code_length: code?.length
+    });
     
     // Trocar code por access_token
     const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
