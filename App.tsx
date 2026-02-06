@@ -2289,8 +2289,37 @@ const CardioView = () => {
 
   const sincronizarAppleHealth = async () => {
     try {
-      // TODO: Implementar integração real com HealthKit
-      alert('🍎 Apple Health: Em breve! Use o HealthKit para importar workouts.');
+      const explicacao = `🍎 INTEGRAÇÃO APPLE HEALTH
+
+⚠️ LIMITAÇÃO: Apple não permite acesso via Web
+Navegadores não podem acessar o HealthKit diretamente.
+
+✅ ALTERNATIVAS DISPONÍVEIS:
+
+1️⃣ EXPORTAR DO APPLE HEALTH (Manual):
+   • Abra Apple Health no iPhone
+   • Toque no perfil (canto superior direito)
+   • "Exportar Todos os Dados de Saúde"
+   • Aguarde arquivo .zip
+   • (EM BREVE: Upload aqui no app)
+
+2️⃣ USAR STRAVA (Automático):
+   • Configure Strava no Apple Watch
+   • Seus treinos sincronizam automaticamente
+   • Use "Conectar Strava" aqui no Cardio
+   • Importa tudo automaticamente!
+
+3️⃣ MANUAL (Já disponível):
+   • Use "Registrar Manual" no Cardio
+   • Copie dados do Apple Health
+   • Cole aqui manualmente
+
+🔜 EM DESENVOLVIMENTO:
+App iOS nativo com integração HealthKit real.
+
+Recomendamos usar STRAVA para sincronização automática! 🚴`;
+
+      alert(explicacao);
     } catch (error) {
       console.error('Erro ao sincronizar Apple Health:', error);
     }
