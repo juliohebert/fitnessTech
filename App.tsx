@@ -3993,7 +3993,6 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
   const [tempBiometrics, setTempBiometrics] = useState({...biometrics});
   const [notif, setNotif] = useState(true);
   const [isPairing, setIsPairing] = useState(false);
-  const [showDeviceList, setShowDeviceList] = useState(false);
 
   useEffect(() => { if (!isEditing) setTempBiometrics({...biometrics}); }, [biometrics, isEditing]);
   
@@ -4020,12 +4019,6 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
   
   const handleCancel = () => { setTempBiometrics({...biometrics}); setIsEditing(false); };
 
-  const mockDevices = [
-    { id: 1, name: 'Apple Watch Series 8', os: '8.8.1 (19U512)', signal: 'Forte', type: 'apple' },
-    { id: 2, name: 'Apple Watch SE', os: '8.7', signal: 'Fraco', type: 'apple' },
-    { id: 3, name: 'Mi Band 7', os: 'N/A', signal: 'Médio', type: 'other' }
-  ];
-
   const handleDevicePairing = async () => {
     if (watchConnected) {
       toggleWatch(false);
@@ -4033,34 +4026,40 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
         await window.bluetoothHRM.disconnect();
       }
     } else {
+      // Verificar se Web Bluetooth está disponível
+      if (!navigator.bluetooth) {
+        alert('⚠️ Web Bluetooth não está disponível neste navegador.\n\nPor favor, use:\n• Chrome (Desktop ou Android)\n• Microsoft Edge\n• Opera\n\nSafari/iOS ainda não suporta Web Bluetooth.');
+        return;
+      }
+
       setIsPairing(true);
       
       try {
-        // Tenta conectar via Web Bluetooth API
-        if (navigator.bluetooth && window.bluetoothHRM) {
-          const device = await window.bluetoothHRM.requestDevice();
-          if (device) {
-            await window.bluetoothHRM.connect();
+        console.log('🔍 Solicitando dispositivo Bluetooth...');
+        const device = await window.bluetoothHRM.requestDevice();
+        
+        if (device) {
+          console.log('✅ Dispositivo selecionado:', device.name);
+          const connected = await window.bluetoothHRM.connect();
+          
+          if (connected) {
             toggleWatch(true, device.name || 'Heart Rate Monitor');
-            setIsPairing(false);
-            return;
+            alert(`✅ ${device.name || 'Dispositivo'} conectado com sucesso!`);
+          } else {
+            alert('❌ Falha ao conectar. Tente novamente.');
           }
         }
       } catch (err: any) {
-        console.log('Bluetooth não selecionado ou não disponível:', err.message);
-      }
-      
-      // Fallback: mostrar lista mock de dispositivos
-      setTimeout(() => {
+        if (err.name === 'NotFoundError') {
+          console.log('ℹ️ Nenhum dispositivo selecionado');
+        } else {
+          console.error('❌ Erro ao conectar:', err);
+          alert(`❌ Erro: ${err.message}\n\nDicas:\n• Certifique-se que o dispositivo está ligado\n• Ative o sensor de FC (abra app de treino)\n• Verifique se Bluetooth está habilitado`);
+        }
+      } finally {
         setIsPairing(false);
-        setShowDeviceList(true);
-      }, 1000);
+      }
     }
-  };
-
-  const selectDevice = (device: any) => {
-    setShowDeviceList(false);
-    toggleWatch(true, device.name + ' - ' + device.os);
   };
 
   return (
@@ -4098,35 +4097,6 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
             </div>
          </div>
       </section>
-
-      {/* DEVICE SELECTION MODAL */}
-      {showDeviceList && (
-        <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6" onClick={() => setShowDeviceList(false)}>
-           <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-[3rem] p-8 animate-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-6">
-                 <h4 className="text-xl font-black italic uppercase flex items-center gap-3"><Bluetooth size={20} className="text-blue-500"/> Dispositivos</h4>
-                 <button onClick={() => setShowDeviceList(false)}><X size={20} className="text-zinc-500 hover:text-white"/></button>
-              </div>
-              <p className="text-xs text-zinc-500 font-bold mb-6 uppercase tracking-widest">Selecione seu dispositivo para parear:</p>
-              <div className="space-y-3">
-                 {mockDevices.map((device) => (
-                    <button key={device.id} onClick={() => selectDevice(device)} className="w-full bg-zinc-950 border border-zinc-800 hover:border-lime-400 p-4 rounded-2xl flex items-center justify-between group transition-all">
-                       <div className="text-left">
-                          <p className="text-sm font-bold text-white group-hover:text-lime-400">{device.name}</p>
-                          <p className="text-[10px] font-black text-zinc-500 uppercase">{device.os}</p>
-                       </div>
-                       <div className="flex items-center gap-2">
-                          <Signal size={14} className={device.signal === 'Forte' ? 'text-green-500' : 'text-orange-500'} />
-                       </div>
-                    </button>
-                 ))}
-              </div>
-              <div className="mt-6 pt-6 border-t border-zinc-800 text-center">
-                 <p className="text-[9px] text-zinc-600 animate-pulse">Buscando novos dispositivos...</p>
-              </div>
-           </div>
-        </div>
-      )}
     </div>
   );
 };
