@@ -2142,7 +2142,7 @@ const CardioView = () => {
         if (!confirm('Strava já conectado. Deseja sincronizar atividades?')) return;
         
         const resultado = await integracoesAPI.stravaSync();
-        alert(`✅ ${resultado.importadas} novas atividades importadas!\n${resultado.atualizadas} atividades atualizadas.`);
+        alert(`✅ ${resultado.importadas} novas atividades importadas!\nTotal de atividades encontradas: ${resultado.total}`);
         await carregarAtividades();
         await carregarStats();
         return;
