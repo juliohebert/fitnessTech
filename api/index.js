@@ -903,6 +903,134 @@ export default async function handler(req, res) {
       }
     }
     
+    // POST /api/integracoes/strava/sync
+    if (url?.includes('/integracoes/strava/sync') && method === 'POST') {
+      const decoded = verificarToken();
+      
+      try {
+        const integracao = await prisma.integracaoExterna.findUnique({
+          where: {
+            usuarioId_plataforma: {
+              usuarioId: decoded.usuarioId,
+              plataforma: 'STRAVA'
+            }
+          }
+        });
+        
+        if (!integracao) {
+          return res.status(404).json({ erro: 'Strava não conectado' });
+        }
+        
+        // Buscar atividades dos últimos 30 dias
+        const dataInicio = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
+        
+        const atividadesResponse = await fetch(`https://www.strava.com/api/v3/athlete/activities?after=${dataInicio}&per_page=50`, {
+          headers: {
+            'Authorization': `Bearer ${integracao.accessToken}`
+          }
+        });
+        
+        if (!atividadesResponse.ok) {
+          return res.status(400).json({ erro: 'Erro ao buscar atividades do Strava' });
+        }
+        
+        const atividades = await atividadesResponse.json();
+        let importadas = 0;
+        
+        // Função auxiliar para mapear tipos
+        const mapearTipo = (tipo) => {
+          const mapa = {
+            'Run': 'CORRIDA', 'Ride': 'CICLISMO', 'Swim': 'NATACAO',
+            'Walk': 'CAMINHADA', 'Hike': 'CAMINHADA', 'Rowing': 'REMO',
+            'Kayaking': 'REMO', 'Elliptical': 'ELIPTICO'
+          };
+          return mapa[tipo] || 'CORRIDA';
+        };
+        
+        for (const atv of atividades) {
+          const jaExiste = await prisma.atividadeCardio.findFirst({
+            where: { stravaId: atv.id.toString() }
+          });
+          
+          if (!jaExiste) {
+            await prisma.atividadeCardio.create({
+              data: {
+                usuarioId: decoded.usuarioId,
+                tipo: mapearTipo(atv.type),
+                origem: 'STRAVA',
+                duracao: atv.moving_time,
+                distancia: atv.distance / 1000,
+                calorias: atv.calories ? Math.round(atv.calories) : null,
+                dataInicio: new Date(atv.start_date),
+                dataFim: atv.start_date ? new Date(new Date(atv.start_date).getTime() + atv.elapsed_time * 1000) : null,
+                velocidade: atv.average_speed ? atv.average_speed * 3.6 : null,
+                fcMedia: atv.average_heartrate ? Math.round(atv.average_heartrate) : null,
+                fcMaxima: atv.max_heartrate ? Math.round(atv.max_heartrate) : null,
+                elevacaoGanha: atv.total_elevation_gain || null,
+                stravaId: atv.id.toString(),
+                observacoes: atv.name
+              }
+            });
+            importadas++;
+          }
+        }
+        
+        await prisma.integracaoExterna.update({
+          where: { id: integracao.id },
+          data: { ultimaSync: new Date() }
+        });
+        
+        return res.status(200).json({
+          mensagem: `${importadas} atividades importadas!`,
+          importadas,
+          total: atividades.length
+        });
+      } catch (error) {
+        console.error('Erro ao sincronizar Strava:', error);
+        return res.status(500).json({ erro: 'Erro ao sincronizar' });
+      }
+    }
+    
+    // DELETE /api/integracoes/strava/disconnect
+    if (url?.includes('/integracoes/strava/disconnect') && method === 'DELETE') {
+      const decoded = verificarToken();
+      
+      try {
+        const integracao = await prisma.integracaoExterna.findUnique({
+          where: {
+            usuarioId_plataforma: {
+              usuarioId: decoded.usuarioId,
+              plataforma: 'STRAVA'
+            }
+          }
+        });
+        
+        if (!integracao) {
+          return res.status(404).json({ erro: 'Strava não conectado' });
+        }
+        
+        // Revogar acesso no Strava
+        try {
+          await fetch('https://www.strava.com/oauth/deauthorize', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${integracao.accessToken}` }
+          });
+        } catch (err) {
+          console.log('Erro ao revogar token Strava (pode já estar revogado)');
+        }
+        
+        // Remover integração
+        await prisma.integracaoExterna.delete({
+          where: { id: integracao.id }
+        });
+        
+        return res.status(200).json({ mensagem: 'Strava desconectado com sucesso' });
+      } catch (error) {
+        console.error('Erro ao desconectar Strava:', error);
+        return res.status(500).json({ erro: 'Erro ao desconectar' });
+      }
+    }
+    
     // GET /api/integracoes
     if (url?.match(/^\/api\/integracoes$/) && method === 'GET') {
       const decoded = verificarToken();
