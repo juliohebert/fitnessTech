@@ -839,14 +839,21 @@ export default async function handler(req, res) {
       const decoded = verificarToken();
       const { code } = req.body;
       
+      console.log('📥 Strava Connect - Código recebido:', code ? 'SIM' : 'NÃO');
+      
       if (!code) {
+        console.error('❌ Código não fornecido');
         return res.status(400).json({ erro: 'Código de autorização não fornecido' });
       }
       
       const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID;
       const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
       
+      console.log('🔑 Client ID:', STRAVA_CLIENT_ID);
+      console.log('🔑 Client Secret:', STRAVA_CLIENT_SECRET ? 'Configurado' : 'FALTANDO');
+      
       try {
+        console.log('🚀 Trocando código por token...');
         const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -858,8 +865,11 @@ export default async function handler(req, res) {
           })
         });
         
+        console.log('📡 Strava API Status:', tokenResponse.status);
+        
         if (!tokenResponse.ok) {
           const error = await tokenResponse.json();
+          console.error('❌ Erro da API Strava:', error);
           return res.status(400).json({ erro: 'Erro ao trocar código por token', detalhes: error });
         }
         
