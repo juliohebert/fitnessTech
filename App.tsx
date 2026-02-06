@@ -23,6 +23,130 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 // URL base da API
 const API_URL = import.meta.env.PROD ? '' : 'http://localhost:3002';
 
+// ===== BLUETOOTH HEART RATE MONITOR =====
+class BluetoothHeartRateMonitor {
+  private device: BluetoothDevice | null = null;
+  private server: BluetoothRemoteGATTServer | null = null;
+  private characteristic: BluetoothRemoteGATTCharacteristic | null = null;
+  private listeners: ((rate: number) => void)[] = [];
+
+  // UUIDs padrão do Bluetooth para Heart Rate Service
+  private readonly HEART_RATE_SERVICE = 0x180D;
+  private readonly HEART_RATE_MEASUREMENT = 0x2A37;
+
+  async requestDevice(): Promise<BluetoothDevice | null> {
+    try {
+      if (!navigator.bluetooth) {
+        console.warn('Web Bluetooth API não disponível neste navegador');
+        return null;
+      }
+
+      this.device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: [this.HEART_RATE_SERVICE] }],
+        optionalServices: [this.HEART_RATE_SERVICE]
+      });
+
+      console.log('✅ Dispositivo selecionado:', this.device.name);
+      return this.device;
+    } catch (err: any) {
+      console.error('❌ Erro ao selecionar dispositivo:', err.message);
+      return null;
+    }
+  }
+
+  async connect(): Promise<boolean> {
+    try {
+      if (!this.device) {
+        console.error('Nenhum dispositivo selecionado');
+        return false;
+      }
+
+      console.log('🔄 Conectando ao servidor GATT...');
+      this.server = await this.device.gatt!.connect();
+      console.log('✅ Conectado ao servidor GATT');
+
+      console.log('🔄 Obtendo serviço de Heart Rate...');
+      const service = await this.server.getPrimaryService(this.HEART_RATE_SERVICE);
+      console.log('✅ Serviço de Heart Rate obtido');
+
+      console.log('🔄 Obtendo característica de Heart Rate Measurement...');
+      this.characteristic = await service.getCharacteristic(this.HEART_RATE_MEASUREMENT);
+      console.log('✅ Característica obtida');
+
+      // Iniciar notificações
+      await this.characteristic.startNotifications();
+      this.characteristic.addEventListener('characteristicvaluechanged', this.handleHeartRateChanged.bind(this));
+      console.log('✅ Monitoramento de batimento cardíaco iniciado!');
+
+      return true;
+    } catch (err: any) {
+      console.error('❌ Erro ao conectar:', err.message);
+      return false;
+    }
+  }
+
+  private handleHeartRateChanged(event: Event) {
+    const target = event.target as BluetoothRemoteGATTCharacteristic;
+    const value = target.value!;
+    
+    // Parse Heart Rate Measurement
+    // Byte 0: Flags
+    // Byte 1: Heart Rate Value (se flags & 0x01 === 0, senão bytes 1-2)
+    const flags = value.getUint8(0);
+    const is16Bit = flags & 0x01;
+    
+    let heartRate: number;
+    if (is16Bit) {
+      heartRate = value.getUint16(1, true); // little-endian
+    } else {
+      heartRate = value.getUint8(1);
+    }
+
+    console.log('💓 BPM:', heartRate);
+    
+    // Notificar todos os listeners
+    this.listeners.forEach(listener => listener(heartRate));
+  }
+
+  onHeartRateChange(callback: (rate: number) => void) {
+    this.listeners.push(callback);
+  }
+
+  offHeartRateChange(callback: (rate: number) => void) {
+    this.listeners = this.listeners.filter(l => l !== callback);
+  }
+
+  async disconnect() {
+    try {
+      if (this.characteristic) {
+        await this.characteristic.stopNotifications();
+        this.characteristic.removeEventListener('characteristicvaluechanged', this.handleHeartRateChanged.bind(this));
+      }
+      if (this.server) {
+        this.server.disconnect();
+      }
+      this.device = null;
+      this.server = null;
+      this.characteristic = null;
+      this.listeners = [];
+      console.log('✅ Desconectado do sensor de batimento cardíaco');
+    } catch (err: any) {
+      console.error('❌ Erro ao desconectar:', err.message);
+    }
+  }
+}
+
+// Instância global do monitor Bluetooth
+declare global {
+  interface Window {
+    bluetoothHRM?: BluetoothHeartRateMonitor;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.bluetoothHRM = new BluetoothHeartRateMonitor();
+}
+
 // --- AI CONFIG ---
 // Initialize Gemini AI. Assumes API_KEY is available in import.meta.env
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_API_KEY || '');
@@ -1460,9 +1584,10 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
   const [showPostureModal, setShowPostureModal] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Watch Telemetry Simulation
-  const [bpm, setBpm] = useState(110);
+  // Heart Rate Monitoring - Real & Simulated
+  const [bpm, setBpm] = useState(85);
   const [cal, setCal] = useState(0);
+  const [isRealSensor, setIsRealSensor] = useState(false);
 
   useEffect(() => {
     let interval: any;
@@ -1471,15 +1596,58 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
     return () => clearInterval(interval);
   }, [restingExerciseId, restSeconds]);
 
-  // Simulate Heart Rate if connected
+  // Real or Simulated Heart Rate
   useEffect(() => {
-    if (!watchConnected) return;
-    const interval = setInterval(() => {
-      setBpm(prev => Math.min(185, Math.max(90, prev + Math.floor(Math.random() * 10) - 4)));
-      setCal(prev => prev + 0.2);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [watchConnected]);
+    if (!watchConnected) {
+      setIsRealSensor(false);
+      return;
+    }
+
+    // Tenta conectar ao sensor real via Bluetooth
+    const connectRealSensor = async () => {
+      try {
+        const hrMonitor = await window.bluetoothHRM?.connect();
+        if (hrMonitor) {
+          setIsRealSensor(true);
+          console.log('✅ Sensor real conectado!');
+        }
+      } catch (err) {
+        console.log('⚠️ Sensor real não disponível, usando simulação');
+        setIsRealSensor(false);
+      }
+    };
+
+    connectRealSensor();
+
+    // Simulação caso sensor real não esteja disponível
+    if (!isRealSensor) {
+      const interval = setInterval(() => {
+        setBpm(prev => Math.min(185, Math.max(90, prev + Math.floor(Math.random() * 10) - 4)));
+        setCal(prev => prev + 0.2);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+
+    return () => {
+      window.bluetoothHRM?.disconnect();
+    };
+  }, [watchConnected, isRealSensor]);
+
+  // Receber dados do sensor real
+  useEffect(() => {
+    if (!isRealSensor || !watchConnected) return;
+
+    const handleHeartRate = (rate: number) => {
+      setBpm(rate);
+      setCal(prev => prev + 0.15); // Calcula calorias baseado na FC real
+    };
+
+    window.bluetoothHRM?.onHeartRateChange(handleHeartRate);
+
+    return () => {
+      window.bluetoothHRM?.offHeartRateChange(handleHeartRate);
+    };
+  }, [isRealSensor, watchConnected]);
 
   const totalPossibleSets: number = exercises.reduce((acc: number, ex: any) => {
     const sets = typeof ex.s === 'string' ? parseInt(ex.s) : Number(ex.s);
@@ -1563,8 +1731,16 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
                <span className="text-2xl font-black italic text-lime-400 tracking-tighter">{formatTime(workoutTime)}</span>
             </div>
             {watchConnected ? (
-               <div className="flex items-center gap-1.5 text-red-500 font-black italic text-xs animate-in slide-in-from-top-2">
-                  <Heart size={10} fill="currentColor" className="animate-pulse"/> {bpm} BPM
+               <div className="flex flex-col items-center gap-0.5">
+                 <div className="flex items-center gap-1.5 text-red-500 font-black italic text-xs animate-in slide-in-from-top-2">
+                    <Heart size={10} fill="currentColor" className="animate-pulse"/> {bpm} BPM
+                 </div>
+                 {isRealSensor && (
+                   <div className="flex items-center gap-1 px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded-full">
+                     <div className="size-1.5 bg-green-500 rounded-full animate-pulse" />
+                     <span className="text-[7px] font-black uppercase text-green-400 tracking-wider">SENSOR REAL</span>
+                   </div>
+                 )}
                </div>
             ) : (
                <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Treinando Agora</p>
@@ -3850,16 +4026,35 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
     { id: 3, name: 'Mi Band 7', os: 'N/A', signal: 'Médio', type: 'other' }
   ];
 
-  const handleDevicePairing = () => {
+  const handleDevicePairing = async () => {
     if (watchConnected) {
       toggleWatch(false);
+      if (window.bluetoothHRM) {
+        await window.bluetoothHRM.disconnect();
+      }
     } else {
       setIsPairing(true);
-      // Simulate scanning delay
+      
+      try {
+        // Tenta conectar via Web Bluetooth API
+        if (navigator.bluetooth && window.bluetoothHRM) {
+          const device = await window.bluetoothHRM.requestDevice();
+          if (device) {
+            await window.bluetoothHRM.connect();
+            toggleWatch(true, device.name || 'Heart Rate Monitor');
+            setIsPairing(false);
+            return;
+          }
+        }
+      } catch (err: any) {
+        console.log('Bluetooth não selecionado ou não disponível:', err.message);
+      }
+      
+      // Fallback: mostrar lista mock de dispositivos
       setTimeout(() => {
         setIsPairing(false);
         setShowDeviceList(true);
-      }, 2000);
+      }, 1000);
     }
   };
 
