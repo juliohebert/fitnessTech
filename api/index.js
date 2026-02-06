@@ -848,9 +848,11 @@ export default async function handler(req, res) {
       
       const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID;
       const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
+      const STRAVA_REDIRECT_URI = process.env.STRAVA_REDIRECT_URI;
       
       console.log('🔑 Client ID:', STRAVA_CLIENT_ID);
       console.log('🔑 Client Secret:', STRAVA_CLIENT_SECRET ? 'Configurado' : 'FALTANDO');
+      console.log('🔗 Redirect URI:', STRAVA_REDIRECT_URI);
       
       try {
         console.log('🚀 Trocando código por token...');
@@ -861,7 +863,8 @@ export default async function handler(req, res) {
             client_id: STRAVA_CLIENT_ID,
             client_secret: STRAVA_CLIENT_SECRET,
             code,
-            grant_type: 'authorization_code'
+            grant_type: 'authorization_code',
+            redirect_uri: STRAVA_REDIRECT_URI
           })
         });
         
