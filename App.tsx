@@ -4026,9 +4026,27 @@ const ProfileView = ({ user, profileImage, onImageChange, biometrics, onBiometri
         await window.bluetoothHRM.disconnect();
       }
     } else {
+      // Diagnóstico completo
+      console.log('🔍 Diagnóstico Web Bluetooth:');
+      console.log('- navigator.bluetooth:', navigator.bluetooth);
+      console.log('- window.isSecureContext:', window.isSecureContext);
+      console.log('- window.location.protocol:', window.location.protocol);
+      console.log('- User Agent:', navigator.userAgent);
+
+      // Verificar contexto seguro (HTTPS ou localhost)
+      if (!window.isSecureContext) {
+        alert('⚠️ Web Bluetooth requer HTTPS!\n\nO site precisa estar em:\n• https:// (produção)\n• localhost (desenvolvimento)\n\nAtualmente em: ' + window.location.protocol);
+        return;
+      }
+
       // Verificar se Web Bluetooth está disponível
       if (!navigator.bluetooth) {
-        alert('⚠️ Web Bluetooth não está disponível neste navegador.\n\nPor favor, use:\n• Chrome (Desktop ou Android)\n• Microsoft Edge\n• Opera\n\nSafari/iOS ainda não suporta Web Bluetooth.');
+        const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+        const errorMsg = isChrome 
+          ? '⚠️ Web Bluetooth não disponível!\n\nTente:\n1. Abrir chrome://flags/#enable-web-bluetooth\n2. Ativar "Experimental Web Platform features"\n3. Reiniciar o Chrome\n\nOu use Chrome Canary/Beta que tem suporte nativo.'
+          : '⚠️ Web Bluetooth não está disponível.\n\nPor favor, use:\n• Chrome (Desktop ou Android)\n• Microsoft Edge\n• Opera';
+        
+        alert(errorMsg);
         return;
       }
 
