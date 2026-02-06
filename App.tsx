@@ -2164,9 +2164,6 @@ const CardioView = () => {
       const { authUrl } = response;
       console.log('URL de autorização:', authUrl);
       
-      // Timestamp único para esta tentativa de auth
-      const authTimestamp = Date.now();
-      
       // Abrir popup OAuth
       const width = 600;
       const height = 700;
