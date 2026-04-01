@@ -1,4 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import GerarTreinoIA from './src/pages/GerarTreinoIA';
+// Modal para Gerar Treino IA
+const ModalGerarTreinoIA = ({ show, onClose }: { show: boolean, onClose: () => void }) => {
+   if (!show) return null;
+   return (
+      <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+         <div className="bg-zinc-900 border border-lime-400 rounded-3xl p-0 max-w-2xl w-full relative shadow-2xl animate-in zoom-in duration-300">
+            <button onClick={onClose} className="absolute top-6 right-6 bg-zinc-900 hover:bg-zinc-800 text-white p-3 rounded-full z-10 backdrop-blur-sm transition-all">
+               <X size={28} />
+            </button>
+            <div className="p-8">
+               <GerarTreinoIA />
+            </div>
+         </div>
+      </div>
+   );
+};
 import { MapContainer, TileLayer, Polyline, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
@@ -12232,6 +12249,8 @@ Crie refeições balanceadas (café, lanche, almoço, lanche, jantar, ceia) para
 };
 
 const AppContent: React.FC = () => {
+   // Estado para modal IA
+   const [showIAModal, setShowIAModal] = useState(false);
   const { user, academia, logout } = useAuth();
   const [activeView, setActiveView] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -12392,8 +12411,8 @@ const AppContent: React.FC = () => {
     return <LoginForm setActiveView={setActiveView} />;
   }
 
-  return (
-    <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans overflow-x-hidden">
+   return (
+      <div className="flex min-h-screen bg-zinc-950 text-zinc-100 font-sans overflow-x-hidden">
       {/* Header Mobile */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-zinc-900 px-4 py-3 flex items-center justify-between">
         <button 
@@ -12508,37 +12527,50 @@ const AppContent: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex-1 px-4 py-4 md:p-6 lg:p-12 lg:px-20 max-w-8xl mx-auto w-full pt-20 md:pt-6 pb-20 md:pb-32">
-        {user.role === 'ALUNO' && (
-          <StudentModule 
-            user={user}
-            view={activeView} setView={setActiveView} products={products} 
-            addToCart={(p:any)=>{
-              const existingIndex = cart.findIndex(item => item.id === p.id);
-              if (existingIndex >= 0) {
-                // Produto já existe - incrementa quantidade
-                const updatedCart = [...cart];
-                updatedCart[existingIndex].quantity += 1;
-                setCart(updatedCart);
-              } else {
-                // Produto novo - adiciona com quantidade 1
-                setCart([...cart, {...p, quantity: 1}]);
-              }
-            }}
-            cartCount={cart.length} setIsCartOpen={setIsCartOpen} 
-            profileImage={profileImage} onImageChange={setProfileImage} 
-            biometrics={biometrics} onBiometricsChange={setBiometrics} 
-            dietPlans={dietPlans} setDietPlans={setDietPlans}
-            watchConnected={watchConnected} toggleWatch={handleToggleWatch}
-            deviceName={connectedDeviceName}
-            activeSession={activeSession}
-            setActiveSession={setActiveSession}
-            activeSessionTime={activeSessionTime}
-            sessionFinished={sessionFinished}
-            setSessionFinished={setSessionFinished}
-            setActiveSessionTime={setActiveSessionTime}
-          />
-        )}
+         <main className="flex-1 px-4 py-4 md:p-6 lg:p-12 lg:px-20 max-w-8xl mx-auto w-full pt-20 md:pt-6 pb-20 md:pb-32">
+            {/* Botão flutuante para abrir modal IA, visível apenas na área de Treinos */}
+            {activeView === 'workouts' && (
+               <button
+                  onClick={() => setShowIAModal(true)}
+                  className="fixed bottom-8 right-8 z-[120] bg-lime-400 text-black px-6 py-4 rounded-2xl font-black uppercase text-xs flex items-center gap-2 shadow-xl hover:bg-lime-300 transition-all"
+               >
+                  <Sparkles size={18} /> Gerar Treino IA
+               </button>
+            )}
+
+            {/* Modal IA */}
+            <ModalGerarTreinoIA show={showIAModal} onClose={() => setShowIAModal(false)} />
+
+            {user.role === 'ALUNO' && (
+               <StudentModule 
+                  user={user}
+                  view={activeView} setView={setActiveView} products={products} 
+                  addToCart={(p:any)=>{
+                     const existingIndex = cart.findIndex(item => item.id === p.id);
+                     if (existingIndex >= 0) {
+                        // Produto já existe - incrementa quantidade
+                        const updatedCart = [...cart];
+                        updatedCart[existingIndex].quantity += 1;
+                        setCart(updatedCart);
+                     } else {
+                        // Produto novo - adiciona com quantidade 1
+                        setCart([...cart, {...p, quantity: 1}]);
+                     }
+                  }}
+                  cartCount={cart.length} setIsCartOpen={setIsCartOpen} 
+                  profileImage={profileImage} onImageChange={setProfileImage} 
+                  biometrics={biometrics} onBiometricsChange={setBiometrics} 
+                  dietPlans={dietPlans} setDietPlans={setDietPlans}
+                  watchConnected={watchConnected} toggleWatch={handleToggleWatch}
+                  deviceName={connectedDeviceName}
+                  activeSession={activeSession}
+                  setActiveSession={setActiveSession}
+                  activeSessionTime={activeSessionTime}
+                  sessionFinished={sessionFinished}
+                  setSessionFinished={setSessionFinished}
+                  setActiveSessionTime={setActiveSessionTime}
+               />
+            )}
         {user.role === 'PROFESSOR' && (
           <ProfessorModule 
             view={activeView} setView={setActiveView} students={students} 
