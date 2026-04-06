@@ -4664,6 +4664,7 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
             alunoNome: 'Aluno',
             data: new Date(treino.data).toLocaleDateString('pt-BR'),
             plano: planoExercicios,
+            observacoes: treino.observacoes,
             tipo: treino.origem === 'IA' ? 'ia' : 'manual'
           };
         }) : [];
@@ -5093,14 +5094,10 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
 
        // Encontrar treino para o dia selecionado
        const treinoDodia = historicoTreinos.find(t => {
-          const plano = t.plano;
-          // Formato manual: observacoes = "Dia: segunda"
+          // Manual: observacoes contem "Dia: segunda"
           if (t.observacoes && t.observacoes.toLowerCase().includes(`dia: ${diaSelecionado}`)) {
-            if ((Array.isArray(plano) && plano.length > 0) || (Array.isArray(t.exercicios) && t.exercicios.length > 0)) return true;
-          }
-          // Formato IA: { diaSelecionado: [...] }
-          if (plano && typeof plano === 'object' && !Array.isArray(plano)) {
-            if (Array.isArray(plano[diaSelecionado]) && plano[diaSelecionado].length > 0) return true;
+            if (Array.isArray(t.plano) && t.plano.length > 0) return true;
+            if (Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
           }
           return false;
        });
@@ -5109,15 +5106,10 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
        let exerciciosDisponiveis: any[] = [];
        const tituloDoTreino = treinoDodia?.titulo || treinoDodia?.tituloTreino || 'Treino';
 
-       if (treinoDodia && treinoDodia.observacoes && treinoDodia.observacoes.toLowerCase().includes(`dia: ${diaSelecionado}`)) {
-         // Formato manual: usou observacoes para marcar o dia
-         if (Array.isArray(treinoDodia.plano) && treinoDodia.plano.length > 0) {
-           exerciciosDisponiveis = treinoDodia.plano;
-         } else if (Array.isArray(treinoDodia.exercicios)) {
-           exerciciosDisponiveis = treinoDodia.exercicios;
-         }
-       } else if (treinoDodia?.plano && typeof treinoDodia.plano === 'object' && !Array.isArray(treinoDodia.plano)) {
-         exerciciosDisponiveis = treinoDodia.plano[diaSelecionado] || [];
+       if (Array.isArray(treinoDodia?.plano) && treinoDodia.plano.length > 0) {
+         exerciciosDisponiveis = treinoDodia.plano;
+       } else if (Array.isArray(treinoDodia?.exercicios)) {
+         exerciciosDisponiveis = treinoDodia.exercicios;
        }
        if (exerciciosDisponiveis.length === 0 && Array.isArray(treinoDodia?.exercicios)) {
          exerciciosDisponiveis = treinoDodia.exercicios;
