@@ -4436,14 +4436,30 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
   const [iaConfig, setIaConfig] = useState({ objetivo: '', restricoes: '', diasTreino: 3 });
   const [isGeneratingIA, setIsGeneratingIA] = useState(false);
   // Estado para cadastro manual de treino
+  const DIAS_SEMANA = [
+    { key: 'segunda', label: 'Segunda' },
+    { key: 'terca', label: 'Terça' },
+    { key: 'quarta', label: 'Quarta' },
+    { key: 'quinta', label: 'Quinta' },
+    { key: 'sexta', label: 'Sexta' },
+    { key: 'sabado', label: 'Sábado' },
+  ];
   const [showManualTreinoModal, setShowManualTreinoModal] = useState(false);
-  const [manualTreino, setManualTreino] = useState({ titulo: '', exercicios: [{ nome: '', series: '', reps: '', obs: '' }], observacoes: '' });
+  const [manualDias, setManualDias] = useState<string[]>([]);
+  const [manualTreinos, setManualTreinos] = useState<Record<string, { titulo: string, exercicios: { nome: string, series: string, reps: string, obs: string }[] }>>({});
 
   // Função para salvar treino manual
   const salvarTreinoManual = async () => {
-    if (!manualTreino.titulo.trim()) {
-      alert('Informe o titulo do treino');
+    if (manualDias.length === 0) {
+      alert('Selecione pelo menos um dia da semana');
       return;
+    }
+    for (const dia of manualDias) {
+      const t = manualTreinos[dia];
+      if (!t || !t.titulo.trim()) {
+        alert(`Preencha o titulo do treino para ${dia}`);
+        return;
+      }
     }
     const token = localStorage.getItem('fitness_token') || localStorage.getItem('fitness_auth_token');
     if (!token) {
@@ -4451,14 +4467,18 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
       return;
     }
     try {
-      await salvarHistoricoTreino(token, {
-        titulo: manualTreino.titulo,
-        exercicios: manualTreino.exercicios.filter((e: any) => e.nome.trim()),
-        observacoes: manualTreino.observacoes
+      // Salva um registro por dia selecionado
+      const treinosArray = manualDias.map(dia => {
+        const t = manualTreinos[dia];
+        return { titulo: `${t.titulo} — ${dia}`, exercicios: t.exercicios.filter((e: any) => e.nome.trim()), observacoes: '' };
       });
-      setManualTreino({ titulo: '', exercicios: [{ nome: '', series: '', reps: '', obs: '' }], observacoes: '' });
+      for (const treino of treinosArray) {
+        await salvarTreino(token, treino);
+      }
+      setManualDias([]);
+      setManualTreinos({});
       setShowManualTreinoModal(false);
-      alert('Treino cadastrado com sucesso!');
+      alert('Treinos cadastrados com sucesso!');
       recarregarTreinos();
     } catch (error) {
       console.error('Erro ao salvar treino manual:', error);
@@ -4466,24 +4486,39 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
     }
   };
 
-  const addExercicioManual = () => {
-    setManualTreino({
-      ...manualTreino,
-      exercicios: [...manualTreino.exercicios, { nome: '', series: '', reps: '', obs: '' }]
+  const toggleDiaManual = (dia: string) => {
+    if (manualDias.includes(dia)) {
+      setManualDias(manualDias.filter(d => d !== dia));
+    } else {
+      setManualDias([...manualDias, dia]);
+      if (!manualTreinos[dia]) {
+        setManualTreinos({ ...manualTreinos, [dia]: { titulo: '', exercicios: [{ nome: '', series: '', reps: '', obs: '' }] } });
+      }
+    }
+  };
+
+  const updateTreinoDia = (dia: string, titulo: string) => {
+    setManualTreinos({ ...manualTreinos, [dia]: { ...manualTreinos[dia], titulo } });
+  };
+
+  const addExercicioDia = (dia: string) => {
+    setManualTreinos({
+      ...manualTreinos,
+      [dia]: { ...manualTreinos[dia], exercicios: [...manualTreinos[dia].exercicios, { nome: '', series: '', reps: '', obs: '' }] }
     });
   };
 
-  const removeExercicioManual = (idx: number) => {
-    setManualTreino({
-      ...manualTreino,
-      exercicios: manualTreino.exercicios.filter((_: any, i: number) => i !== idx)
+  const removeExercicioDia = (dia: string, idx: number) => {
+    setManualTreinos({
+      ...manualTreinos,
+      [dia]: { ...manualTreinos[dia], exercicios: manualTreinos[dia].exercicios.filter((_: any, i: number) => i !== idx) }
     });
   };
 
-  const updateExercicioManual = (idx: number, field: string, value: string) => {
-    const nuevos = [...manualTreino.exercicios];
-    nuevos[idx] = { ...nuevos[idx], [field]: value };
-    setManualTreino({ ...manualTreino, exercicios: nuevos });
+  const updateExercicioDia = (dia: string, idx: number, field: string, value: string) => {
+    const novos = [...manualTreinos[dia].exercicios];
+    novos[idx] = { ...novos[idx], [field]: value };
+    setManualTreinos({ ...manualTreinos, [dia]: { ...manualTreinos[dia], exercicios: novos } });
   };
   
   // Estados para dados do banco
@@ -5202,85 +5237,104 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
         {/* Modal Cadastro Manual de Treino */}
         {showManualTreinoModal && (
           <div className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setShowManualTreinoModal(false)}>
-            <div className="w-full sm:max-w-lg bg-zinc-950 sm:rounded-3xl rounded-t-3xl border border-zinc-800 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="w-full sm:max-w-2xl bg-zinc-950 sm:rounded-3xl rounded-t-3xl border border-zinc-800 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="sticky top-0 bg-zinc-950 border-b border-zinc-800 p-4 sm:p-6 flex items-center justify-between z-10">
                 <h3 className="sm:text-xl text-lg font-black text-white flex items-center gap-2">Cadastrar Treino</h3>
                 <button onClick={() => setShowManualTreinoModal(false)} className="size-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 active:bg-zinc-800 transition-all">X</button>
               </div>
-              <div className="p-4 sm:p-6 space-y-4">
-                {/* Titulo */}
+              <div className="p-4 sm:p-6 space-y-6">
+                {/* Selecao de Dias */}
                 <div>
-                  <label className="text-sm font-bold text-zinc-300 block mb-2">Titulo do Treino</label>
-                  <input
-                    type="text"
-                    value={manualTreino.titulo}
-                    onChange={e => setManualTreino({...manualTreino, titulo: e.target.value})}
-                    placeholder="Ex: Treino A - Peito e Triceps"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
-                  />
-                </div>
-                {/* Exercicios */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-bold text-zinc-300">Exercicios</label>
-                    <button onClick={addExercicioManual} className="text-lime-400 text-sm font-black flex items-center gap-1">
-                      + Adicionar
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    {manualTreino.exercicios.map((ex: any, idx: number) => (
-                      <div key={idx} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-zinc-500">Exercicio {idx + 1}</span>
-                          {manualTreino.exercicios.length > 1 && (
-                            <button onClick={() => removeExercicioManual(idx)} className="text-red-400 text-xs font-bold">Remover</button>
-                          )}
-                        </div>
-                        <input
-                          type="text"
-                          value={ex.nome}
-                          onChange={e => updateExercicioManual(idx, 'nome', e.target.value)}
-                          placeholder="Nome do exercicio"
-                          className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
-                        />
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={ex.series}
-                            onChange={e => updateExercicioManual(idx, 'series', e.target.value)}
-                            placeholder="Series"
-                            className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
-                          />
-                          <input
-                            type="text"
-                            value={ex.reps}
-                            onChange={e => updateExercicioManual(idx, 'reps', e.target.value)}
-                            placeholder="Reps"
-                            className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          value={ex.obs || ''}
-                          onChange={e => updateExercicioManual(idx, 'obs', e.target.value)}
-                          placeholder="Obs (opcional)"
-                          className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
-                        />
-                      </div>
+                  <label className="text-sm font-bold text-zinc-300 block mb-3">Selecione os dias de treino</label>
+                  <div className="flex flex-wrap gap-2">
+                    {DIAS_SEMANA.map(dia => (
+                      <button
+                        key={dia.key}
+                        onClick={() => toggleDiaManual(dia.key)}
+                        className={`px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all ${
+                          manualDias.includes(dia.key)
+                            ? 'bg-lime-400 text-black'
+                            : 'bg-zinc-900 border border-zinc-700 text-zinc-500'
+                        }`}
+                      >
+                        {dia.label}
+                      </button>
                     ))}
                   </div>
                 </div>
-                {/* Observacoes */}
-                <div>
-                  <label className="text-sm font-bold text-zinc-300 block mb-2">Observacoes</label>
-                  <textarea
-                    rows={3}
-                    value={manualTreino.observacoes}
-                    onChange={e => setManualTreino({...manualTreino, observacoes: e.target.value})}
-                    placeholder="Notas sobre o treino (opcional)"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600 resize-none"
-                  />
-                </div>
+
+                {/* Formularios por dia */}
+                {manualDias.map(dia => {
+                  const treino = manualTreinos[dia];
+                  if (!treino) return null;
+                  return (
+                    <div key={dia} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-4">
+                      {/* Titulo do dia */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-lime-400 text-sm font-black uppercase">{dia}</span>
+                        <input
+                          type="text"
+                          value={treino.titulo}
+                          onChange={e => updateTreinoDia(dia, e.target.value)}
+                          placeholder="Ex: Treino A - Peito e Triceps"
+                          className="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                        />
+                      </div>
+                      {/* Exercicios */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-zinc-500 uppercase">Exercicios</span>
+                          <button onClick={() => addExercicioDia(dia)} className="text-lime-400 text-xs font-black flex items-center gap-1">
+                            + Adicionar
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {treino.exercicios.map((ex: any, idx: number) => (
+                            <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-xl p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-zinc-600">#{idx + 1}</span>
+                                {treino.exercicios.length > 1 && (
+                                  <button onClick={() => removeExercicioDia(dia, idx)} className="text-red-400 text-xs font-bold">Remover</button>
+                                )}
+                              </div>
+                              <input
+                                type="text"
+                                value={ex.nome}
+                                onChange={e => updateExercicioDia(dia, idx, 'nome', e.target.value)}
+                                placeholder="Nome do exercicio"
+                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                              />
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={ex.series}
+                                  onChange={e => updateExercicioDia(dia, idx, 'series', e.target.value)}
+                                  placeholder="Series"
+                                  className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                                />
+                                <input
+                                  type="text"
+                                  value={ex.reps}
+                                  onChange={e => updateExercicioDia(dia, idx, 'reps', e.target.value)}
+                                  placeholder="Reps"
+                                  className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                                />
+                              </div>
+                              <input
+                                type="text"
+                                value={ex.obs || ''}
+                                onChange={e => updateExercicioDia(dia, idx, 'obs', e.target.value)}
+                                placeholder="Obs (opcional)"
+                                className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
                 {/* Botao Salvar */}
                 <button
                   onClick={salvarTreinoManual}
