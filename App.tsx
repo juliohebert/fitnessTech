@@ -1747,10 +1747,10 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
   return (
     <div className="animate-in fade-in slide-in-from-bottom-10 duration-500 pb-32 max-w-3xl mx-auto">
       <div className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-900 pb-6 mb-10 pt-4 px-4 md:px-0">
-        <div className="flex justify-between items-center mb-6 relative">
+        <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 mb-6">
           <button onClick={onClose} className="size-12 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-400 hover:text-white transition-all z-10"><X size={20} /></button>
-          
-          <div className="absolute left-0 right-0 flex flex-col items-center justify-center pointer-events-none">
+
+          <div className="flex flex-col items-center justify-center">
             <div className="flex items-center justify-center gap-2 mb-0.5">
                <TimerIcon size={16} className="text-lime-400" />
                <span className="text-2xl font-black italic text-lime-400 tracking-tighter">{formatTime(workoutTime)}</span>
@@ -1774,7 +1774,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 
           <button
             onClick={togglePause}
-            className="size-12 bg-yellow-500 hover:bg-yellow-600 border-2 border-yellow-400 rounded-2xl flex items-center justify-center text-white transition-all z-10 shadow-lg active:scale-95"
+            className="size-12 bg-yellow-500 hover:bg-yellow-600 border-2 border-yellow-400 rounded-2xl flex items-center justify-center text-white transition-all z-10 shadow-lg active:scale-95 shrink-0"
             title={isPaused ? 'Retomar Treino' : 'Pausar Treino'}
           >
             {isPaused ? <Play size={24} strokeWidth={3} fill="currentColor" /> : <Pause size={24} strokeWidth={3} fill="currentColor" />}
@@ -1782,7 +1782,7 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
 
           <button
             onClick={onFinish}
-            className="size-12 bg-red-500 hover:bg-red-600 border-2 border-red-400 rounded-2xl flex items-center justify-center text-white transition-all z-10 shadow-lg hover:scale-105 active:scale-95"
+            className="size-12 bg-red-500 hover:bg-red-600 border-2 border-red-400 rounded-2xl flex items-center justify-center text-white transition-all z-10 shadow-lg hover:scale-105 active:scale-95 shrink-0"
             title="Finalizar Treino"
           >
             <CheckCircle size={24} strokeWidth={3} />
