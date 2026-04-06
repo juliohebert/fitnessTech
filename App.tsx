@@ -4962,18 +4962,28 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
       const diasSemanaArray = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
       const diaAtualNome = diasSemanaArray[hoje.getDay()];
       
-      // Buscar o treino mais recente que tenha exercícios para hoje
+      // Buscar o treino mais recente que tenha exercícios
       const treinoHoje = historicoTreinos.find(t => {
-         if (t.plano && t.plano[diaAtualNome] && (t.plano[diaAtualNome].length > 0 || (Array.isArray(t.plano[diaAtualNome]) && t.plano[diaAtualNome].length > 0))) return true;
-         if (t.exercicios && Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
+         if (Array.isArray(t.plano) && t.plano.length > 0) return true;
+         if (t.plano && typeof t.plano === 'object' && !Array.isArray(t.plano) && t.plano[diaAtualNome] && Array.isArray(t.plano[diaAtualNome]) && t.plano[diaAtualNome].length > 0) return true;
+         if (Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
          return false;
       });
-      
-      const todayWorkout = treinoHoje ? {
+
+      let exerciciosHoje: any[] = [];
+      if (Array.isArray(treinoHoje?.plano) && treinoHoje?.plano) {
+        exerciciosHoje = treinoHoje.plano;
+      } else if (treinoHoje?.plano && typeof treinoHoje.plano === 'object' && !Array.isArray(treinoHoje.plano)) {
+        exerciciosHoje = treinoHoje.plano[diaAtualNome] || [];
+      } else if (Array.isArray(treinoHoje?.exercicios)) {
+        exerciciosHoje = treinoHoje.exercicios;
+      }
+
+      const todayWorkout = exerciciosHoje.length > 0 ? {
          title: treinoHoje.titulo || 'Treino do Dia',
          category: treinoHoje.tipo === 'ia' ? 'IA' : 'Manual',
          duration: '60 min',
-         exercises: ((treinoHoje.plano?.[diaAtualNome]) || treinoHoje.exercicios || []).map((ex: any) => ({
+         exercises: exerciciosHoje.map((ex: any) => ({
             id: ex.id || `ex-${Date.now()}-${Math.random()}`,
             nome: ex.nome || ex.exercicio,
             n: ex.nome || ex.exercicio,
@@ -5081,39 +5091,35 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
          console.log('📋 exercicios:', historicoTreinos[0]?.exercicios ? 'sim' : 'nao');
        }
 
+       // Encontrar treino para o dia selecionado
        const treinoDodia = historicoTreinos.find(t => {
-          const titulo = t.titulo || t.tituloTreino || '';
-          if (titulo) {
-            const plano = t.plano;
-            if (Array.isArray(plano)) {
-              const obj = plano.find((x: any) => x && typeof x === 'object' && x[diaSelecionado]);
-              if (obj && obj[diaSelecionado] && obj[diaSelecionado].length > 0) return true;
-            } else if (plano && typeof plano === 'object' && !Array.isArray(plano)) {
-              if (plano[diaSelecionado] && Array.isArray(plano[diaSelecionado])) return true;
-            }
+          // Treinos manuais: observacoes contem "Dia: segunda"
+          if (t.observacoes && t.observacoes.toLowerCase().includes(`dia: ${diaSelecionado}`)) {
+            if (Array.isArray(t.plano) && t.plano.length > 0) return true;
+            if (Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
           }
-          if (t.exercicios && Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
+          // Treinos IA: plano contem objeto com chave do dia
+          if (t.plano && typeof t.plano === 'object' && !Array.isArray(t.plano)) {
+            if (t.plano[diaSelecionado] && Array.isArray(t.plano[diaSelecionado]) && t.plano[diaSelecionado].length > 0) return true;
+          }
+          // Fallback: qualquer treino com exercicios
+          if (Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
+          if (Array.isArray(t.plano) && t.plano.length > 0) return true;
           return false;
        });
 
-       console.log('✅ Treino encontrado:', treinoDodia);
-
+       // Extrair exercicios disponiveis
        let exerciciosDisponiveis: any[] = [];
        const tituloDoTreino = treinoDodia?.titulo || treinoDodia?.tituloTreino || 'Treino';
-       const plano = treinoDodia?.plano;
-       if (plano) {
-         if (Array.isArray(plano)) {
-           const obj = plano.find((x: any) => x && typeof x === 'object' && x[diaSelecionado]);
-           if (obj && Array.isArray(obj[diaSelecionado])) {
-             exerciciosDisponiveis = obj[diaSelecionado];
-           }
-         } else if (typeof plano === 'object' && !Array.isArray(plano)) {
-           if (Array.isArray(plano[diaSelecionado])) {
-             exerciciosDisponiveis = plano[diaSelecionado];
-           }
-         }
+
+       if (treinoDodia?.plano && Array.isArray(treinoDodia.plano) && treinoDodia.plano.length > 0) {
+         // Formato 1: plano é array de exercicios direto
+         exerciciosDisponiveis = treinoDodia.plano;
+       } else if (treinoDodia?.plano && typeof treinoDodia.plano === 'object' && !Array.isArray(treinoDodia.plano)) {
+         // Formato 2: plano é objeto { dia: [...] }
+         exerciciosDisponiveis = treinoDodia.plano[diaSelecionado] || [];
        }
-       if (exerciciosDisponiveis.length === 0 && treinoDodia?.exercicios && Array.isArray(treinoDodia.exercicios)) {
+       if (exerciciosDisponiveis.length === 0 && Array.isArray(treinoDodia?.exercicios)) {
          exerciciosDisponiveis = treinoDodia.exercicios;
        }
 
