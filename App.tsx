@@ -28,7 +28,7 @@ import {
   Timer as TimerIcon, ChevronDown, ChevronUp, History, RotateCcw, Users, Salad, Utensils, MousePointer2,
   Package, Tag, Filter, ShoppingBag, Percent, Scale, ZapOff, Target, ChevronLeft, User, Settings, Bell, ShieldCheck, Shield, LogOut, CreditCard as CardIcon, Save, Camera, Mail, Phone, Calendar, MoreVertical,
   MessageCircle, UserPlus, Pencil, Trash, Copy, BookMarked, Download, AlertTriangle, Eye, BarChart3, RefreshCw, ClipboardList, Hammer, Briefcase,
-  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu, Edit3, CalendarCheck
+  Sparkles, Bot, Send, Loader2, BrainCircuit, ChefHat, Volume2, Upload, FileVideo, Mic, Watch, Heart, Bluetooth, Signal, FileText, XCircle, MapPin, Star, TrendingDown, Menu, Edit3, CalendarCheck, Pause
 } from 'lucide-react';
 import { 
   ResponsiveContainer, Cell, 
@@ -1576,10 +1576,18 @@ const AIChatWidget = () => {
 
 // --- ALUNO COMPONENTS ---
 
-const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchConnected, connectedDeviceName }: any) => {
+const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchConnected, connectedDeviceName, onPause, onResume, paused: parentPaused }: any) => {
   // Verificação de segurança para exercises
   const exercises = Array.isArray(workout?.exercises) ? workout.exercises : [];
-  
+
+  const isPaused = parentPaused; // use parent state
+  const togglePause = () => {
+    if (parentPaused) {
+      onResume?.();
+    } else {
+      onPause?.();
+    }
+  };
   const [exerciseProgress, setExerciseProgress] = useState<Record<string, number>>(() => {
     // Inicializa progresso zerado para cada exercício
     const initial: Record<string, number> = {};
@@ -1764,8 +1772,16 @@ const ActiveWorkoutSession = ({ workout, workoutTime, onFinish, onClose, watchCo
             )}
           </div>
 
-          <button 
-            onClick={onFinish} 
+          <button
+            onClick={togglePause}
+            className="size-12 bg-yellow-500 hover:bg-yellow-600 border-2 border-yellow-400 rounded-2xl flex items-center justify-center text-white transition-all z-10 shadow-lg active:scale-95"
+            title={isPaused ? 'Retomar Treino' : 'Pausar Treino'}
+          >
+            {isPaused ? <Play size={24} strokeWidth={3} fill="currentColor" /> : <Pause size={24} strokeWidth={3} fill="currentColor" />}
+          </button>
+
+          <button
+            onClick={onFinish}
             className="size-12 bg-red-500 hover:bg-red-600 border-2 border-red-400 rounded-2xl flex items-center justify-center text-white transition-all z-10 shadow-lg hover:scale-105 active:scale-95"
             title="Finalizar Treino"
           >
@@ -4425,7 +4441,7 @@ const NutritionView = ({ diet, dayIdx, onGenerateDiet, user, onReloadDietas }: {
 
 // --- MODULES ---
 
-const StudentModule = ({ user, view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime }: any) => {
+const StudentModule = ({ user, view, setView, products, addToCart, cartCount, setIsCartOpen, profileImage, onImageChange, biometrics, onBiometricsChange, dietPlans, setDietPlans, watchConnected, toggleWatch, deviceName, activeSession, setActiveSession, activeSessionTime, sessionFinished, setSessionFinished, setActiveSessionTime, activeSessionPaused, setActiveSessionPaused }: any) => {
   console.log('🔍 StudentModule - user recebido:', user);
   const [selectedDayWorkout, setSelectedDayWorkout] = useState(new Date().getDay());
   const [selectedDayDiet, setSelectedDayDiet] = useState(new Date().getDay());
@@ -4435,6 +4451,12 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
   const [iaType, setIaType] = useState<'treino' | 'dieta'>('treino');
   const [iaConfig, setIaConfig] = useState({ objetivo: '', restricoes: '', diasTreino: 3 });
   const [isGeneratingIA, setIsGeneratingIA] = useState(false);
+  // Estado para edição de treino
+  const [editingTreinoIdx, setEditingTreinoIdx] = useState<number | null>(null);
+  const [editExercicios, setEditExercicios] = useState<any[]>([]);
+  const [editBuscaExercicio, setEditBuscaExercicio] = useState<Record<number, string>>({});
+  const [showEditTreinoModal, setShowEditTreinoModal] = useState(false);
+
   // Estado para cadastro manual de treino
   const DIAS_SEMANA = [
     { key: 'segunda', label: 'Segunda' },
@@ -4578,6 +4600,63 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
     novos[idx] = { ...novos[idx], nome: exRef.nome, series: exRef.series, grupo: exRef.grupo, desc: exRef.desc || '', executar: exRef.executar || '', cuidar: exRef.cuidar || '', video: exRef.video || '' };
     setManualTreinos({ ...manualTreinos, [dia]: { ...manualTreinos[dia], exercicios: novos } });
     setBuscaExercicio({ ...buscaExercicio, [`${dia}-${idx}`]: '' });
+  };
+
+  // Editar treino existente
+  const abrirEdicaoTreino = (treino: any, idx: number) => {
+    const exercicios = Array.isArray(treino.plano) ? treino.plano : (Array.isArray(treino.exercicios) ? treino.exercicios : []);
+    setEditingTreinoIdx(idx);
+    setEditExercicios(exercicios.map((e: any) => ({
+      nome: e.nome || e.exercicio || e.n || '',
+      series: e.series || e.s || '',
+      reps: e.repeticoes || e.r || '',
+      obs: e.carga || e.w || e.obs || '',
+      grupo: e.grupo || e.group || '',
+      desc: e.desc || e.executar || e.description || '',
+      executar: e.executar || '',
+      cuidar: e.cuidar || '',
+      video: e.video || ''
+    })));
+    setShowEditTreinoModal(true);
+  };
+
+  const salvarEdicaoTreino = async () => {
+    if (editingTreinoIdx === null) return;
+    const treino = historicoTreinos[editingTreinoIdx];
+    if (!treino) return;
+    const token = localStorage.getItem('fitness_token') || localStorage.getItem('fitness_auth_token');
+    if (!token) { alert('Sessao expirada'); return; }
+    try {
+      const exerciciosFiltrados = editExercicios
+        .filter((e: any) => e.nome && e.nome.trim())
+        .map((e: any) => ({
+          nome: e.nome, series: e.series, repeticoes: e.reps,
+          carga: e.obs, grupo: e.grupo, desc: e.desc,
+          executar: e.executar, cuidar: e.cuidar, video: e.video
+        }));
+      const exerciciosJson = treino.plano && typeof treino.plano === 'object' && !Array.isArray(treino.plano)
+        ? JSON.stringify(treino.plano)
+        : JSON.stringify(exerciciosFiltrados);
+      const response = await fetch(`/api/historico-treinos/${treino.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ exercicios: exerciciosJson })
+      });
+      if (response.ok) {
+        setHistoricoTreinos(prev => prev.map((t, i) =>
+          i === editingTreinoIdx ? { ...t, plano: exerciciosFiltrados, exercicios: exerciciosFiltrados } : t
+        ));
+        setShowEditTreinoModal(false);
+        setEditingTreinoIdx(null);
+        setEditExercicios([]);
+        alert('Treino atualizado com sucesso!');
+      } else {
+        alert('Erro ao atualizar treino');
+      }
+    } catch (error) {
+      console.error('Erro ao salvar edicao:', error);
+      alert('Erro ao salvar edicao');
+    }
   };
 
   const updateTreinoDia = (dia: string, titulo: string) => {
@@ -4922,7 +5001,7 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
 
   // Se estiver na view de treino ativo, mostrar a sessão
   if (view === 'active-workout' && activeSession) {
-    return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setSessionFinished(true); setView('dashboard'); }} onClose={() => setView('dashboard')} watchConnected={watchConnected} connectedDeviceName={deviceName} />;
+    return <ActiveWorkoutSession workout={activeSession} workoutTime={activeSessionTime} onFinish={() => { setActiveSession(null); setActiveSessionPaused(false); setSessionFinished(true); setView('dashboard'); }} onClose={() => setView('dashboard')} watchConnected={watchConnected} connectedDeviceName={deviceName} onPause={() => setActiveSessionPaused(true)} onResume={() => setActiveSessionPaused(false)} paused={activeSessionPaused} />;
   }
 
   // Se treino foi finalizado, mostrar tela de finalização
@@ -4940,16 +5019,16 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
       {/* Indicador flutuante de treino ativo */}
       {activeSession && view !== 'active-workout' && (
         <div className="fixed bottom-20 left-4 right-4 md:bottom-6 md:left-6 md:right-auto z-[100] animate-in slide-in-from-bottom duration-500">
-          <button 
-            onClick={() => setView('active-workout')} 
-            className="bg-lime-400 text-black px-5 py-3.5 md:px-6 md:py-4 rounded-2xl shadow-2xl shadow-lime-400/30 flex items-center gap-3 active:scale-95 transition-all border-4 border-zinc-950 w-full md:w-auto justify-center"
+          <button
+            onClick={() => setView('active-workout')}
+            className={`${activeSessionPaused ? 'bg-yellow-400 shadow-yellow-400/30' : 'bg-lime-400 shadow-lime-400/30'} text-black px-5 py-3.5 md:px-6 md:py-4 rounded-2xl shadow-2xl flex items-center gap-3 active:scale-95 transition-all border-4 border-zinc-950 w-full md:w-auto justify-center`}
           >
-            <div className="size-2 bg-red-500 rounded-full animate-pulse" />
+            <div className={`size-2 rounded-full ${activeSessionPaused ? 'bg-yellow-600' : 'bg-red-500 animate-pulse'}`} />
             <div className="flex flex-col items-start">
-              <span className="text-[9px] font-black uppercase tracking-widest">Treino Ativo</span>
+              <span className="text-[9px] font-black uppercase tracking-widest">{activeSessionPaused ? 'Treino Pausado' : 'Treino Ativo'}</span>
               <span className="text-base md:text-lg font-black italic">{Math.floor(activeSessionTime / 60)}:{String(activeSessionTime % 60).padStart(2, '0')}</span>
             </div>
-            <Play size={18} fill="currentColor" />
+            {activeSessionPaused ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
           </button>
         </div>
       )}
@@ -5182,11 +5261,20 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                    <Sparkles size={16} />
                    Gerar Treino IA
                  </button>
+                 {treinoDodia && treinoDodia.id && (
+                   <button
+                     onClick={() => abrirEdicaoTreino(treinoDodia, historicoTreinos.indexOf(treinoDodia))}
+                     className="w-full bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-3.5 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-2 hover:bg-blue-500/30 active:scale-[0.98] transition-all"
+                   >
+                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                     Editar Exercícios
+                   </button>
+                 )}
                </div>
              }
            >
-             <WorkoutDetailCard 
-               workout={currentWorkout} 
+             <WorkoutDetailCard
+               workout={currentWorkout}
                onStart={() => handleStartWorkout(currentWorkout)}
              />
            </CalendarBase>
@@ -5510,6 +5598,117 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                   className="w-full bg-lime-400 text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest active:scale-[0.98] transition-all shadow-xl shadow-lime-400/20"
                 >
                   Salvar Treino
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Edição de Treino */}
+        {showEditTreinoModal && editingTreinoIdx !== null && (
+          <div className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => { setShowEditTreinoModal(false); setEditingTreinoIdx(null); }}>
+            <div className="w-full sm:max-w-2xl bg-zinc-950 sm:rounded-3xl rounded-t-3xl border border-zinc-800 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="sticky top-0 bg-zinc-950 border-b border-zinc-800 p-4 sm:p-6 flex items-center justify-between z-10">
+                <h3 className="sm:text-xl text-lg font-black text-white flex items-center gap-2">Editar Treino</h3>
+                <button onClick={() => { setShowEditTreinoModal(false); setEditingTreinoIdx(null); }} className="size-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 active:bg-zinc-800 transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <div className="p-4 sm:p-6 space-y-3">
+                {editExercicios.map((ex: any, idx: number) => {
+                  const busca = editBuscaExercicio[idx] || '';
+                  const showSuggestions = busca.length > 0;
+                  const sugestoes = showSuggestions
+                    ? CATALOGO_EXERCICIOS.filter(e => e.nome.toLowerCase().includes(busca.toLowerCase()) || e.grupo.toLowerCase().includes(busca.toLowerCase())).slice(0, 8)
+                    : [];
+                  return (
+                  <div key={idx} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 space-y-2 relative">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-zinc-600">#{idx + 1}</span>
+                      {ex.grupo && <span className="text-[10px] font-bold text-lime-400 uppercase bg-lime-400/10 px-2 py-0.5 rounded-full">{ex.grupo}</span>}
+                      <button onClick={() => setEditExercicios(editExercicios.filter((_: any, i: number) => i !== idx))} className="text-red-400 text-xs font-bold">Remover</button>
+                    </div>
+                    <input
+                      type="text"
+                      value={ex.nome ? busca || ex.nome : busca}
+                      onChange={e => {
+                        setEditBuscaExercicio({...editBuscaExercicio, [idx]: e.target.value});
+                        setEditExercicios(editExercicios.map((ee: any, ii: number) => ii === idx ? { ...ee, nome: e.target.value } : ee));
+                      }}
+                      onFocus={() => setEditBuscaExercicio({...editBuscaExercicio, [idx]: ''})}
+                      placeholder="Buscar exercicio..."
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                    />
+                    {sugestoes.length > 0 && (
+                      <div className="absolute z-50 top-full left-0 right-0 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto mt-1">
+                        {sugestoes.map((s, si) => (
+                          <button
+                            key={si}
+                            onClick={() => {
+                              setEditExercicios(editExercicios.map((ee: any, ii: number) => ii === idx ? { ...ee, nome: s.nome, series: s.series, grupo: s.grupo, desc: s.desc || '', executar: s.executar || '', cuidar: s.cuidar || '', video: s.video || '' } : ee));
+                              setEditBuscaExercicio({...editBuscaExercicio, [idx]: ''});
+                            }}
+                            className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-lime-400/20 hover:text-lime-400 transition-colors flex items-center justify-between"
+                          >
+                            <span>{s.nome}</span>
+                            <span className="text-[10px] font-bold text-zinc-500 uppercase">{s.grupo}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={ex.series}
+                        onChange={e => setEditExercicios(editExercicios.map((ee: any, ii: number) => ii === idx ? { ...ee, series: e.target.value } : ee))}
+                        placeholder="Series"
+                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                      />
+                      <input
+                        type="text"
+                        value={ex.reps || ''}
+                        onChange={e => setEditExercicios(editExercicios.map((ee: any, ii: number) => ii === idx ? { ...ee, reps: e.target.value } : ee))}
+                        placeholder="Reps"
+                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                      />
+                    </div>
+                    {(ex.desc || ex.executar || ex.cuidar || ex.video) && (
+                      <details className="mt-2">
+                        <summary className="text-xs text-lime-400 cursor-pointer font-bold">Ver detalhes do exercicio</summary>
+                        <div className="mt-2 space-y-2 text-xs text-zinc-400">
+                          <p><span className="text-white font-bold">Descrição:</span> {ex.desc}</p>
+                          <p><span className="text-white font-bold">Como executar:</span> {ex.executar}</p>
+                          <p><span className="text-white font-bold">Cuidados:</span> {ex.cuidar}</p>
+                          {ex.video && (
+                            <div className="mt-3">
+                              <p className="text-white font-bold mb-2">Video demonstrativo:</p>
+                              <div className="aspect-video rounded-xl overflow-hidden bg-black">
+                                <iframe
+                                  src={ex.video.replace('watch?v=', 'embed/')}
+                                  className="w-full h-full min-h-[180px]"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                  );
+                })}
+                <button
+                  onClick={() => setEditExercicios([...editExercicios, { nome: '', series: '', reps: '', obs: '', grupo: '', desc: '', executar: '', cuidar: '', video: '' }])}
+                  className="w-full bg-zinc-900 border border-dashed border-zinc-700 text-zinc-500 py-3 rounded-xl font-black uppercase text-xs hover:border-lime-400 hover:text-lime-400 transition-colors flex items-center justify-center gap-2"
+                >
+                  + Adicionar Exercício
+                </button>
+                <button
+                  onClick={salvarEdicaoTreino}
+                  className="w-full bg-lime-400 text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest active:scale-[0.98] transition-all shadow-xl shadow-lime-400/20"
+                >
+                  Salvar Alterações
                 </button>
               </div>
             </div>
@@ -12739,11 +12938,12 @@ const AppContent: React.FC = () => {
   // State for Watch Integration
   const [watchConnected, setWatchConnected] = useState(false);
   const [connectedDeviceName, setConnectedDeviceName] = useState("");
+  const [activeSessionPaused, setActiveSessionPaused] = useState(false);
 
-  // Timer do treino ativo
+  // Timer do treino ativo (respeita pausa)
   useEffect(() => {
     let interval: any;
-    if (activeSession) {
+    if (activeSession && !activeSessionPaused) {
       interval = setInterval(() => {
         setActiveSessionTime(t => t + 1);
       }, 1000);
@@ -12751,7 +12951,7 @@ const AppContent: React.FC = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [activeSession]);
+  }, [activeSession, activeSessionPaused]);
 
   // Persistir carrinho
   useEffect(() => {
@@ -12956,6 +13156,8 @@ const AppContent: React.FC = () => {
                   sessionFinished={sessionFinished}
                   setSessionFinished={setSessionFinished}
                   setActiveSessionTime={setActiveSessionTime}
+                  activeSessionPaused={activeSessionPaused}
+                  setActiveSessionPaused={setActiveSessionPaused}
                />
             )}
         {user.role === 'PROFESSOR' && (
