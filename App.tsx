@@ -5819,9 +5819,22 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                            {historicoTreinos
                               .filter(t => t.alunoId === selectedStudent?.id)
                               .slice(0, 3)
-                              .map((treino) => (
-                                 <div key={treino.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
-                                    <div className="flex justify-between items-start mb-4">
+                              .map((treino: any) => (
+                                 <div key={treino.id} className="bg-zinc-950 border border-zinc-800 rounded-2xl p-6 relative">
+                                    <button
+                                       onClick={async () => {
+                                          if (!confirm('Remover treino?')) return;
+                                          const token = localStorage.getItem('fitness_token') || localStorage.getItem('fitness_auth_token');
+                                          if (!token) return;
+                                          const ok = await removerTreino(token, treino.id);
+                                          if (ok) setHistoricoTreinos(prev => prev.filter(t => t.id !== treino.id));
+                                       }}
+                                       className="absolute top-4 right-4 text-red-400 hover:text-red-300 text-xs font-black uppercase z-10"
+                                       title="Remover treino"
+                                    >
+                                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    </button>
+                                    <div className="flex justify-between items-start mb-4 pr-2">
                                        <div>
                                           <h4 className="font-black italic uppercase text-lg text-lime-400">{treino.titulo}</h4>
                                           <div className="flex items-center gap-4 mt-2">
@@ -5834,11 +5847,9 @@ const ProfessorModule = ({ view, students, setView, templates, onAddTemplate, on
                                           </div>
                                        </div>
                                        <div className="text-right">
-                                          <p className="text-[10px] text-zinc-600 uppercase font-bold">Total Exercícios</p>
+                                          <p className="text-[10px] text-zinc-600 uppercase font-bold">Exercícios</p>
                                           <p className="text-xl font-black text-white">
-                                             {Object.values(treino.plano)
-                                                .filter((dia: any) => Array.isArray(dia))
-                                                .reduce((total: number, dia: any) => total + dia.length, 0)}
+                                             {Array.isArray(treino.plano) ? treino.plano.length : (Array.isArray(treino.exercicios) ? treino.exercicios.length : 0)}
                                           </p>
                                        </div>
                                     </div>
