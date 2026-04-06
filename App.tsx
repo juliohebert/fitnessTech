@@ -4445,59 +4445,59 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
     { key: 'sabado', label: 'Sábado' },
   ];
   const CATALOGO_EXERCICIOS = [
-    {nome:'Supino Reto com Barra',grupo:'Peito',series:'3x12'},
-    {nome:'Supino Reto com Halteres',grupo:'Peito',series:'3x12'},
-    {nome:'Supino Inclinado com Barra',grupo:'Peito',series:'3x12'},
-    {nome:'Supino Inclinado com Halteres',grupo:'Peito',series:'3x12'},
-    {nome:'Crucifixo Reto',grupo:'Peito',series:'3x12'},
-    {nome:'Peck Deck (Voador)',grupo:'Peito',series:'3x12'},
-    {nome:'Pullover com Halter',grupo:'Peito',series:'3x12'},
-    {nome:'Crossover na Polia Alta',grupo:'Peito',series:'3x12'},
-    {nome:'Flexão de Braços',grupo:'Peito',series:'3x15'},
-    {nome:'Desenvolvimento com Barra',grupo:'Ombro',series:'3x12'},
-    {nome:'Desenvolvimento com Halteres',grupo:'Ombro',series:'3x12'},
-    {nome:'Elevação Lateral',grupo:'Ombro',series:'3x12'},
-    {nome:'Elevação Frontal',grupo:'Ombro',series:'3x12'},
-    {nome:'Remada Alta',grupo:'Ombro',series:'3x12'},
-    {nome:'Crucifixo Invertido',grupo:'Ombro',series:'3x12'},
-    {nome:'Face Pull',grupo:'Ombro',series:'3x15'},
-    {nome:'Tríceps Corda na Polia',grupo:'Tríceps',series:'3x15'},
-    {nome:'Tríceps Barra Reta na Polia',grupo:'Tríceps',series:'3x12'},
-    {nome:'Tríceps Francês com Halter',grupo:'Tríceps',series:'3x12'},
-    {nome:'Tríceps Testa com Barra',grupo:'Tríceps',series:'3x12'},
-    {nome:'Mergulho em Paralelas',grupo:'Tríceps',series:'3x10'},
-    {nome:'Mergulho no Banco',grupo:'Tríceps',series:'3x12'},
-    {nome:'Puxada Frontal Aberta',grupo:'Dorsal',series:'3x12'},
-    {nome:'Puxada Frontal Fechada',grupo:'Dorsal',series:'3x12'},
-    {nome:'Puxada Supinada',grupo:'Dorsal',series:'3x12'},
-    {nome:'Remada Baixa na Polia',grupo:'Dorsal',series:'3x12'},
-    {nome:'Remada Unilateral com Halter',grupo:'Dorsal',series:'3x12'},
-    {nome:'Barra Fixa',grupo:'Dorsal',series:'3x8'},
-    {nome:'Remada Curvada com Barra',grupo:'Dorsal',series:'3x12'},
-    {nome:'Rosca Direta com Barra',grupo:'Bíceps',series:'4x12'},
-    {nome:'Rosca Direta com Halteres',grupo:'Bíceps',series:'3x12'},
-    {nome:'Rosca Alternada com Halteres',grupo:'Bíceps',series:'3x12'},
-    {nome:'Rosca Martelo',grupo:'Bíceps',series:'3x12'},
-    {nome:'Rosca Scott (Banco Scott)',grupo:'Bíceps',series:'4x12'},
-    {nome:'Rosca Concentrada',grupo:'Bíceps',series:'3x10'},
-    {nome:'Leg Press 45',grupo:'Perna',series:'3x15'},
-    {nome:'Cadeira Extensora',grupo:'Perna',series:'3x15'},
-    {nome:'Agachamento Livre com Barra',grupo:'Perna',series:'4x10'},
-    {nome:'Hack Squat',grupo:'Perna',series:'3x15'},
-    {nome:'Agachamento Sumo com Halter',grupo:'Perna',series:'3x15'},
-    {nome:'Afundo com Halteres',grupo:'Perna',series:'3x12'},
-    {nome:'Mesa Flexora',grupo:'Perna',series:'3x15'},
-    {nome:'Cadeira Flexora',grupo:'Perna',series:'3x12'},
-    {nome:'Stiff com Barra',grupo:'Perna',series:'3x12'},
-    {nome:'Elevação Pélvica',grupo:'Perna',series:'3x12'},
-    {nome:'Panturrilha em Pé na Máquina',grupo:'Perna',series:'4x20'},
-    {nome:'Panturrilha Sentado',grupo:'Perna',series:'4x15'},
-    {nome:'Abdominal Crunch',grupo:'Abdômen',series:'3x20'},
-    {nome:'Abdominal Infra',grupo:'Abdômen',series:'3x15'},
-    {nome:'Abdominal Oblíquo',grupo:'Abdômen',series:'3x20'},
-    {nome:'Prancha Isométrica',grupo:'Abdômen',series:'3x45s'},
-    {nome:'Russian Twist',grupo:'Abdômen',series:'3x20'},
-    {nome:'Encolhimento com Halteres',grupo:'Trapézio',series:'3x15'},
+    {nome:'Supino Reto com Barra',grupo:'Peito',series:'3x12',desc:'Exercicio basico para peitoral maior.',executar:'Deite no banco reto, segure a barra na largura dos ombros, desca ate tocar o peito e empurre.',cuidar:'Nao arqueie a lombar, nao trave os cotovelos no topo.',video:'https://www.youtube.com/watch?v=rT7DgCr-3pg'},
+    {nome:'Supino Reto com Halteres',grupo:'Peito',series:'3x12',desc:'Variacao com halteres, maior amplitude.',executar:'Deite no banco reto, segure halteres e empurre acima do peito.',cuidar:'Controle a descida.',video:'https://www.youtube.com/watch?v=VmB1G1K7v9M'},
+    {nome:'Supino Inclinado com Barra',grupo:'Peito',series:'3x12',desc:'Foca na porcao superior do peitoral.',executar:'Banco a 30-45 graus, desca a barra ate o peitoral superior.',cuidar:'Nao exagere na inclinacao.',video:'https://www.youtube.com/watch?v=8iPEnn-ltC8'},
+    {nome:'Supino Inclinado com Halteres',grupo:'Peito',series:'3x12',desc:'Supino inclinado com halteres para amplitude.',executar:'Banco a 30-45 graus, suba e desca os halteres.',cuidar:'Pies firmes no chao.',video:'https://www.youtube.com/watch?v=8iPEnn-ltC8'},
+    {nome:'Crucifixo Reto',grupo:'Peito',series:'3x12',desc:'Isolamento do peitoral com abertura.',executar:'Deite, abra os bracos lateralmente em arco e volte.',cuidar:'Leve flexao nos cotovelos.',video:'https://www.youtube.com/watch?v=eozdVDA78K0'},
+    {nome:'Peck Deck (Voador)',grupo:'Peito',series:'3x12',desc:'Maquina para isolamento do peitoral.',executar:'Sente, segure as alcas e junte os bracos a frente.',cuidar:'Nao use impulso.',video:'https://www.youtube.com/watch?v=taI4XduLpTk'},
+    {nome:'Pullover com Halter',grupo:'Peito',series:'3x12',desc:'Trabalha peitoral e serrateis.',executar:'Deitado transversalmente no banco, desca o halter para tras.',cuidar:'Mantenha quadril elevado.',video:'https://www.youtube.com/watch?v=s89BbdBQLhs'},
+    {nome:'Crossover na Polia Alta',grupo:'Peito',series:'3x12',desc:'Exercicio na polia para peitoral inferior.',executar:'Entre as polias, puxe de cima para baixo e para dentro.',cuidar:'Tronco levemente inclinado.',video:'https://www.youtube.com/watch?v=taI4XduLpTk'},
+    {nome:'Flexao de Bracos',grupo:'Peito',series:'3x15',desc:'Exercicio corporal para peito e triceps.',executar:'Desca o peito ate quase tocar o chao e empurre.',cuidar:'Corpo reto, quadril alto.',video:'https://www.youtube.com/watch?v=IODxDxX7oi4'},
+    {nome:'Desenvolvimento com Barra',grupo:'Ombro',series:'3x12',desc:'Exercicio composto para deltoide.',executar:'Empurre a barra da altura dos ombros ate acima da cabeca.',cuidar:'Controle a descida, nao arqueie a lombar.',video:'https://www.youtube.com/watch?v=2yjwXTZQDDI'},
+    {nome:'Desenvolvimento com Halteres',grupo:'Ombro',series:'3x12',desc:'Variacao com halteres.',executar:'Sentado, empurre halteres acima da cabeca.',cuidar:'Costas apoiadas no banco.',video:'https://www.youtube.com/watch?v=qEwKCR5JCog'},
+    {nome:'Elevacao Lateral',grupo:'Ombro',series:'3x12',desc:'Isolamento do deltoide medio.',executar:'Eleve os bracos lateralmente ate altura dos ombros.',cuidar:'Sem impulso, cotovelos flexionados.',video:'https://www.youtube.com/watch?v=3VcKaXpzqRo'},
+    {nome:'Elevacao Frontal',grupo:'Ombro',series:'3x12',desc:'Foco no deltoide anterior.',executar:'Eleve os bracos a frente ate altura dos ombros.',cuidar:'Nao balance o tronco.',video:'https://www.youtube.com/watch?v=gzDXBWytcE0'},
+    {nome:'Remada Alta',grupo:'Ombro',series:'3x12',desc:'Deltoide medio e trapezio.',executar:'Puxe a barra ate o queixo, cotovelos para cima.',cuidar:'Nao suba acima dos ombros com dor.',video:'https://www.youtube.com/watch?v=amCU-ziHITM'},
+    {nome:'Crucifixo Invertido',grupo:'Ombro',series:'3x12',desc:'Foco no deltoide posterior.',executar:'Inclinado, abra os bracos lateralmente para tras.',cuidar:'Costas retas.',video:'https://www.youtube.com/watch?v=K3oRz-KnQGA'},
+    {nome:'Face Pull',grupo:'Ombro',series:'3x15',desc:'Fortalecimento do deltoide posterior.',executar:'Na polia com corda, puxe em direcao ao rosto.',cuidar:'Peso leve, tecnica em primeiro lugar.',video:'https://www.youtube.com/watch?v=rep-qVOkmqg'},
+    {nome:'Triceps Corda na Polia',grupo:'Triceps',series:'3x15',desc:'Isolamento do triceps na polia.',executar:'Empurre a corda para baixo estendendo os bracos.',cuidar:'Cotovelos fixos ao lado do corpo.',video:'https://www.youtube.com/watch?v=vB5OHsJ3EME'},
+    {nome:'Triceps Barra Reta na Polia',grupo:'Triceps',series:'3x12',desc:'Similar a corda com barra reta.',executar:'Empurre a barra reta para baixo.',cuidar:'Sem balanco do corpo.',video:'https://www.youtube.com/watch?v=2-LAMcpzVhg'},
+    {nome:'Triceps Frances com Halter',grupo:'Triceps',series:'3x12',desc:'Cabeca longa do triceps.',executar:'Segure halter atras da cabeca e estenda os bracos.',cuidar:'Cotovelos apontando para cima.',video:'https://www.youtube.com/watch?v=YbX7Wd8jQ-Q'},
+    {nome:'Triceps Testa com Barra',grupo:'Triceps',series:'3x12',desc:'Exercicio deitado para triceps.',executar:'Deitado, desca a barra EZ em direcao a testa e estenda.',cuidar:'Controle o peso.',video:'https://www.youtube.com/watch?v=d_KZxkY_0cM'},
+    {nome:'Mergulho em Paralelas',grupo:'Triceps',series:'3x10',desc:'Composto para triceps e peito.',executar:'Desca e suba nas barras paralelas.',cuidar:'Reto para mais triceps, inclinado para peito.',video:'https://www.youtube.com/watch?v=2z8JmcrW-As'},
+    {nome:'Mergulho no Banco',grupo:'Triceps',series:'3x12',desc:'Mergulho simples com banco.',executar:'Maos no banco, desca flexionando cotovelos.',cuidar:'Nao desca demais.',video:'https://www.youtube.com/watch?v=0326dy_-CzM'},
+    {nome:'Puxada Frontal Aberta',grupo:'Dorsal',series:'3x12',desc:'Grande dorsal na polia alta.',executar:'Sentado, puxe a barra aberta ate o peito.',cuidar:'Nao puxe atras do pescoco.',video:'https://www.youtube.com/watch?v=CAwf7n6Luuc'},
+    {nome:'Puxada Frontal Fechada',grupo:'Dorsal',series:'3x12',desc:'Puxada com pegada fechada.',executar:'Puxe o triangulo em direcao ao peito.',cuidar:'Puxe com as costas.',video:'https://www.youtube.com/watch?v=CAwf7n6Luuc'},
+    {nome:'Puxada Supinada',grupo:'Dorsal',series:'3x12',desc:'Pegada supinada, enfase dorsal e biceps.',executar:'Puxe a barra com palmas para cima.',cuidar:'Sem impulso.',video:'https://www.youtube.com/watch?v=4t-R4OjYR0E'},
+    {nome:'Remada Baixa na Polia',grupo:'Dorsal',series:'3x12',desc:'Espessura das costas.',executar:'Sentado, puxe em direcao ao abdomen.',cuidar:'Costas retas, puxe com escapulas.',video:'https://www.youtube.com/watch?v=GZbfZ033f74'},
+    {nome:'Remada Unilateral com Halter',grupo:'Dorsal',series:'3x12',desc:'Remada com um braco (serrote).',executar:'Apoio no banco, puxe halter ao quadril.',cuidar:'Puxe com o cotovelo.',video:'https://www.youtube.com/watch?v=pYcpY20QaE8'},
+    {nome:'Barra Fixa',grupo:'Dorsal',series:'3x8',desc:'Corporal para dorsal e biceps.',executar:'Puxe o corpo ate o queixo passar da barra.',cuidar:'Sem impulso, movimento completo.',video:'https://www.youtube.com/watch?v=eGo4IYlbE5g'},
+    {nome:'Remada Curvada com Barra',grupo:'Dorsal',series:'3x12',desc:'Espessura das costas com barra.',executar:'Incline o tronco, puxe a barra ao abdomen.',cuidar:'Costas retas, nao arqueie.',video:'https://www.youtube.com/watch?v=FWJR5Ve8bnQ'},
+    {nome:'Rosca Direta com Barra',grupo:'Biceps',series:'4x12',desc:'Basico para biceps.',executar:'Flexione os bracos trazendo a barra aos ombros.',cuidar:'Cotovelos fixos.',video:'https://www.youtube.com/watch?v=kwG2ipFRgFo'},
+    {nome:'Rosca Direta com Halteres',grupo:'Biceps',series:'3x12',desc:'Rosca com halteres.',executar:'Flexione ambos ou alterne com halteres.',cuidar:'Controle a descida.',video:'https://www.youtube.com/watch?v=ykJmrZ5v0Oo'},
+    {nome:'Rosca Alternada com Halteres',grupo:'Biceps',series:'3x12',desc:'Alternando os bracos.',executar:'Um braco por vez, supine o pulso no topo.',cuidar:'Sem balanco.',video:'https://www.youtube.com/watch?v=soxrZlIlub0'},
+    {nome:'Rosca Martelo',grupo:'Biceps',series:'3x12',desc:'Pegada neutra para brachioradialis.',executar:'Palmas voltadas uma para outra, suba sem girar.',cuidar:'Mantenha neutro.',video:'https://www.youtube.com/watch?v=zC3nLlEvin4'},
+    {nome:'Rosca Scott (Banco Scott)',grupo:'Biceps',series:'4x12',desc:'Isolamento no banco Scott.',executar:'Triceps na almofada, faca a rosca com barra EZ.',cuidar:'Nao estenda completamente.',video:'https://www.youtube.com/watch?v=fIWP-FRFNU0'},
+    {nome:'Rosca Concentrada',grupo:'Biceps',series:'3x10',desc:'Rosca sentado com apoio na coxa.',executar:'Cotovelo na coxa, suba o halter.',cuidar:'Lento e controlado.',video:'https://www.youtube.com/watch?v=0AUGkch3tzc'},
+    {nome:'Leg Press 45',grupo:'Perna',series:'3x15',desc:'Composto para quadriceps na maquina.',executar:'Ps na plataforma, desca e empurre.',cuidar:'Nao trave os joelhos.',video:'https://www.youtube.com/watch?v=IZxyjW7MPJQ'},
+    {nome:'Cadeira Extensora',grupo:'Perna',series:'3x15',desc:'Isolamento do quadriceps.',executar:'Estenda as pernas e desca com controle.',cuidar:'Segure 1s no topo.',video:'https://www.youtube.com/watch?v=YyvSfVjQeL0'},
+    {nome:'Agachamento Livre com Barra',grupo:'Perna',series:'4x10',desc:'Rei dos exercicios de perna.',executar:'Barra nas costas, desca como sentar e suba.',cuidar:'Joelhos na direcao dos pes.',video:'https://www.youtube.com/watch?v=ultWZbUMPL8'},
+    {nome:'Hack Squat',grupo:'Perna',series:'3x15',desc:'Agachamento na maquina hack.',executar:'Ombros apoiados, desca e empurre.',cuidar:'Pes posicao media.',video:'https://www.youtube.com/watch?v=ZMqVqGVuOzU'},
+    {nome:'Agachamento Sumo com Halter',grupo:'Perna',series:'3x15',desc:'Base larga para adutores.',executar:'Pes afastados, segure halter e agache.',cuidar:'Joelhos na direcao dos pes.',video:'https://www.youtube.com/watch?v=K31JxjHmIiA'},
+    {nome:'Afundo com Halteres',grupo:'Perna',series:'3x12',desc:'Unilateral para quadriceps.',executar:'Passo a frente, desca ate joelhos a 90.',cuidar:'Joelho nao ultrapassa pe.',video:'https://www.youtube.com/watch?v=D7KaJc4QeEY'},
+    {nome:'Mesa Flexora',grupo:'Perna',series:'3x15',desc:'Posterior de coxa.',executar:'De bruco, flexione as pernas aos gluteos.',cuidar:'Quadril preso no banco.',video:'https://www.youtube.com/watch?v=1Tq3QdYUJHs'},
+    {nome:'Cadeira Flexora',grupo:'Perna',series:'3x12',desc:'Posterior sentado.',executar:'Flexione as pernas vencendo resistencia.',cuidar:'Costas apoiadas.',video:'https://www.youtube.com/watch?v=1Tq3QdYUJHs'},
+    {nome:'Stiff com Barra',grupo:'Perna',series:'3x12',desc:'Posterior e gluteos.',executar:'Desca a barra rente as pernas, joelhos semi.',cuidar:'Costas sempre retas.',video:'https://www.youtube.com/watch?v=JCXUYuzwNrM'},
+    {nome:'Elevacao Pelvica',grupo:'Perna',series:'3x12',desc:'Exercicio para gluteos.',executar:'Deitado, eleve o quadril contraindo gluteos.',cuidar:'Contracao no topo.',video:'https://www.youtube.com/watch?v=OUgsJ8-Vi0E'},
+    {nome:'Panturrilha em Pe na Maquina',grupo:'Perna',series:'4x20',desc:'Gastrocnemio (panturrilha).',executar:'Suba na ponta dos pes e desca completo.',cuidar:'Amplitude maxima, segure no topo.',video:'https://www.youtube.com/watch?v=gwLzBJYoWlI'},
+    {nome:'Panturrilha Sentado',grupo:'Perna',series:'4x15',desc:'Soleo da panturrilha.',executar:'Sentado, suba na ponta dos pes.',cuidar:'Controle a descida.',video:'https://www.youtube.com/watch?v=JbyHn9mHkOY'},
+    {nome:'Abdominal Crunch',grupo:'Abdomen',series:'3x20',desc:'Reto abdominal.',executar:'Eleve os ombros contraindo abdomen.',cuidar:'Nao puxe pescoco.',video:'https://www.youtube.com/watch?v=Xyd_fa5zoEU'},
+    {nome:'Abdominal Infra',grupo:'Abdomen',series:'3x15',desc:'Regiao inferior do abdomen.',executar:'Eleve as pernas em direcao ao peito.',cuidar:'Sem balanco.',video:'https://www.youtube.com/watch?v=1f8yoEzxKkI'},
+    {nome:'Abdominal Obliquo',grupo:'Abdomen',series:'3x20',desc:'Obliquos laterais.',executar:'Eleve o tronco ao joelho oposto.',cuidar:'Rotacao controlada.',video:'https://www.youtube.com/watch?v=1f8yoEzxKkI'},
+    {nome:'Prancha Isometrica',grupo:'Abdomen',series:'3x45s',desc:'Isometrico para core.',executar:'Apoie antebracos e pes, corpo reto.',cuidar:'Quadril neutro.',video:'https://www.youtube.com/watch?v=ASdvN_XEl_c'},
+    {nome:'Russian Twist',grupo:'Abdomen',series:'3x20',desc:'Rotacao do tronco.',executar:'Gire o tronco de um lado ao outro sentado.',cuidar:'Costas retas.',video:'https://www.youtube.com/watch?v=wkD8rjkodUI'},
+    {nome:'Encolhimento com Halteres',grupo:'Trapezio',series:'3x15',desc:'Trapezio superior.',executar:'Eleve os ombros as orelhas e desca.',cuidar:'Sem rotacao.',video:'https://www.youtube.com/watch?v=cJRVVxmytaM'},
   ];
   const [showManualTreinoModal, setShowManualTreinoModal] = useState(false);
   const [manualDias, setManualDias] = useState<string[]>([]);
@@ -4555,7 +4555,7 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
 
   const selecionarExercicio = (dia: string, idx: number, exRef: any) => {
     const novos = [...manualTreinos[dia].exercicios];
-    novos[idx] = { ...novos[idx], nome: exRef.nome, series: exRef.series, grupo: exRef.grupo };
+    novos[idx] = { ...novos[idx], nome: exRef.nome, series: exRef.series, grupo: exRef.grupo, desc: exRef.desc || '', executar: exRef.executar || '', cuidar: exRef.cuidar || '', video: exRef.video || '' };
     setManualTreinos({ ...manualTreinos, [dia]: { ...manualTreinos[dia], exercicios: novos } });
     setBuscaExercicio({ ...buscaExercicio, [`${dia}-${idx}`]: '' });
   };
@@ -5419,6 +5419,18 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                                 placeholder="Obs (opcional)"
                                 className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
                               />
+                              {/* Detalhes do exercicio do catalogo */}
+                              {(ex.desc || ex.executar || ex.cuidar || ex.video) && (
+                                <details className="mt-2">
+                                  <summary className="text-xs text-lime-400 cursor-pointer font-bold">Ver detalhes do exercicio</summary>
+                                  <div className="mt-2 space-y-2 text-xs text-zinc-400">
+                                    <p><span className="text-white font-bold">Descrição:</span> {ex.desc}</p>
+                                    <p><span className="text-white font-bold">Como executar:</span> {ex.executar}</p>
+                                    <p><span className="text-white font-bold">Cuidados:</span> {ex.cuidar}</p>
+                                    {ex.video && <p><span className="text-white font-bold">Video:</span> <a href={ex.video} target="_blank" className="text-lime-400 underline">Assistir demo</a></p>}
+                                  </div>
+                                </details>
+                              )}
                             </div>
                             );
                           })}
