@@ -3,7 +3,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Prisma Client - Simplificado
 const prisma = new PrismaClient({
@@ -31,29 +30,40 @@ export default async function handler(req, res) {
   
   const { url, method } = req;
   
-  // ENDPOINT IA - GERAR TREINO
+  // ENDPOINT IA - GERAR TREINO (OpenRouter - Free)
   if (url?.includes('/ia/gerar-treino') && method === 'POST') {
     const { prompt } = req.body;
-    console.log('🤖 IA endpoint - prompt:', prompt, 'API_KEY configurada:', process.env.VITE_API_KEY ? 'SIM' : 'NAO');
     if (!prompt) {
       return res.status(400).json({ erro: "Prompt é obrigatório" });
     }
-    const apiKey = process.env.VITE_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ erro: "API key não configurada", detalhes: "VITE_API_KEY não está definida" });
+      return res.status(500).json({ erro: "API key não configurada", detalhes: "OPENROUTER_API_KEY não está definida" });
     }
     try {
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      console.log('🤖 Chamando Google AI...');
-      const result = await model.generateContent(prompt);
-      console.log('🤖 Resposta recebida da Google AI');
-      const treino = result.response.text();
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://fitness-tech.vercel.app',
+          'X-Title': 'FitnessTech',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'meta-llama/llama-3.1-8b-instruct:free',
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `Erro OpenRouter: ${response.status}`);
+      }
+      const data = await response.json();
+      const treino = data.choices?.[0]?.message?.content || 'Não foi possível gerar resposta.';
       return res.status(200).json({ treino });
     } catch (error) {
-      console.log('❌ Erro IA:', error.message, JSON.stringify(error));
-      const erroInfo = error.message || error.status || error.toString();
-      return res.status(500).json({ erro: "Erro ao gerar treino com IA", detalhes: erroInfo });
+      console.error('❌ Erro IA:', error.message);
+      return res.status(500).json({ erro: "Erro ao gerar treino com IA", detalhes: error.message });
     }
   }
 
