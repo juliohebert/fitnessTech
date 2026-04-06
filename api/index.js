@@ -38,9 +38,13 @@ export default async function handler(req, res) {
     if (!prompt) {
       return res.status(400).json({ erro: "Prompt é obrigatório" });
     }
+    const apiKey = process.env.VITE_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ erro: "API key não configurada", detalhes: "VITE_API_KEY não está definida" });
+    }
     try {
-      const genAI = new GoogleGenerativeAI(process.env.VITE_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
       console.log('🤖 Chamando Google AI...');
       const result = await model.generateContent(prompt);
       console.log('🤖 Resposta recebida da Google AI');
