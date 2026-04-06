@@ -1,6 +1,7 @@
 // FitnessTech API - Versão Produção com Prisma
 // Atualizado: 2026-02-04 19:30 - REAL DATABASE
 import { PrismaClient } from '@prisma/client';
+import { exercicios } from './exercicios-db.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -30,39 +31,24 @@ export default async function handler(req, res) {
   
   const { url, method } = req;
   
-  // ENDPOINT IA - GERAR TREINO (Groq - Free)
+  // ENDPOINT IA - GERAR TREINO (Local - sem IA externa)
   if (url?.includes('/ia/gerar-treino') && method === 'POST') {
     const { prompt } = req.body;
     if (!prompt) {
       return res.status(400).json({ erro: "Prompt é obrigatório" });
     }
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ erro: "API key não configurada", detalhes: "GROQ_API_KEY não está definida" });
-    }
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-8b-instant',
-          messages: [{ role: 'user', content: prompt }]
-        })
-      });
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `Erro Groq: ${response.status}`);
-      }
-      const data = await response.json();
-      const treino = data.choices?.[0]?.message?.content || 'Não foi possível gerar resposta.';
+      const treino = gerarTreinoLocal(prompt);
       return res.status(200).json({ treino });
     } catch (error) {
       console.error('❌ Erro IA:', error.message);
       return res.status(500).json({ erro: "Erro ao gerar treino com IA", detalhes: error.message });
     }
+  }
+
+  // ENDPOINT GET EXERCÍCIOS
+  if (url?.includes('/exercicios') && method === 'GET') {
+    return res.status(200).json(Object.values(exercicios));
   }
 
   // ENDPOINT DE DEBUG - TESTAR CONEXÃO
@@ -1135,4 +1121,126 @@ export default async function handler(req, res) {
     
     return res.status(500).json({ erro: 'Erro interno do servidor', detalhes: error.message });
   }
+}
+
+// Função local para gerar treino sem depender de IA externa
+function exerciciosPorGrupo(grupo) {
+  const g = grupo.toLowerCase();
+  return Object.values(exercicios).filter(e => e.grupo.toLowerCase().includes(g));
+}
+
+function gerarTreinoLocal(prompt) {
+  const p = prompt.toLowerCase();
+
+  // Detectar grupos musculares do prompt
+  const gruposDetectados = [];
+  if (p.includes('peito') || p.includes('peitoral') || p.includes('supino') || p.includes('tríceps') || p.includes('triceps') || p.includes('ombro') || p.includes('tríceps')) {
+    gruposDetectados.push('Peito', 'Ombro', 'Triceps');
+  }
+  if (p.includes('perna') || p.includes('quadriceps') || p.includes('quadríceps') || p.includes('posterior') || p.includes('isquiotibial') || p.includes('glúteo') || p.includes('gluteo') || p.includes('panturrilha')) {
+    if (!gruposDetectados.includes('Perna')) gruposDetectados.push('Perna');
+  }
+  if (p.includes('costas') || p.includes('dorsal') || p.includes('bíceps') || p.includes('biceps')) {
+    gruposDetectados.push('Dorsal', 'Biceps');
+  }
+  if (p.includes('abdomen') || p.includes('abdômen') || p.includes('core')) {
+    gruposDetectados.push('Abdomen');
+  }
+
+  // Se não detectou grupos, gera treino ABC padrão
+  if (gruposDetectados.length === 0) {
+    const treinoA = {
+      titulo: 'Treino A — Peito, Ombro e Tríceps',
+      exercicios: [
+        ...exerciciosPorGrupo('Peito').slice(0, 6),
+        ...exerciciosPorGrupo('Ombro').slice(0, 3),
+        ...exerciciosPorGrupo('Triceps').slice(0, 3)
+      ]
+    };
+    const treinoB = {
+      titulo: 'Treino B — Perna Completa',
+      exercicios: [
+        ...exerciciosPorGrupo('Perna').filter(e => e.nome.toLowerCase().includes('press') || e.nome.toLowerCase().includes('extens') || e.nome.toLowerCase().includes('agach') || e.nome.toLowerCase().includes('leg')).slice(0, 5),
+        ...exerciciosPorGrupo('Perna').filter(e => e.nome.toLowerCase().includes('flexora') || e.nome.toLowerCase().includes('stiff') || e.nome.toLowerCase().includes('elevação')).slice(0, 3),
+        ...exerciciosPorGrupo('Perna').filter(e => e.nome.toLowerCase().includes('panturrilha')).slice(0, 2)
+      ]
+    };
+    const treinoC = {
+      titulo: 'Treino C — Dorsal e Bíceps',
+      exercicios: [
+        ...exerciciosPorGrupo('Dorsal').slice(0, 5),
+        ...exerciciosPorGrupo('Biceps').slice(0, 4)
+      ]
+    };
+
+    return formatarTreinoSemanal([treinoA, treinoB, treinoC]);
+  }
+
+  // Se detectou grupos específicos, gerar treino focado
+  const treinoGerado = {
+    titulo: `Treino — ${gruposDetectados.join(', ')}`,
+    exercicios: gruposDetectados.flatMap(g => {
+      const exs = exerciciosPorGrupo(g);
+      return exs.slice(0, g === 'Perna' ? 6 : 4);
+    })
+  };
+
+  return formatarExercicios(treinoGerado);
+}
+
+function formatarExercicios(treino) {
+  let texto = `# ${treino.titulo}\n\n`;
+  let grupoAtual = '';
+  treino.exercicios.forEach((ex, i) => {
+    if (ex.grupo !== grupoAtual) {
+      grupoAtual = ex.grupo;
+      texto += `\n## ${grupoAtual}\n\n`;
+    }
+    texto += `### ${i + 1}. ${ex.nome} | ${ex.series}\n`;
+    texto += `**Descrição:** ${ex.descricao}\n\n`;
+    texto += `**Como executar:** ${ex.comoExecutar}\n\n`;
+    texto += `**Cuidados importantes:** ${ex.cuidados}\n\n`;
+    texto += `🎥 [Vídeo demonstrativo](${ex.video})\n\n`;
+  });
+  return texto;
+}
+
+function formatarTreinoSemanal(treinos) {
+  const dias = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  const rotacao = [treinos[0], treinos[1], treinos[2], treinos[0], treinos[1], treinos[2]];
+
+  let texto = '# 🏋️ Plano de Treino Semanal\n\n';
+  texto += '## Grade Semanal\n';
+  texto += '| Dia | Treino |\n';
+  texto += '|------|--------|\n';
+  dias.forEach((dia, i) => {
+    texto += `| ${dia} | ${rotacao[i].titulo} |\n`;
+  });
+  texto += '| Domingo | Descanso |\n\n';
+  texto += '---\n\n';
+
+  rotacao.forEach((treino, i) => {
+    texto += `### ${dias[i]} — ${treino.titulo}\n\n`;
+    let grupoAtual = '';
+    treino.exercicios.forEach((ex, j) => {
+      if (ex.grupo !== grupoAtual) {
+        grupoAtual = ex.grupo;
+        texto += `\n#### ${grupoAtual}\n\n`;
+      }
+      texto += `**${j + 1}. ${ex.nome}** — ${ex.series}\n`;
+      texto += `*Descrição:* ${ex.descricao}\n\n`;
+      texto += `*Como executar:* ${ex.comoExecutar}\n\n`;
+      texto += `*Cuidados:* ${ex.cuidados}\n\n`;
+      texto += `🎥 [Vídeo Demonstrativo](${ex.video})\n\n`;
+    });
+  });
+
+  texto += '---\n\n';
+  texto += '### 💡 Dicas Gerais\n';
+  texto +='- Aqueça 5-10 minutos antes de cada treino\n';
+  texto +='- Respeite intervalos de 60-90 segundos entre séries\n';
+  texto +='- Alongue-se ao final do treino\n';
+  texto +='- Beba água durante o treino\n';
+  texto +='- Domingo: descanso ativo ou alongamento leve\n';
+  return texto;
 }

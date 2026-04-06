@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find '/c/Users/Julio \\(PO\\)/Documents/www/fitnessTech' -type f -path *api/ia* -o -type f -path *gerar*treino*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(find '/c/Users/Julio \\(PO\\)/Documents/www/fitnessTech/src' -type f \\\\\\(-name *.js -o -name *.jsx -o -name *.ts -o -name *.tsx -o -name *.vue -o -name *.html \\\\\\))"
+    ]
+  }
+}
