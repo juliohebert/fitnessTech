@@ -4444,9 +4444,65 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
     { key: 'sexta', label: 'Sexta' },
     { key: 'sabado', label: 'Sábado' },
   ];
+  const CATALOGO_EXERCICIOS = [
+    {nome:'Supino Reto com Barra',grupo:'Peito',series:'3x12'},
+    {nome:'Supino Reto com Halteres',grupo:'Peito',series:'3x12'},
+    {nome:'Supino Inclinado com Barra',grupo:'Peito',series:'3x12'},
+    {nome:'Supino Inclinado com Halteres',grupo:'Peito',series:'3x12'},
+    {nome:'Crucifixo Reto',grupo:'Peito',series:'3x12'},
+    {nome:'Peck Deck (Voador)',grupo:'Peito',series:'3x12'},
+    {nome:'Pullover com Halter',grupo:'Peito',series:'3x12'},
+    {nome:'Crossover na Polia Alta',grupo:'Peito',series:'3x12'},
+    {nome:'Flexão de Braços',grupo:'Peito',series:'3x15'},
+    {nome:'Desenvolvimento com Barra',grupo:'Ombro',series:'3x12'},
+    {nome:'Desenvolvimento com Halteres',grupo:'Ombro',series:'3x12'},
+    {nome:'Elevação Lateral',grupo:'Ombro',series:'3x12'},
+    {nome:'Elevação Frontal',grupo:'Ombro',series:'3x12'},
+    {nome:'Remada Alta',grupo:'Ombro',series:'3x12'},
+    {nome:'Crucifixo Invertido',grupo:'Ombro',series:'3x12'},
+    {nome:'Face Pull',grupo:'Ombro',series:'3x15'},
+    {nome:'Tríceps Corda na Polia',grupo:'Tríceps',series:'3x15'},
+    {nome:'Tríceps Barra Reta na Polia',grupo:'Tríceps',series:'3x12'},
+    {nome:'Tríceps Francês com Halter',grupo:'Tríceps',series:'3x12'},
+    {nome:'Tríceps Testa com Barra',grupo:'Tríceps',series:'3x12'},
+    {nome:'Mergulho em Paralelas',grupo:'Tríceps',series:'3x10'},
+    {nome:'Mergulho no Banco',grupo:'Tríceps',series:'3x12'},
+    {nome:'Puxada Frontal Aberta',grupo:'Dorsal',series:'3x12'},
+    {nome:'Puxada Frontal Fechada',grupo:'Dorsal',series:'3x12'},
+    {nome:'Puxada Supinada',grupo:'Dorsal',series:'3x12'},
+    {nome:'Remada Baixa na Polia',grupo:'Dorsal',series:'3x12'},
+    {nome:'Remada Unilateral com Halter',grupo:'Dorsal',series:'3x12'},
+    {nome:'Barra Fixa',grupo:'Dorsal',series:'3x8'},
+    {nome:'Remada Curvada com Barra',grupo:'Dorsal',series:'3x12'},
+    {nome:'Rosca Direta com Barra',grupo:'Bíceps',series:'4x12'},
+    {nome:'Rosca Direta com Halteres',grupo:'Bíceps',series:'3x12'},
+    {nome:'Rosca Alternada com Halteres',grupo:'Bíceps',series:'3x12'},
+    {nome:'Rosca Martelo',grupo:'Bíceps',series:'3x12'},
+    {nome:'Rosca Scott (Banco Scott)',grupo:'Bíceps',series:'4x12'},
+    {nome:'Rosca Concentrada',grupo:'Bíceps',series:'3x10'},
+    {nome:'Leg Press 45',grupo:'Perna',series:'3x15'},
+    {nome:'Cadeira Extensora',grupo:'Perna',series:'3x15'},
+    {nome:'Agachamento Livre com Barra',grupo:'Perna',series:'4x10'},
+    {nome:'Hack Squat',grupo:'Perna',series:'3x15'},
+    {nome:'Agachamento Sumo com Halter',grupo:'Perna',series:'3x15'},
+    {nome:'Afundo com Halteres',grupo:'Perna',series:'3x12'},
+    {nome:'Mesa Flexora',grupo:'Perna',series:'3x15'},
+    {nome:'Cadeira Flexora',grupo:'Perna',series:'3x12'},
+    {nome:'Stiff com Barra',grupo:'Perna',series:'3x12'},
+    {nome:'Elevação Pélvica',grupo:'Perna',series:'3x12'},
+    {nome:'Panturrilha em Pé na Máquina',grupo:'Perna',series:'4x20'},
+    {nome:'Panturrilha Sentado',grupo:'Perna',series:'4x15'},
+    {nome:'Abdominal Crunch',grupo:'Abdômen',series:'3x20'},
+    {nome:'Abdominal Infra',grupo:'Abdômen',series:'3x15'},
+    {nome:'Abdominal Oblíquo',grupo:'Abdômen',series:'3x20'},
+    {nome:'Prancha Isométrica',grupo:'Abdômen',series:'3x45s'},
+    {nome:'Russian Twist',grupo:'Abdômen',series:'3x20'},
+    {nome:'Encolhimento com Halteres',grupo:'Trapézio',series:'3x15'},
+  ];
   const [showManualTreinoModal, setShowManualTreinoModal] = useState(false);
   const [manualDias, setManualDias] = useState<string[]>([]);
-  const [manualTreinos, setManualTreinos] = useState<Record<string, { titulo: string, exercicios: { nome: string, series: string, reps: string, obs: string }[] }>>({});
+  const [manualTreinos, setManualTreinos] = useState<Record<string, { titulo: string, exercicios: { nome: string, series: string, reps: string, obs: string, grupo?: string }[] }>>({});
+  const [buscaExercicio, setBuscaExercicio] = useState<Record<string, string>>({});
 
   // Função para salvar treino manual
   const salvarTreinoManual = async () => {
@@ -4495,6 +4551,13 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
         setManualTreinos({ ...manualTreinos, [dia]: { titulo: '', exercicios: [{ nome: '', series: '', reps: '', obs: '' }] } });
       }
     }
+  };
+
+  const selecionarExercicio = (dia: string, idx: number, exRef: any) => {
+    const novos = [...manualTreinos[dia].exercicios];
+    novos[idx] = { ...novos[idx], nome: exRef.nome, series: exRef.series, grupo: exRef.grupo };
+    setManualTreinos({ ...manualTreinos, [dia]: { ...manualTreinos[dia], exercicios: novos } });
+    setBuscaExercicio({ ...buscaExercicio, [`${dia}-${idx}`]: '' });
   };
 
   const updateTreinoDia = (dia: string, titulo: string) => {
@@ -5289,21 +5352,50 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                           </button>
                         </div>
                         <div className="space-y-2">
-                          {treino.exercicios.map((ex: any, idx: number) => (
-                            <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-xl p-3 space-y-2">
+                          {treino.exercicios.map((ex: any, idx: number) => {
+                            const buscaKey = `${dia}-${idx}`;
+                            const busca = buscaExercicio[buscaKey] || '';
+                            const showSuggestions = busca.length > 0;
+                            const sugestoes = showSuggestions
+                              ? CATALOGO_EXERCICIOS.filter(e => e.nome.toLowerCase().includes(busca.toLowerCase()) || e.grupo.toLowerCase().includes(busca.toLowerCase())).slice(0, 8)
+                              : [];
+                            return (
+                            <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-xl p-3 space-y-2 relative">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-bold text-zinc-600">#{idx + 1}</span>
+                                {ex.grupo && <span className="text-[10px] font-bold text-lime-400 uppercase bg-lime-400/10 px-2 py-0.5 rounded-full">{ex.grupo}</span>}
                                 {treino.exercicios.length > 1 && (
                                   <button onClick={() => removeExercicioDia(dia, idx)} className="text-red-400 text-xs font-bold">Remover</button>
                                 )}
                               </div>
+                              {/* Autocomplete de exercicio */}
                               <input
                                 type="text"
-                                value={ex.nome}
-                                onChange={e => updateExercicioDia(dia, idx, 'nome', e.target.value)}
-                                placeholder="Nome do exercicio"
+                                value={ex.nome ? busca || ex.nome : busca}
+                                onChange={e => {
+                                  setBuscaExercicio({...buscaExercicio, [buscaKey]: e.target.value});
+                                  updateExercicioDia(dia, idx, 'nome', e.target.value);
+                                }}
+                                onFocus={() => {
+                                  setBuscaExercicio({...buscaExercicio, [buscaKey]: ''});
+                                }}
+                                placeholder="Buscar exercicio..."
                                 className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
                               />
+                              {sugestoes.length > 0 && (
+                                <div className="absolute z-50 top-full left-0 right-0 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto mt-1">
+                                  {sugestoes.map((s, si) => (
+                                    <button
+                                      key={si}
+                                      onClick={() => selecionarExercicio(dia, idx, s)}
+                                      className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-lime-400/20 hover:text-lime-400 transition-colors flex items-center justify-between"
+                                    >
+                                      <span>{s.nome}</span>
+                                      <span className="text-[10px] font-bold text-zinc-500 uppercase">{s.grupo}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                               <div className="flex gap-2">
                                 <input
                                   type="text"
@@ -5328,7 +5420,7 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                                 className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
                               />
                             </div>
-                          ))}
+                          )}))}
                         </div>
                       </div>
                     </div>
