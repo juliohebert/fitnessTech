@@ -4523,11 +4523,11 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
       return;
     }
     try {
-      // Salva um registro por dia selecionado com estrutura { titulo, plano: { dia: [...exercicios] } }
+      // Cada dia selecionado salva como um registro individual
       const treinosArray = manualDias.map(dia => {
         const t = manualTreinos[dia];
         const exerciciosFiltrados = t.exercicios
-          .filter((e: any) => e.nome.trim())
+          .filter((e: any) => e.nome && e.nome.trim())
           .map((e: any) => ({
             nome: e.nome,
             series: e.series || '',
@@ -4540,14 +4540,16 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
             video: e.video || ''
           }));
         return {
-          titulo: t.titulo,
-          plano: { [dia]: exerciciosFiltrados },
-          observacoes: '',
-          origem: 'Manual'
+          tituloTreino: t.titulo,
+          exercicios: exerciciosFiltrados,
+          duracao: 60,
+          calorias: 0,
+          observacoes: `Dia: ${dia}`
         };
       });
       for (const treino of treinosArray) {
-        await salvarTreino(token, treino);
+        const result = await salvarTreino(token, treino);
+        console.log('💾 Treino salvo result:', result);
       }
       setManualDias([]);
       setManualTreinos({});
@@ -5080,14 +5082,34 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
        }
        
        const treinoDodia = historicoTreinos.find(t => {
-          if (t && t.plano && t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0) return true;
+          if (t && t.plano && t.plano[diaSelecionado] && Array.isArray(t.plano[diaSelecionado]) && t.plano[diaSelecionado].length > 0) return true;
           if (t && t.exercicios && Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
           return false;
        });
 
        console.log('✅ Treino encontrado:', treinoDodia);
 
-       const exerciciosDisponiveis = (treinoDodia?.plano?.[diaSelecionado]) || treinoDodia?.exercicios || [];
+       // Suporte a três formatos diferentes salvos no DB
+       let exerciciosDisponiveis: any[] = [];
+       const plano = treinoDodia?.plano;
+       if (plano) {
+         if (Array.isArray(plano)) {
+           // Formato: [{segunda: [...], terca: [...]}, ...]
+           const objPlano = plano.find((x: any) => x && typeof x === 'object' && x[diaSelecionado]);
+           if (objPlano && Array.isArray(objPlano[diaSelecionado])) {
+             exerciciosDisponiveis = objPlano[diaSelecionado];
+           }
+         } else if (typeof plano === 'object') {
+           // Formato: {segunda: [...]}
+           if (Array.isArray(plano[diaSelecionado])) {
+             exerciciosDisponiveis = plano[diaSelecionado];
+           }
+         }
+       }
+       if (exerciciosDisponiveis.length === 0 && treinoDodia?.exercicios && Array.isArray(treinoDodia.exercicios)) {
+         exerciciosDisponiveis = treinoDodia.exercicios;
+       }
+
        const currentWorkout = exerciciosDisponiveis.length > 0 ? {
          title: treinoDodia.titulo || 'Treino',
          category: treinoDodia.tipo === 'ia' ? 'IA' : 'Manual',
@@ -5097,13 +5119,13 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
            nome: ex.nome || ex.exercicio,
            n: ex.nome || ex.exercicio,
            s: ex.series,
-           r: ex.repeticoes,
+           r: ex.repeticoes || (ex.series || '').split('x')[1] || '',
            w: ex.carga,
            rest: ex.descanso || '90s',
            group: ex.grupo || 'Geral',
            orientations: ex.orientacoes || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada'],
            video: ex.video || null,
-           desc: ex.desc || ex.executar || null,
+           desc: ex.desc || ex.executar || ex.description || null,
            cuidar: ex.cuidar || null,
          }))
        } : null;
