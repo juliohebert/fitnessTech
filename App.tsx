@@ -4523,10 +4523,28 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
       return;
     }
     try {
-      // Salva um registro por dia selecionado
+      // Salva um registro por dia selecionado com estrutura { titulo, plano: { dia: [...exercicios] } }
       const treinosArray = manualDias.map(dia => {
         const t = manualTreinos[dia];
-        return { titulo: `${t.titulo} — ${dia}`, exercicios: t.exercicios.filter((e: any) => e.nome.trim()), observacoes: '' };
+        const exerciciosFiltrados = t.exercicios
+          .filter((e: any) => e.nome.trim())
+          .map((e: any) => ({
+            nome: e.nome,
+            series: e.series || '',
+            repeticoes: e.reps || '',
+            carga: e.obs || '',
+            grupo: e.grupo || '',
+            desc: e.desc || '',
+            executar: e.executar || '',
+            cuidar: e.cuidar || '',
+            video: e.video || ''
+          }));
+        return {
+          titulo: t.titulo,
+          plano: { [dia]: exerciciosFiltrados },
+          observacoes: '',
+          origem: 'Manual'
+        };
       });
       for (const treino of treinosArray) {
         await salvarTreino(token, treino);
@@ -4944,24 +4962,28 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
       
       // Buscar o treino mais recente que tenha exercícios para hoje
       const treinoHoje = historicoTreinos.find(t => {
-         return t.plano && t.plano[diaAtualNome] && t.plano[diaAtualNome].length > 0;
+         if (t.plano && t.plano[diaAtualNome] && (t.plano[diaAtualNome].length > 0 || (Array.isArray(t.plano[diaAtualNome]) && t.plano[diaAtualNome].length > 0))) return true;
+         if (t.exercicios && Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
+         return false;
       });
       
       const todayWorkout = treinoHoje ? {
          title: treinoHoje.titulo || 'Treino do Dia',
          category: treinoHoje.tipo === 'ia' ? 'IA' : 'Manual',
          duration: '60 min',
-         exercises: (treinoHoje.plano[diaAtualNome] || []).map((ex: any) => ({
-            id: ex.id || `ex-${Date.now()}-${Math.random()}`, // Adicionar ID único se não existir
+         exercises: ((treinoHoje.plano?.[diaAtualNome]) || treinoHoje.exercicios || []).map((ex: any) => ({
+            id: ex.id || `ex-${Date.now()}-${Math.random()}`,
             nome: ex.nome || ex.exercicio,
             n: ex.nome || ex.exercicio,
             s: ex.series,
             r: ex.repeticoes,
             w: ex.carga,
             rest: ex.descanso || '90s',
-            group: ex.grupo || 'Geral', // Adicionar grupo padrão
-            orientations: ex.orientacoes || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada'], // Orientações padrão
-            video: ex.video || null // URL do vídeo se existir
+            group: ex.grupo || 'Geral',
+            orientations: ex.orientacoes || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada'],
+            video: ex.video || null,
+            desc: ex.desc || ex.executar || null,
+            cuidar: ex.cuidar || null,
          }))
       } : {
          title: 'Treino não definido',
@@ -5058,28 +5080,31 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
        }
        
        const treinoDodia = historicoTreinos.find(t => {
-          const temPlano = t && t.plano && t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0;
-          console.log(`🔎 Verificando treino ${t?.id}: tem plano para ${diaSelecionado}?`, temPlano);
-          return temPlano;
+          if (t && t.plano && t.plano[diaSelecionado] && t.plano[diaSelecionado].length > 0) return true;
+          if (t && t.exercicios && Array.isArray(t.exercicios) && t.exercicios.length > 0) return true;
+          return false;
        });
-       
+
        console.log('✅ Treino encontrado:', treinoDodia);
-       
-       const currentWorkout = (treinoDodia && treinoDodia.plano && treinoDodia.plano[diaSelecionado] && treinoDodia.plano[diaSelecionado].length > 0) ? {
+
+       const exerciciosDisponiveis = (treinoDodia?.plano?.[diaSelecionado]) || treinoDodia?.exercicios || [];
+       const currentWorkout = exerciciosDisponiveis.length > 0 ? {
          title: treinoDodia.titulo || 'Treino',
          category: treinoDodia.tipo === 'ia' ? 'IA' : 'Manual',
          duration: '60 min',
-         exercises: (treinoDodia.plano[diaSelecionado] || []).map((ex: any) => ({
-           id: ex.id || `ex-${Date.now()}-${Math.random()}`, // Adicionar ID único se não existir
+         exercises: exerciciosDisponiveis.map((ex: any) => ({
+           id: ex.id || `ex-${Date.now()}-${Math.random()}`,
            nome: ex.nome || ex.exercicio,
            n: ex.nome || ex.exercicio,
            s: ex.series,
            r: ex.repeticoes,
            w: ex.carga,
            rest: ex.descanso || '90s',
-           group: ex.grupo || 'Geral', // Adicionar grupo padrão
-           orientations: ex.orientacoes || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada'], // Orientações padrão
-           video: ex.video || null // URL do vídeo se existir
+           group: ex.grupo || 'Geral',
+           orientations: ex.orientacoes || ['Execute o movimento com boa técnica', 'Mantenha a respiração controlada'],
+           video: ex.video || null,
+           desc: ex.desc || ex.executar || null,
+           cuidar: ex.cuidar || null,
          }))
        } : null;
        
