@@ -5420,7 +5420,8 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                                 className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
                               />
                             </div>
-                          )}))}
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
