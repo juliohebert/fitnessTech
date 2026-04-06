@@ -5427,7 +5427,19 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                                     <p><span className="text-white font-bold">Descrição:</span> {ex.desc}</p>
                                     <p><span className="text-white font-bold">Como executar:</span> {ex.executar}</p>
                                     <p><span className="text-white font-bold">Cuidados:</span> {ex.cuidar}</p>
-                                    {ex.video && <p><span className="text-white font-bold">Video:</span> <a href={ex.video} target="_blank" className="text-lime-400 underline">Assistir demo</a></p>}
+                                    {ex.video && (
+                                      <div className="mt-3">
+                                        <p className="text-white font-bold mb-2">Video demonstrativo:</p>
+                                        <div className="aspect-video rounded-xl overflow-hidden bg-black">
+                                          <iframe
+                                            src={ex.video.replace('watch?v=', 'embed/')}
+                                            className="w-full h-full min-h-[180px]"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 </details>
                               )}
