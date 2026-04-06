@@ -34,18 +34,22 @@ export default async function handler(req, res) {
   // ENDPOINT IA - GERAR TREINO
   if (url?.includes('/ia/gerar-treino') && method === 'POST') {
     const { prompt } = req.body;
+    console.log('🤖 IA endpoint - prompt:', prompt, 'API_KEY configurada:', process.env.VITE_API_KEY ? 'SIM' : 'NAO');
     if (!prompt) {
       return res.status(400).json({ erro: "Prompt é obrigatório" });
     }
     try {
       const genAI = new GoogleGenerativeAI(process.env.VITE_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      console.log('🤖 Chamando Google AI...');
       const result = await model.generateContent(prompt);
+      console.log('🤖 Resposta recebida da Google AI');
       const treino = result.response.text();
       return res.status(200).json({ treino });
     } catch (error) {
-      console.error("Erro IA:", error);
-      return res.status(500).json({ erro: "Erro ao gerar treino com IA" });
+      console.log('❌ Erro IA:', error.message, JSON.stringify(error));
+      const erroInfo = error.message || error.status || error.toString();
+      return res.status(500).json({ erro: "Erro ao gerar treino com IA", detalhes: erroInfo });
     }
   }
 

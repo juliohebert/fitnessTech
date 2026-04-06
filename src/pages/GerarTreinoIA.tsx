@@ -18,10 +18,10 @@ const GerarTreinoIA: React.FC = () => {
         body: JSON.stringify({ prompt })
       });
       const data = await response.json();
-      if (data.treino) {
+      if (response.ok && data.treino) {
         setTreino(data.treino);
       } else {
-        setError('Não foi possível gerar o treino.');
+        setError(data.detalhes || data.erro || 'Não foi possível gerar o treino.');
       }
     } catch (err) {
       setError('Erro ao conectar com a IA.');
