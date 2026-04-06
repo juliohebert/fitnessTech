@@ -30,33 +30,31 @@ export default async function handler(req, res) {
   
   const { url, method } = req;
   
-  // ENDPOINT IA - GERAR TREINO (OpenRouter - Free)
+  // ENDPOINT IA - GERAR TREINO (Groq - Free)
   if (url?.includes('/ia/gerar-treino') && method === 'POST') {
     const { prompt } = req.body;
     if (!prompt) {
       return res.status(400).json({ erro: "Prompt é obrigatório" });
     }
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ erro: "API key não configurada", detalhes: "OPENROUTER_API_KEY não está definida" });
+      return res.status(500).json({ erro: "API key não configurada", detalhes: "GROQ_API_KEY não está definida" });
     }
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': 'https://fitness-tech.vercel.app',
-          'X-Title': 'FitnessTech',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'qwen/qwen-2.5-7b-instruct:free',
+          model: 'llama-3.1-8b-instant',
           messages: [{ role: 'user', content: prompt }]
         })
       });
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData?.error?.message || `Erro OpenRouter: ${response.status}`);
+        throw new Error(errData?.error?.message || `Erro Groq: ${response.status}`);
       }
       const data = await response.json();
       const treino = data.choices?.[0]?.message?.content || 'Não foi possível gerar resposta.';
