@@ -4435,6 +4435,56 @@ const StudentModule = ({ user, view, setView, products, addToCart, cartCount, se
   const [iaType, setIaType] = useState<'treino' | 'dieta'>('treino');
   const [iaConfig, setIaConfig] = useState({ objetivo: '', restricoes: '', diasTreino: 3 });
   const [isGeneratingIA, setIsGeneratingIA] = useState(false);
+  // Estado para cadastro manual de treino
+  const [showManualTreinoModal, setShowManualTreinoModal] = useState(false);
+  const [manualTreino, setManualTreino] = useState({ titulo: '', exercicios: [{ nome: '', series: '', reps: '', obs: '' }], observacoes: '' });
+
+  // Função para salvar treino manual
+  const salvarTreinoManual = async () => {
+    if (!manualTreino.titulo.trim()) {
+      alert('Informe o titulo do treino');
+      return;
+    }
+    const token = localStorage.getItem('fitness_token') || localStorage.getItem('fitness_auth_token');
+    if (!token) {
+      alert('Sessao expirada, faca login novamente');
+      return;
+    }
+    try {
+      await salvarHistoricoTreino(token, {
+        titulo: manualTreino.titulo,
+        exercicios: manualTreino.exercicios.filter((e: any) => e.nome.trim()),
+        observacoes: manualTreino.observacoes
+      });
+      setManualTreino({ titulo: '', exercicios: [{ nome: '', series: '', reps: '', obs: '' }], observacoes: '' });
+      setShowManualTreinoModal(false);
+      alert('Treino cadastrado com sucesso!');
+      recarregarTreinos();
+    } catch (error) {
+      console.error('Erro ao salvar treino manual:', error);
+      alert('Erro ao cadastrar treino');
+    }
+  };
+
+  const addExercicioManual = () => {
+    setManualTreino({
+      ...manualTreino,
+      exercicios: [...manualTreino.exercicios, { nome: '', series: '', reps: '', obs: '' }]
+    });
+  };
+
+  const removeExercicioManual = (idx: number) => {
+    setManualTreino({
+      ...manualTreino,
+      exercicios: manualTreino.exercicios.filter((_: any, i: number) => i !== idx)
+    });
+  };
+
+  const updateExercicioManual = (idx: number, field: string, value: string) => {
+    const nuevos = [...manualTreino.exercicios];
+    nuevos[idx] = { ...nuevos[idx], [field]: value };
+    setManualTreino({ ...manualTreino, exercicios: nuevos });
+  };
   
   // Estados para dados do banco
   const [historicoTreinos, setHistoricoTreinos] = useState<any[]>([]);
@@ -4967,13 +5017,22 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
              setSelectedDay={setSelectedDayWorkout} 
              days={DAYS_SHORT}
              headerButton={
-               <button
-                 onClick={() => { setIaType('treino'); setShowIAModal(true); }}
-                 className="w-full bg-lime-400 active:bg-lime-300 text-black px-4 py-3.5 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all"
-               >
-                 <Sparkles size={16} />
-                 Gerar Treino IA
-               </button>
+               <div className="flex flex-col gap-2">
+                 <button
+                   onClick={() => setShowManualTreinoModal(true)}
+                   className="w-full bg-zinc-100 active:bg-white text-black px-4 py-3.5 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all"
+                 >
+                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                   Cadastrar Treino
+                 </button>
+                 <button
+                   onClick={() => { setIaType('treino'); setShowIAModal(true); }}
+                   className="w-full bg-lime-400 active:bg-lime-300 text-black px-4 py-3.5 rounded-2xl font-black uppercase text-[11px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all"
+                 >
+                   <Sparkles size={16} />
+                   Gerar Treino IA
+                 </button>
+               </div>
              }
            >
              <WorkoutDetailCard 
@@ -5134,6 +5193,100 @@ Crie 5-6 refeições balanceadas por dia. Seja específico nas quantidades.`;
                       <span>Gerar {iaType === 'treino' ? 'Treino' : 'Dieta'}</span>
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Cadastro Manual de Treino */}
+        {showManualTreinoModal && (
+          <div className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={() => setShowManualTreinoModal(false)}>
+            <div className="w-full sm:max-w-lg bg-zinc-950 sm:rounded-3xl rounded-t-3xl border border-zinc-800 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+              <div className="sticky top-0 bg-zinc-950 border-b border-zinc-800 p-4 sm:p-6 flex items-center justify-between z-10">
+                <h3 className="sm:text-xl text-lg font-black text-white flex items-center gap-2">Cadastrar Treino</h3>
+                <button onClick={() => setShowManualTreinoModal(false)} className="size-10 bg-zinc-950 border border-zinc-800 rounded-xl flex items-center justify-center text-zinc-400 active:bg-zinc-800 transition-all">X</button>
+              </div>
+              <div className="p-4 sm:p-6 space-y-4">
+                {/* Titulo */}
+                <div>
+                  <label className="text-sm font-bold text-zinc-300 block mb-2">Titulo do Treino</label>
+                  <input
+                    type="text"
+                    value={manualTreino.titulo}
+                    onChange={e => setManualTreino({...manualTreino, titulo: e.target.value})}
+                    placeholder="Ex: Treino A - Peito e Triceps"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                  />
+                </div>
+                {/* Exercicios */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-bold text-zinc-300">Exercicios</label>
+                    <button onClick={addExercicioManual} className="text-lime-400 text-sm font-black flex items-center gap-1">
+                      + Adicionar
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {manualTreino.exercicios.map((ex: any, idx: number) => (
+                      <div key={idx} className="bg-zinc-900 border border-zinc-800 rounded-xl p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-zinc-500">Exercicio {idx + 1}</span>
+                          {manualTreino.exercicios.length > 1 && (
+                            <button onClick={() => removeExercicioManual(idx)} className="text-red-400 text-xs font-bold">Remover</button>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          value={ex.nome}
+                          onChange={e => updateExercicioManual(idx, 'nome', e.target.value)}
+                          placeholder="Nome do exercicio"
+                          className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={ex.series}
+                            onChange={e => updateExercicioManual(idx, 'series', e.target.value)}
+                            placeholder="Series"
+                            className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                          />
+                          <input
+                            type="text"
+                            value={ex.reps}
+                            onChange={e => updateExercicioManual(idx, 'reps', e.target.value)}
+                            placeholder="Reps"
+                            className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={ex.obs || ''}
+                          onChange={e => updateExercicioManual(idx, 'obs', e.target.value)}
+                          placeholder="Obs (opcional)"
+                          className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Observacoes */}
+                <div>
+                  <label className="text-sm font-bold text-zinc-300 block mb-2">Observacoes</label>
+                  <textarea
+                    rows={3}
+                    value={manualTreino.observacoes}
+                    onChange={e => setManualTreino({...manualTreino, observacoes: e.target.value})}
+                    placeholder="Notas sobre o treino (opcional)"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white outline-none focus:border-lime-400 transition-colors placeholder:text-zinc-600 resize-none"
+                  />
+                </div>
+                {/* Botao Salvar */}
+                <button
+                  onClick={salvarTreinoManual}
+                  className="w-full bg-lime-400 text-black py-4 rounded-2xl font-black uppercase text-sm tracking-widest active:scale-[0.98] transition-all shadow-xl shadow-lime-400/20"
+                >
+                  Salvar Treino
                 </button>
               </div>
             </div>
